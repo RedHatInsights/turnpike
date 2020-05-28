@@ -1,0 +1,27 @@
+version: '3.7'
+
+services:
+  web:
+    build: ./services/web
+    ports:
+      - 5000:5000
+    env_file:
+      - ./.env
+    hostname: web
+    networks:
+      mynet:
+        aliases:
+          - web
+  nginx:
+    build: ./services/nginx
+    ports:
+      - 8080:8080
+    depends_on:
+      - web
+    hostname: nginx
+    networks:
+      mynet:
+        aliases:
+          - nginx
+networks:
+  mynet:

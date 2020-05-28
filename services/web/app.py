@@ -3,16 +3,7 @@ from flask import Flask, request, make_response, url_for, session
 from datetime import timedelta
 
 from flask_saml2.sp import ServiceProvider, IdPHandler
-from flask_saml2.utils import certificate_from_file, private_key_from_file
 from flask_saml2.sp.idphandler import AuthData
-
-IDP_CERTIFICATE = certificate_from_file('certs/idp-certificate.pem')
-CERTIFICATE = certificate_from_file('certs/sp-certificate.pem')
-PRIVATE_KEY = private_key_from_file('certs/sp-private-key.pem')
-SECRET_KEY = os.environ.get('SECRET_KEY')
-
-if not SECRET_KEY:
-    raise ValueError('No SECRET_KEY set.')
 
 class RedHatSSOIdP(IdPHandler):
     pass
@@ -26,27 +17,8 @@ class GatewayServiceProvider(ServiceProvider):
 
 
 app = Flask(__name__)
-app.secret_key = SECRET_KEY
-app.config['SERVER_NAME'] = 'nginx:8080'
-
-app.config['SAML2_SP'] = {
-    'certificate': CERTIFICATE,
-    'private_key': PRIVATE_KEY,
-}
-
-app.config['SAML2_IDENTITY_PROVIDERS'] = [
-    {
-        'CLASS': 'app.RedHatSSOIdP',
-        'OPTIONS': {
-            'display_name': os.environ.get('IDP_NAME'),
-            'entity_id': os.environ.get('ENTITY_ID'),
-            'sso_url': os.environ.get('SSO_URL'),
-            'slo_url': os.environ.get('SLO_URL'),
-            'certificate': IDP_CERTIFICATE,
-        },
-    },
-]
-
+app.config.from_object('config')
+app.secret_key = os.environ.get('SECRET_KEY')
 sp = GatewayServiceProvider()
 app.register_blueprint(sp.create_blueprint(), url_prefix='/saml/')
 

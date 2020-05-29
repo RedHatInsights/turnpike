@@ -1,20 +1,7 @@
 import os
-from flask import Flask, request, make_response, url_for, session
-from datetime import timedelta
+from flask import Flask, request, make_response, url_for
 
-from flask_saml2.sp import ServiceProvider, IdPHandler
-from flask_saml2.sp.idphandler import AuthData
-
-class RedHatSSOIdP(IdPHandler):
-    pass
-
-class GatewayServiceProvider(ServiceProvider):
-    def get_logout_return_url(self):
-        return url_for('auth', _external=True)
-
-    def get_default_login_return_url(self):
-        return url_for('auth', _external=True)
-
+from patches import RedHatSSOIdP, GatewayServiceProvider
 
 app = Flask(__name__)
 app.config.from_object('config')

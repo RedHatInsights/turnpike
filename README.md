@@ -40,5 +40,8 @@ To run local unit tests:
 $ pytest
 ```
 
+## Linting/pre-commit
+Linting will run automatically with `black` in a pre-commit hook, but you'll need to run `pre-commit install` first.
+
 ## Resources
 Documentation for `flask-saml2`: https://flask-saml2.readthedocs.io/en/latest/sp/configuration.html

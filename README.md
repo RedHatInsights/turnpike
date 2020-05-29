@@ -1,4 +1,6 @@
 # Turnpike
+
+## Overview
 This is an internal gateway used to authenticate Red Hat associates against internal
 Red Hat SSO, along with an auth/policy service to handle SAML authentication and
 provide ACL-based authorization.
@@ -9,6 +11,8 @@ provide ACL-based authorization.
 There is a `.env.example` file which can be used as a starter for your local `.env`
 
 ### Dependencies
+Install the local pip dependencies (e.g.: `pipenv install`)
+
 In order to fully test the stack, you'll need the following setup:
 - an IdP (you can use the simple example IdP from the [flask-saml2 project](https://github.com/timheap/flask-saml2/blob/master/examples/idp.py))
 - the following environment variables setup in your `.env`:
@@ -28,6 +32,12 @@ services/web/certs/sp-private-key.pem # private key for the SP
 ```
 $ ./scripts/start
 $ ./scripts/stop
+```
+
+## Testing
+To run local unit tests:
+```
+$ pytest
 ```
 
 ## Resources

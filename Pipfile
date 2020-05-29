@@ -9,6 +9,7 @@ verify_ssl = true
 flask-cookie-decode = "*"
 flask-saml2 = "*"
 Flask = "*"
+pytest = "*"
 
 [requires]
 python_version = "3.7"

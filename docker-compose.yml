@@ -8,6 +8,10 @@ services:
     env_file:
       - ./.env
     hostname: web
+    privileged: true
+    volumes:
+      - "./services/web:/usr/src/app/"
+    command: ["flask", "run", "--reload"]
     networks:
       mynet:
         aliases:
@@ -15,7 +19,7 @@ services:
   nginx:
     build: ./services/nginx
     ports:
-      - 8080:8080
+      - 443:8443
     depends_on:
       - web
     hostname: nginx

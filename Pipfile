@@ -7,11 +7,11 @@ verify_ssl = true
 
 [packages]
 flask-cookie-decode = "*"
-flask-saml2 = "*"
 Flask = "*"
 pytest = "*"
 pre-commit = "*"
 black = "*"
+python3-saml = "*"
 
 [requires]
 python_version = "3.6"

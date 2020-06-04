@@ -13,20 +13,17 @@ There is a `.env.example` file which can be used as a starter for your local `.e
 ### Dependencies
 Install the local pip dependencies (e.g.: `pipenv install`)
 
-In order to fully test the stack, you'll need the following setup:
-- an IdP (you can use the simple example IdP from the [flask-saml2 project](https://github.com/timheap/flask-saml2/blob/master/examples/idp.py))
-- the following environment variables setup in your `.env`:
-```
-ENTITY_ID # the endpoint of your IdP to expose metadata
-SSO_URL # the SAML login URL of your IdP
-SLO_URL # the SAML logout URL of your IdP
-```
-- the following certs (locally if you're using the flask-saml2 example IdP, you can use the [certs from the example](https://github.com/timheap/flask-saml2/tree/master/tests/keys/sample)):
-```
-services/web/certs/idp-certificate.pem # cert for the IdP
-services/web/certs/sp-certificate.pem # cert for the SP
-services/web/certs/sp-private-key.pem # private key for the SP
-```
+In order to fully test the stack, you'll need to do the following:
+- Select or configure an IdP. You can use the reference IdP available at https://samltest.id/
+- Obtain an SSL certificate with your hostname (e.g. from LetsEncrypt) or generate one
+- Put a copy in `services/nginx/certs` as the files `cert.pem` and `key.pem`
+- Configure the `python3-saml` library in `services/web/saml` with your IdP and cert
+  - documentation [here](https://github.com/onelogin/python3-saml#how-it-works)
+  - Your SP entity ID is  `https://<hostname>/saml/metadata.xml`
+  - Your ACS URL is `https://<hostname>/saml/acs/`
+  - Your SLS URL is `https://<hostname>/saml/sls/`
+
+A successful test should return "PONG" when you hit `https://<hostname>/api/ping-service/ping` in your browser.
 
 ### Start/stop the gateway and auth service with Docker Compose
 ```

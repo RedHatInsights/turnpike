@@ -142,6 +142,7 @@ class AuthView(views.MethodView):
 
         if "samlUserdata" in session:
             auth_data = session["samlUserdata"].items()
+            print(f"SAML auth_data: {auth_data}")
             return make_response("Authorized", 200)
         else:
             next_url = request.headers.get("X-Original-Uri")

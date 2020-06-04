@@ -1,2 +1,4 @@
 .env
-services/web/certs/*
+/services/nginx/certs/
+/services/web/saml/
+*.pyc

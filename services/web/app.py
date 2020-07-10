@@ -39,7 +39,7 @@ class SAMLView(views.MethodView):
         url_data = urlparse(request.url)
         return {
             "https": "on" if request.scheme == "https" else "off",
-            "http_host": request.headers.get("X-Forwarded-Host", ""),
+            "http_host": request.headers.get("X-Forwarded-Host", request.headers.get("Host", "")),
             "server_port": url_data.port,
             "script_name": request.path,
             "get_data": request.args.copy(),

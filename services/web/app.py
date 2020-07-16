@@ -5,6 +5,7 @@ import os
 from urllib.parse import urlparse
 
 from flask import Flask, request, make_response, url_for, session, views, redirect
+from healthcheck import HealthCheck
 from werkzeug.middleware.proxy_fix import ProxyFix
 from onelogin.saml2.auth import OneLogin_Saml2_Auth
 from onelogin.saml2.utils import OneLogin_Saml2_Utils
@@ -194,6 +195,9 @@ app.add_url_rule("/saml/acs/", view_func=ACSView.as_view("saml-acs", app.config[
 app.add_url_rule("/saml/sls/", view_func=SLSView.as_view("saml-sls", app.config["SAML_PATH"]))
 app.add_url_rule("/auth/", view_func=AuthView.as_view("auth"))
 
+health = HealthCheck()
+
+app.add_url_rule("/_healthcheck/", view_func=health.run)
 
 #######################
 ### MOCKED SERVICES ###

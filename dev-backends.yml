@@ -1,0 +1,5 @@
+- name: ping
+  route: /api/ping-service
+  origin: http://web:5000/api/ping-service
+  auth:
+    saml: "True"

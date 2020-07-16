@@ -1,2 +1,3 @@
 flask
 python3-saml
+pyyaml

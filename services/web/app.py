@@ -1,10 +1,14 @@
+import base64
 import contextlib
+import json
+import os
 from urllib.parse import urlparse
 
 from flask import Flask, request, make_response, url_for, session, views, redirect
 from werkzeug.middleware.proxy_fix import ProxyFix
 from onelogin.saml2.auth import OneLogin_Saml2_Auth
 from onelogin.saml2.utils import OneLogin_Saml2_Utils
+import yaml
 
 from logging.config import dictConfig
 
@@ -135,15 +139,34 @@ class SLSView(SAMLView):
 
 
 class AuthView(views.MethodView):
-    def get(self):
-        print("Begin auth")
-        if request.headers.get("X-Original-Uri", "").startswith("/saml/"):
-            return make_response("Authorized", 200)
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.backends = dict()
+        with open(os.environ["BACKENDS_CONFIG_MAP"]) as ifs:
+            backends_list = yaml.safe_load(ifs)
+        for backend in backends_list:
+            if "auth" in backend:
+                self.backends[backend["route"]] = backend["auth"]
 
+    def make_identity_header(self, identity_type, auth_data):
+        header_data = dict(type=identity_type, **auth_data)
+        print(header_data)
+        return base64.encodebytes(json.dumps(header_data).encode("utf8")).replace(b"\n", b"")
+
+    def auth_saml(self, auth):
         if "samlUserdata" in session:
             auth_data = session["samlUserdata"].items()
             print(f"SAML auth_data: {auth_data}")
-            return make_response("Authorized", 200)
+            predicate = auth["saml"]
+            authorized = eval(predicate, dict(user=auth_data))
+            if authorized:
+                resp = make_response("Authorized", 200)
+                resp.headers["X-RH-Identity"] = self.make_identity_header(
+                    "associate", dict(user={k: v if len(v) > 1 else v[0] for k, v in auth_data})
+                )
+                return resp
+            else:
+                return make_response("Forbidden", 403)
         else:
             next_url = request.headers.get("X-Original-Uri")
             login_url = url_for("saml-login", next=next_url)
@@ -151,6 +174,18 @@ class AuthView(views.MethodView):
             resp = make_response("Unauthorized", 401)
             resp.headers["login_url"] = login_url
             return resp
+
+    def get(self):
+        print("Begin auth")
+        original_url = request.headers["X-Original-Uri"]
+        matches = [route for route in self.backends.keys() if original_url.startswith(route)]
+        backend_name = max(matches, key=lambda match: len(match))
+        print(f"Matched backend: {backend_name}")
+        backend = self.backends[backend_name]
+        if "saml" in backend:
+            return self.auth_saml(backend)
+        # elif 'x509' in backend:
+        #    (Once we have mTLS auth ready)
 
 
 app.add_url_rule("/saml/metadata.xml", view_func=MetadataView.as_view("saml-metadata", app.config["SAML_PATH"]))

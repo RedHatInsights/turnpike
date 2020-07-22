@@ -4,14 +4,17 @@ url = "https://pypi.org/simple"
 verify_ssl = true
 
 [dev-packages]
+flake8 = "*"
+pytest = "*"
+black = "*"
+pre-commit = "*"
 
 [packages]
 flask-cookie-decode = "*"
 Flask = "*"
-pytest = "*"
-pre-commit = "*"
-black = "*"
 python3-saml = "*"
+flask-session = "==0.3.2"
+redis = "*"
 
 [requires]
 python_version = "3.6"

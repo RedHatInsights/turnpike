@@ -30,5 +30,12 @@ services:
       mynet:
         aliases:
           - nginx
+  redis:
+    image: redis:6
+    hostname: redis
+    networks:
+      mynet:
+        aliases:
+          - redis
 networks:
   mynet:

@@ -17,8 +17,16 @@ dictConfig(
     {
         "version": 1,
         "formatters": {"default": {"format": "[%(asctime)s] %(levelname)s in %(module)s: %(message)s"}},
-        "handlers": {"console": {"class": "logging.StreamHandler", "formatter": "default"}},
-        "root": {"level": "INFO", "handlers": ["console"]},
+        "handlers": {
+            "console": {"class": "logging.StreamHandler", "formatter": "default", "level": "DEBUG"},
+            "wsgi": {
+                "class": "logging.StreamHandler",
+                "stream": "ext://flask.logging.wsgi_errors_stream",
+                "formatter": "default",
+                "level": "DEBUG",
+            },
+        },
+        "root": {"level": "DEBUG" if os.environ.get("FLASK_ENV") == "development" else "INFO", "handlers": ["wsgi"]},
     }
 )
 
@@ -101,10 +109,10 @@ class ACSView(SAMLView):
                 self_url = OneLogin_Saml2_Utils.get_self_url(ctx.req)
                 if "RelayState" in request.form and self_url != request.form["RelayState"]:
                     relay_state = ctx.auth.redirect_to(request.form["RelayState"])
-                    print(f"Redirecting to {relay_state}")
+                    app.logger.debug(f"Redirecting to {relay_state}")
                     return redirect(relay_state)
                 else:
-                    print("Redirecting to index")
+                    app.logger.debug("Redirecting to index")
                     return redirect("/")
             else:
                 if ctx.auth.get_settings().is_debug_active():
@@ -149,21 +157,21 @@ class AuthView(views.MethodView):
             if "auth" in backend:
                 self.backends[backend["route"]] = backend["auth"]
 
-    def make_identity_header(self, identity_type, auth_data):
-        header_data = dict(type=identity_type, **auth_data)
-        print(header_data)
+    def make_identity_header(self, identity_type, auth_type, auth_data):
+        header_data = dict(type=identity_type, auth_type=auth_type, **{identity_type.lower(): auth_data})
+        app.logger.debug(header_data)
         return base64.encodebytes(json.dumps(header_data).encode("utf8")).replace(b"\n", b"")
 
     def auth_saml(self, auth):
         if "samlUserdata" in session:
             auth_data = session["samlUserdata"].items()
-            print(f"SAML auth_data: {auth_data}")
+            app.logger.debug(f"SAML auth_data: {auth_data}")
             predicate = auth["saml"]
             authorized = eval(predicate, dict(user=auth_data))
             if authorized:
                 resp = make_response("Authorized", 200)
                 resp.headers["X-RH-Identity"] = self.make_identity_header(
-                    "associate", dict(user={k: v if len(v) > 1 else v[0] for k, v in auth_data})
+                    "Associate", "saml-auth", {k: v if len(v) > 1 else v[0] for k, v in auth_data}
                 )
                 return resp
             else:
@@ -177,11 +185,11 @@ class AuthView(views.MethodView):
             return resp
 
     def get(self):
-        print("Begin auth")
+        app.logger.debug("Begin auth")
         original_url = request.headers["X-Original-Uri"]
         matches = [route for route in self.backends.keys() if original_url.startswith(route)]
         backend_name = max(matches, key=lambda match: len(match))
-        print(f"Matched backend: {backend_name}")
+        app.logger.debug(f"Matched backend: {backend_name}")
         backend = self.backends[backend_name]
         if "saml" in backend:
             return self.auth_saml(backend)

@@ -28,14 +28,14 @@ def main(args):
         template = jinja2.Template(ifs.read())
     for backend in backends:
         name = backend["name"]
-        print(f"Processing backend configuration for {name}")
+        app.logger.info(f"Processing backend configuration for {name}")
         route = backend["route"]
         if route.strip("/") in FORBIDDEN_ROUTES:
             warnings.warn(f"Forbidden route found in config map: {route} - skipping.")
 
         with open(os.path.join(args.nginx_confd_dir, f"{name}.conf"), "w") as ofs:
             ofs.write(template.render(**backend))
-    print("Done.")
+    app.logger.info("Done.")
 
 
 if __name__ == "__main__":

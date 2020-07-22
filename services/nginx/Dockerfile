@@ -7,5 +7,6 @@ RUN chmod g+rwx /var/cache/nginx /var/run /var/log/nginx && \
     apt-get remove --purge --auto-remove -y && rm -rf /var/lib/apt/lists/*
 
 COPY . /etc/nginx
+RUN chmod g+rwx /etc/nginx
 COPY turnpike-entrypoint.sh /docker-entrypoint.d/turnpike-entrypoint.sh
 ENV BACKENDS_CONFIG_MAP=/etc/turnpike/backends.yml

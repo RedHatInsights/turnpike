@@ -11,6 +11,7 @@ services:
     privileged: true
     volumes:
       - "./services/web:/usr/src/app/"
+      - "./dev-backends.yml:/etc/turnpike/backends.yml"
     command: ["flask", "run", "--reload"]
     networks:
       mynet:
@@ -23,6 +24,8 @@ services:
     depends_on:
       - web
     hostname: nginx
+    volumes:
+      - "./dev-backends.yml:/etc/turnpike/backends.yml"
     networks:
       mynet:
         aliases:

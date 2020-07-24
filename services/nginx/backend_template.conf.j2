@@ -1,0 +1,13 @@
+    location {{ route }} {
+        {% if auth %}
+            auth_request     /auth/;
+            auth_request_set $login_url $upstream_http_login_url;
+        {% endif %}
+        proxy_pass              {{ origin }};
+        proxy_set_header        X-Original-URI $request_uri;
+        proxy_set_header        X-Real-IP $remote_addr;
+        proxy_set_header        X-Forwarded-Host $proxy_host;
+        proxy_set_header        X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header        X-Forwarded-Port 443;
+        proxy_set_header        X-Forwarded-Proto $scheme;
+    }

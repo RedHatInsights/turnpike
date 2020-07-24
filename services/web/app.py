@@ -1,10 +1,15 @@
+import base64
 import contextlib
+import json
+import os
 from urllib.parse import urlparse
 
 from flask import Flask, request, make_response, url_for, session, views, redirect
+from healthcheck import HealthCheck
 from werkzeug.middleware.proxy_fix import ProxyFix
 from onelogin.saml2.auth import OneLogin_Saml2_Auth
 from onelogin.saml2.utils import OneLogin_Saml2_Utils
+import yaml
 
 from logging.config import dictConfig
 
@@ -12,8 +17,16 @@ dictConfig(
     {
         "version": 1,
         "formatters": {"default": {"format": "[%(asctime)s] %(levelname)s in %(module)s: %(message)s"}},
-        "handlers": {"console": {"class": "logging.StreamHandler", "formatter": "default"}},
-        "root": {"level": "INFO", "handlers": ["console"]},
+        "handlers": {
+            "console": {"class": "logging.StreamHandler", "formatter": "default", "level": "DEBUG"},
+            "wsgi": {
+                "class": "logging.StreamHandler",
+                "stream": "ext://flask.logging.wsgi_errors_stream",
+                "formatter": "default",
+                "level": "DEBUG",
+            },
+        },
+        "root": {"level": "DEBUG" if os.environ.get("FLASK_ENV") == "development" else "INFO", "handlers": ["wsgi"]},
     }
 )
 
@@ -96,10 +109,10 @@ class ACSView(SAMLView):
                 self_url = OneLogin_Saml2_Utils.get_self_url(ctx.req)
                 if "RelayState" in request.form and self_url != request.form["RelayState"]:
                     relay_state = ctx.auth.redirect_to(request.form["RelayState"])
-                    print(f"Redirecting to {relay_state}")
+                    app.logger.debug(f"Redirecting to {relay_state}")
                     return redirect(relay_state)
                 else:
-                    print("Redirecting to index")
+                    app.logger.debug("Redirecting to index")
                     return redirect("/")
             else:
                 if ctx.auth.get_settings().is_debug_active():
@@ -135,15 +148,36 @@ class SLSView(SAMLView):
 
 
 class AuthView(views.MethodView):
-    def get(self):
-        print("Begin auth")
-        if request.headers.get("X-Original-Uri", "").startswith("/saml/"):
-            return make_response("Authorized", 200)
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.backends = dict()
+        with open(os.environ["BACKENDS_CONFIG_MAP"]) as ifs:
+            backends_list = yaml.safe_load(ifs)
+        for backend in backends_list:
+            if "auth" in backend:
+                self.backends[backend["route"]] = backend["auth"]
 
+    def make_identity_header(self, identity_type, auth_type, auth_data):
+        header_data = dict(
+            identity=dict(type=identity_type, auth_type=auth_type, **{identity_type.lower(): auth_data})
+        )
+        app.logger.debug(header_data)
+        return base64.encodebytes(json.dumps(header_data).encode("utf8")).replace(b"\n", b"")
+
+    def auth_saml(self, auth):
         if "samlUserdata" in session:
             auth_data = session["samlUserdata"].items()
-            print(f"SAML auth_data: {auth_data}")
-            return make_response("Authorized", 200)
+            app.logger.debug(f"SAML auth_data: {auth_data}")
+            predicate = auth["saml"]
+            authorized = eval(predicate, dict(user=auth_data))
+            if authorized:
+                resp = make_response("Authorized", 200)
+                resp.headers["X-RH-Identity"] = self.make_identity_header(
+                    "Associate", "saml-auth", {k: v if len(v) > 1 else v[0] for k, v in auth_data}
+                )
+                return resp
+            else:
+                return make_response("Forbidden", 403)
         else:
             next_url = request.headers.get("X-Original-Uri")
             login_url = url_for("saml-login", next=next_url)
@@ -152,6 +186,18 @@ class AuthView(views.MethodView):
             resp.headers["login_url"] = login_url
             return resp
 
+    def get(self):
+        app.logger.debug("Begin auth")
+        original_url = request.headers["X-Original-Uri"]
+        matches = [route for route in self.backends.keys() if original_url.startswith(route)]
+        backend_name = max(matches, key=lambda match: len(match))
+        app.logger.debug(f"Matched backend: {backend_name}")
+        backend = self.backends[backend_name]
+        if "saml" in backend:
+            return self.auth_saml(backend)
+        # elif 'x509' in backend:
+        #    (Once we have mTLS auth ready)
+
 
 app.add_url_rule("/saml/metadata.xml", view_func=MetadataView.as_view("saml-metadata", app.config["SAML_PATH"]))
 app.add_url_rule("/saml/login/", view_func=LoginView.as_view("saml-login", app.config["SAML_PATH"]))
@@ -159,6 +205,9 @@ app.add_url_rule("/saml/acs/", view_func=ACSView.as_view("saml-acs", app.config[
 app.add_url_rule("/saml/sls/", view_func=SLSView.as_view("saml-sls", app.config["SAML_PATH"]))
 app.add_url_rule("/auth/", view_func=AuthView.as_view("auth"))
 
+health = HealthCheck()
+
+app.add_url_rule("/_healthcheck/", view_func=health.run)
 
 #######################
 ### MOCKED SERVICES ###

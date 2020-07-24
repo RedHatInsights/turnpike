@@ -158,7 +158,9 @@ class AuthView(views.MethodView):
                 self.backends[backend["route"]] = backend["auth"]
 
     def make_identity_header(self, identity_type, auth_type, auth_data):
-        header_data = dict(type=identity_type, auth_type=auth_type, **{identity_type.lower(): auth_data})
+        header_data = dict(
+            identity=dict(type=identity_type, auth_type=auth_type, **{identity_type.lower(): auth_data})
+        )
         app.logger.debug(header_data)
         return base64.encodebytes(json.dumps(header_data).encode("utf8")).replace(b"\n", b"")
 

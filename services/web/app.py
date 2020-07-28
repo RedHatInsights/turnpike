@@ -2,6 +2,7 @@ import base64
 import contextlib
 import json
 import os
+import pprint
 from urllib.parse import urlparse
 
 from flask import Flask, request, make_response, url_for, session, views, redirect
@@ -214,4 +215,12 @@ app.add_url_rule("/_healthcheck/", view_func=health.run)
 #######################
 @app.route("/api/ping-service/ping")
 def ping():
-    return make_response("PONG!", 200)
+    response = "PONG!\n\n"
+    if request.headers.get("X-Rh-Identity"):
+        try:
+            response += pprint.pformat(json.loads(base64.decodebytes(request.headers["X-Rh-Identity"].encode("utf8"))))
+        except Exception as e:
+            response += f"(Error decoding identity header: {e})"
+    else:
+        response += "(No identity header found.)"
+    return make_response(response, 200)

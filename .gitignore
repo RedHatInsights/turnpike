@@ -2,3 +2,4 @@
 /services/nginx/certs/
 /services/web/saml/
 *.pyc
+docs/*.png

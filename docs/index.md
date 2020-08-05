@@ -35,7 +35,7 @@ Then in your copy of the Turnpike code, in `services/web/saml` create the follow
 2. `certs/sp.crt` - The PEM encoded certificate for your Turnpike install
 3. `certs/sp.key` - The PEM encoded private key for your Turnpike install
 4. `settings.json`- The metadata settings for the IdP and SP (an [example][settings-example])
-5. `advanced_settings.json` - Advanced SAML settings for the IdP and SP
+5. `advanced_settings.json` - Advanced SAML settings for the IdP and SP (an [example][adv-settings-example])
 
 You can fill out the latter two by finding corresponding fields in your IdP's metadata file and with collaboration with
 their staff. For the Service Provider urls, you should use the following paths relative to your Turnpike hostname:

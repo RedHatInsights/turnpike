@@ -6,6 +6,7 @@ from urllib.parse import urlparse
 
 from flask import Flask, request, make_response, url_for, session, views, redirect
 from healthcheck import HealthCheck
+from flask_session import Session
 from werkzeug.middleware.proxy_fix import ProxyFix
 from onelogin.saml2.auth import OneLogin_Saml2_Auth
 from onelogin.saml2.utils import OneLogin_Saml2_Utils
@@ -33,6 +34,9 @@ dictConfig(
 app = Flask(__name__)
 app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1, x_port=1)
 app.config.from_object("config")
+
+session_obj = Session()
+session_obj.init_app(app)
 
 
 class Context:

@@ -53,7 +53,13 @@ combination of ConfigMap and Secret resources mounted into your running pods.
 Running Using Docker Compose
 ----------------------------
 
-The simplest way to run Turnpike locally is using Docker Compose. From the root of your copy of Turnpike, simply run:
+The simplest way to run Turnpike locally is using Docker Compose.
+
+First, you need to set proper environment variables. Copy the `.env.example` file to `.env` and customize it. You'll
+need to generate a secret key for session security and you'll need to set the `SERVER_NAME` to the hostname you're
+using for your SAML Service Provider, the same as the subject in your SP certificate.
+
+Then, from the root of your copy of Turnpike, simply run:
 
     docker-compose build
     docker-compose up

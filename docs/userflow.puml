@@ -13,8 +13,10 @@ Nginx -> policy_service: GET /auth
 note left: Nginx asks the Policy Service to authn/authz
 policy_service -> Nginx: 401 Unauthorized
 note right: Policy Service sees no active session
-Nginx -> policy_service: GET /saml/login
+Nginx -> rh_associate: Redirect to /saml/login
 note left: 401 error page mapped to login
+rh_associate -> Nginx: GET /saml/login
+Nginx -> policy_service: GET /saml/login
 policy_service -> Nginx: Redirect to RH SSO
 Nginx -> rh_associate: Redirect to RH SSO
 rh_associate -> rh_sso: Go through login flow

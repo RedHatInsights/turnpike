@@ -30,6 +30,10 @@ services:
       mynet:
         aliases:
           - nginx
+    environment:
+      NGINX_PORT: 8443 ssl
+      NGINX_SERVER_NAME: nginx
+      FLASK_SERVICE_URL: http://web:5000
   redis:
     image: redis:6
     hostname: redis

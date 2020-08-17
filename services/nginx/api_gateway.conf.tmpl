@@ -1,0 +1,42 @@
+server {
+    listen       $NGINX_PORT default_server;
+    server_name  $NGINX_SERVER_NAME;
+    ssl_certificate certs/cert.pem;
+    ssl_certificate_key certs/key.pem;
+    include      api_conf.d/*.conf;
+    set          ${VAR}proxy_host ${VAR}http_x_rh_insights_forwarded_host;
+
+    if (${VAR}proxy_host = "") {
+        set ${VAR}proxy_host ${VAR}host;
+    }
+
+    location = /auth/ {
+        internal;
+
+        proxy_pass              $FLASK_SERVICE_URL;
+        proxy_pass_request_body off;
+        proxy_set_header        Content-Length "";
+        proxy_set_header        referer ${VAR}http_referer;
+        proxy_set_header        X-Original-URI ${VAR}request_uri;
+        proxy_set_header        X-Real-IP ${VAR}remote_addr;
+        proxy_set_header        X-Forwarded-Host ${VAR}proxy_host;
+        proxy_set_header        X-Forwarded-For ${VAR}proxy_add_x_forwarded_for;
+        proxy_set_header        X-Forwarded-Port 443;
+        proxy_set_header        X-Forwarded-Proto ${VAR}scheme;
+    }
+
+    location /saml/ {
+        proxy_pass              $FLASK_SERVICE_URL;
+        proxy_set_header        X-Original-URI ${VAR}request_uri;
+        proxy_set_header        X-Real-IP ${VAR}remote_addr;
+        proxy_set_header        X-Forwarded-Host ${VAR}proxy_host;
+        proxy_set_header        X-Forwarded-For ${VAR}proxy_add_x_forwarded_for;
+        proxy_set_header        X-Forwarded-Port 443;
+        proxy_set_header        X-Forwarded-Proto ${VAR}scheme;
+    }
+
+    error_page 401 = @error401;
+    location @error401 {
+        return 302 https://${VAR}proxy_host${VAR}login_url;
+    }
+}

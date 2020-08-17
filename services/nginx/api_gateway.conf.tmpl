@@ -1,8 +1,7 @@
 server {
     listen       $NGINX_PORT default_server;
     server_name  $NGINX_SERVER_NAME;
-    ssl_certificate certs/cert.pem;
-    ssl_certificate_key certs/key.pem;
+    $NGINX_SSL_CONFIG
     include      api_conf.d/*.conf;
     set          ${VAR}proxy_host ${VAR}http_x_rh_insights_forwarded_host;
 
@@ -22,7 +21,7 @@ server {
         proxy_set_header        X-Forwarded-Host ${VAR}proxy_host;
         proxy_set_header        X-Forwarded-For ${VAR}proxy_add_x_forwarded_for;
         proxy_set_header        X-Forwarded-Port 443;
-        proxy_set_header        X-Forwarded-Proto ${VAR}scheme;
+        proxy_set_header        X-Forwarded-Proto https;
     }
 
     location /saml/ {
@@ -32,11 +31,11 @@ server {
         proxy_set_header        X-Forwarded-Host ${VAR}proxy_host;
         proxy_set_header        X-Forwarded-For ${VAR}proxy_add_x_forwarded_for;
         proxy_set_header        X-Forwarded-Port 443;
-        proxy_set_header        X-Forwarded-Proto ${VAR}scheme;
+        proxy_set_header        X-Forwarded-Proto https;
     }
 
     error_page 401 = @error401;
     location @error401 {
-        return 302 https://${VAR}proxy_host${VAR}login_url;
+        return 302 ${VAR}scheme://${VAR}proxy_host${VAR}login_url;
     }
 }

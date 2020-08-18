@@ -9,6 +9,10 @@ server {
         set ${VAR}proxy_host ${VAR}host;
     }
 
+    location /_nginx/ {
+        return 200 "OK";
+    }
+
     location = /auth/ {
         internal;
 

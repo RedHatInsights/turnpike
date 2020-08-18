@@ -10,7 +10,7 @@ import yaml.error
 
 
 # Do not include leading or trailing slashes in these routes
-FORBIDDEN_ROUTES = ["", "saml", "auth"]
+FORBIDDEN_ROUTES = ["", "saml", "auth", "_nginx"]
 
 
 def main(args):

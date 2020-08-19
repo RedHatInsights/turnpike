@@ -92,7 +92,7 @@ parameters:
   displayName: Memory Request
   name: MEMORY_REQUEST
   required: true
-  value: 1Gi
+  value: 256Mi
 - description: Maximum amount of memory the container can use.
   displayName: Memory Limit
   name: MEMORY_LIMIT
@@ -112,7 +112,7 @@ parameters:
   displayName: Volume Capacity
   name: VOLUME_CAPACITY
   required: true
-  value: 1Gi
+  value: 512Mi
 - description: Image tag
   name: IMAGE_TAG
   required: true

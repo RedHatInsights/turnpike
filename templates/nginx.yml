@@ -1,0 +1,134 @@
+apiVersion: v1
+kind: Template
+labels:
+  app: turnpike
+  template: turnpike-nginx
+metadata:
+  annotations:
+    description: Turnpike API gateway - nginx setup
+  openshift.io/display-name: Turnpike Nginx
+  name: turnpike
+objects:
+- apiVersion: v1
+  kind: Service
+  metadata:
+    name: nginx
+  spec:
+    ports:
+    - name: ${NGINX_PORT}-tcp
+      port: ${{NGINX_PORT}}
+      protocol: TCP
+      targetPort: ${{NGINX_PORT}}
+    selector:
+      name: nginx
+- apiVersion: apps/v1
+  kind: Deployment
+  metadata:
+    name: nginx
+  spec:
+    replicas: 1
+    selector:
+      matchLabels:
+        name: nginx
+    template:
+      metadata:
+        labels:
+          name: nginx
+        name: nginx
+      spec:
+        containers:
+        - env:
+            - name: NGINX_PORT
+              value: "${NGINX_PORT} ssl"
+            - name: NGINX_SERVER_NAME
+              valueFrom:
+                configMapKeyRef:
+                  key: nginx-server-name
+                  name: turnpike-env
+            - name: FLASK_SERVICE_URL
+              valueFrom:
+                configMapKeyRef:
+                  key: flask-service-url
+                  name: turnpike-env
+            - name: NGINX_SSL_CONFIG
+              value: |
+                ssl_certificate certs/tls.crt;
+                ssl_certificate_key certs/tls.key;
+          image: quay.io/cloudservices/turnpike-nginx:${IMAGE_TAG}
+          imagePullPolicy: Always
+          livenessProbe:
+            failureThreshold: 3
+            httpGet:
+              path: /_nginx/
+              port: ${{NGINX_PORT}}
+              scheme: HTTPS
+            initialDelaySeconds: 60
+            periodSeconds: 10
+            successThreshold: 1
+            timeoutSeconds: 3
+          name: nginx
+          ports:
+          - containerPort: ${{NGINX_PORT}}
+            protocol: TCP
+          readinessProbe:
+            failureThreshold: 3
+            httpGet:
+              path: /_nginx/
+              port: ${{NGINX_PORT}}
+              scheme: HTTPS
+            initialDelaySeconds: 40
+            periodSeconds: 10
+            successThreshold: 1
+            timeoutSeconds: 3
+          resources:
+            limits:
+              cpu: ${CPU_LIMIT}
+              memory: ${MEMORY_LIMIT}
+            requests:
+              cpu: ${CPU_REQUEST}
+              memory: ${MEMORY_REQUEST}
+          volumeMounts:
+          - mountPath: /etc/turnpike
+            name: turnpike-routes
+            readOnly: true
+          - mountPath: /etc/nginx/certs
+            name: tls-cert
+            readOnly: true
+        imagePullSecrets:
+        - name: quay-cloudservices-pull
+        - name: rh-registry-pull
+        volumes:
+        - name: turnpike-routes
+          configMap:
+            name: turnpike-routes
+        - name: tls-cert
+          secret:
+            secretName: tls-cert
+parameters:
+- description: Initial amount of memory the nginx container will request.
+  displayName: Memory Request
+  name: MEMORY_REQUEST
+  required: true
+  value: 256Mi
+- description: Maximum amount of memory the nginx container can use.
+  displayName: Memory Limit
+  name: MEMORY_LIMIT
+  required: true
+  value: 512Mi
+- description: Initial amount of cpu the nginx container will request.
+  displayName: CPU Request
+  name: CPU_REQUEST
+  required: true
+  value: 50m
+- description: Maximum amount of cpu the nginx container can use.
+  displayName: CPU Limit
+  name: CPU_LIMIT
+  required: true
+  value: 300m
+- description: Image tag
+  name: IMAGE_TAG
+  required: true
+- description: Port nginx listens on
+  name: NGINX_PORT
+  value: "8443"
+  required: true

@@ -1,0 +1,29 @@
+@startuml turnpike-architecture
+!includeurl https://raw.githubusercontent.com/RicardoNiepel/C4-PlantUML/release/1-0/C4_Context.puml
+!includeurl https://raw.githubusercontent.com/RicardoNiepel/C4-PlantUML/release/1-0/C4_Container.puml
+LAYOUT_LEFT_RIGHT
+
+Person(associate, "Red Hat Associate")
+
+System_Boundary(c_rh_c, "cloud.redhat.com"){
+
+    Container(nginx, "Nginx", "proxy_pass / auth_request", "Proxies requests, including Policy Service as needed")
+
+    Container(flask, "Policy Service", "Python/Flask", "Handles sessions, authentication, and authorization")
+
+    Container(configmap, "Route/Policy Map", "Kubernetes ConfigMap", "What routes get exposed and what authn/authz they require")
+
+    Container(origin, "Origin", "Web application or REST API", "A service to expose to Red Hat associates")
+}
+
+System_Ext(rhsso, "Red Hat Internal SSO")
+
+Rel(associate, nginx, "Uses", "HTTPS")
+Rel(nginx, flask, "Delegates authz to", "HTTPS")
+Rel(associate, rhsso, "Authenticates", "HTTPS+SAML")
+Rel(flask, rhsso, "Validates assertion", "HTTPS+SAML")
+Rel(configmap, flask, "Informs")
+Rel(configmap, nginx, "Informs")
+Rel(nginx, origin, "Proxies", "HTTPS+X-Rh-Identity")
+
+@enduml

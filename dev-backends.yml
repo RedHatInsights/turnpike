@@ -4,5 +4,5 @@
   auth:
     saml: "True"
 - name: healthcheck
-  route: /_healthcheck/
-  origin: http://web:5000/_healthcheck/
+  route: /_healthcheck
+  origin: http://web:5000/_healthcheck

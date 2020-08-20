@@ -73,7 +73,7 @@ objects:
                   secretKeyRef:
                     key: redis-password
                     name: redis-password
-            image: quay.io/j00bar/turnpike-web:${IMAGE_TAG}
+            image: quay.io/cloudservices/turnpike-web:${IMAGE_TAG}
             imagePullPolicy: Always
             name: web
             ports:

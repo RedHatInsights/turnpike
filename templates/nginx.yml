@@ -134,7 +134,6 @@ parameters:
 - description: Nginx config directives for ssl certs, if any
   name: NGINX_SSL_CONFIG
   value: ""
-  required: true
 - description: Nginx URL scheme (http or https)
   name: NGINX_SCHEME
   value: "http"

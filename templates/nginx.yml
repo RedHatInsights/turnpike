@@ -15,8 +15,8 @@ objects:
     name: nginx
   spec:
     ports:
-    - name: ${NGINX_PORT}-tcp
-      port: ${{NGINX_PORT}}
+    - name: 443-tcp
+      port: 443
       protocol: TCP
       targetPort: ${{NGINX_PORT}}
     selector:

@@ -11,4 +11,4 @@ RUN pip install --no-cache-dir --upgrade pip && apt-get update && \
     apt-get remove --purge --auto-remove -y gcc pkg-config && \
     rm -rf /var/lib/apt/lists/*
 COPY . /usr/src/app/
-CMD ["flask", "run"]
+CMD ["./run-server.sh"]

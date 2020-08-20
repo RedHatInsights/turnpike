@@ -38,8 +38,8 @@ objects:
       spec:
         containers:
         - env:
-            - name: NGINX_PORT
-              value: "${NGINX_PORT} ssl"
+            - name: NGINX_LISTEN
+              value: "${NGINX_LISTEN}"
             - name: NGINX_SERVER_NAME
               valueFrom:
                 configMapKeyRef:
@@ -51,9 +51,7 @@ objects:
                   key: flask-service-url
                   name: turnpike-env
             - name: NGINX_SSL_CONFIG
-              value: |
-                ssl_certificate certs/tls.crt;
-                ssl_certificate_key certs/tls.key;
+              value: "${NGINX_SSL_CONFIG}"
           image: quay.io/cloudservices/turnpike-nginx:${IMAGE_TAG}
           imagePullPolicy: Always
           livenessProbe:
@@ -61,7 +59,7 @@ objects:
             httpGet:
               path: /_nginx/
               port: ${{NGINX_PORT}}
-              scheme: HTTPS
+              scheme: ${NGINX_SCHEME}
             initialDelaySeconds: 60
             periodSeconds: 10
             successThreshold: 1
@@ -90,9 +88,6 @@ objects:
           volumeMounts:
           - mountPath: /etc/turnpike
             name: turnpike-routes
-            readOnly: true
-          - mountPath: /etc/nginx/certs
-            name: tls-cert
             readOnly: true
         imagePullSecrets:
         - name: quay-cloudservices-pull
@@ -130,5 +125,17 @@ parameters:
   required: true
 - description: Port nginx listens on
   name: NGINX_PORT
-  value: "8443"
+  value: "8080"
+  required: true
+- description: Nginx config value for listen directive
+  name: NGINX_LISTEN
+  value: "8080"
+  required: true
+- description: Nginx config directives for ssl certs, if any
+  name: NGINX_SSL_CONFIG
+  value: ""
+  required: true
+- description: Nginx URL scheme (http or https)
+  name: NGINX_SCHEME
+  value: "http"
   required: true

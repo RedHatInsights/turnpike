@@ -1,0 +1,39 @@
+@startuml turnpike-userflow
+
+participant "Red Hat Associate" as rh_associate
+box "cloud.redhat.com"
+participant Nginx
+participant "Policy Service" as policy_service
+participant Origin
+end box
+participant "Red Hat SSO" as rh_sso
+
+rh_associate -> Nginx: GET /api/ping-service/ping
+Nginx -> policy_service: GET /auth
+note left: Nginx asks the Policy Service to authn/authz
+policy_service -> Nginx: 401 Unauthorized
+note right: Policy Service sees no active session
+Nginx -> rh_associate: Redirect to /saml/login
+note left: 401 error page mapped to login
+rh_associate -> Nginx: GET /saml/login
+Nginx -> policy_service: GET /saml/login
+policy_service -> Nginx: Redirect to RH SSO
+Nginx -> rh_associate: Redirect to RH SSO
+rh_associate -> rh_sso: Go through login flow
+rh_sso -> rh_associate: Redirect back to Turnpike w/ SAML Assertion
+rh_associate -> Nginx: GET /saml/acs w/ SAML Assertion
+Nginx -> policy_service: GET /saml/acs w/ SAML Assertion
+policy_service -> Nginx: Redirect to /api/ping-service/ping
+note right: Sets Session Cookie and stores SAML assertion data in Redis
+Nginx ->  rh_associate: Redirect to /api/ping-service/ping
+rh_associate -> Nginx: GET /api/ping-service/ping
+note left: Now with a valid session cookie
+Nginx -> policy_service: GET /auth
+policy_service -> Nginx: 200 OK
+note right: Valid session confirmed, X-Rh-Identity set
+Nginx -> Origin: /api/ping-service/ping
+note left: With X-Rh-Identity header
+Origin -> Nginx: 200 OK
+Nginx -> rh_associate: 200 OK
+
+@enduml

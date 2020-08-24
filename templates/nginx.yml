@@ -73,7 +73,7 @@ objects:
             httpGet:
               path: /_nginx/
               port: ${{NGINX_PORT}}
-              scheme: HTTPS
+              scheme: ${NGINX_SCHEME}
             initialDelaySeconds: 40
             periodSeconds: 10
             successThreshold: 1
@@ -96,9 +96,6 @@ objects:
         - name: turnpike-routes
           configMap:
             name: turnpike-routes
-        - name: tls-cert
-          secret:
-            secretName: tls-cert
 parameters:
 - description: Initial amount of memory the nginx container will request.
   displayName: Memory Request

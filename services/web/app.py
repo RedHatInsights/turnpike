@@ -143,8 +143,8 @@ class SLSView(SAMLView):
                 else:
                     return redirect("/")
             else:
-                if auth.get_settings().is_debug_active():
-                    error_reason = auth.get_last_error_reason()
+                if ctx.auth.get_settings().is_debug_active():
+                    error_reason = ctx.auth.get_last_error_reason()
                 else:
                     error_reason = ""
                 resp = make_response(error_reason, 500)

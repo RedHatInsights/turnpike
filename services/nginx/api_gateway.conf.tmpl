@@ -3,7 +3,7 @@ server {
     server_name  $NGINX_SERVER_NAME;
     $NGINX_SSL_CONFIG
     include      api_conf.d/*.conf;
-    set          ${VAR}proxy_host ${VAR}http_x_forwarded_host;
+    set          ${VAR}proxy_host $FLASK_SERVER_NAME;
 
     if (${VAR}proxy_host = "") {
         set ${VAR}proxy_host ${VAR}host;

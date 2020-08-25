@@ -50,6 +50,11 @@ objects:
                 configMapKeyRef:
                   key: flask-service-url
                   name: turnpike-env
+            - name: FLASK_SERVER_NAME
+              valueFrom:
+                configMapKeyRef:
+                  key: flask-server-name
+                  name: turnpike-env
             - name: NGINX_SSL_CONFIG
               value: "${NGINX_SSL_CONFIG}"
           image: quay.io/cloudservices/turnpike-nginx:${IMAGE_TAG}

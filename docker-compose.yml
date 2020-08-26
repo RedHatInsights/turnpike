@@ -31,9 +31,10 @@ services:
         aliases:
           - nginx
     environment:
-      NGINX_PORT: 8443 ssl
+      NGINX_LISTEN: 8443 ssl
       NGINX_SERVER_NAME: nginx
       FLASK_SERVICE_URL: http://web:5000
+      FLASK_SERVER_NAME: ${SERVER_NAME}
       NGINX_SSL_CONFIG: |
        ssl_certificate certs/cert.pem;
        ssl_certificate_key certs/key.pem;

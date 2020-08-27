@@ -1,6 +1,6 @@
-- name: ping
-  route: /api/ping-service
-  origin: http://web:5000/api/ping-service
+- name: turnpike
+  route: /api/turnpike
+  origin: http://web:5000/api/turnpike
   auth:
     saml: "True"
 - name: healthcheck

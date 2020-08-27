@@ -70,9 +70,9 @@ to your `/etc/hosts` file a line:
 
     127.0.0.1  turnpike.example.com
 
-Then, go to https://turnpike.example.com/api/ping-service/ping in your browser. You should immediately be redirected to
-your configured IdP's login page, or if you're already logged into your IdP, a page that says "PONG" and outputs the
-content of your IdP's SAML assertion.
+Then, go to https://turnpike.example.com/api/turnpike/identity in your browser. You should immediately be redirected to
+your configured IdP's login page, or if you're already logged into your IdP, a page that outputs the content of your
+IdP's SAML assertion.
 
 Route Map and Attribute Based Access Control
 --------------------------------------------
@@ -81,9 +81,9 @@ Whether in Docker Compose or in Kubernetes/OpenShift, Turnpike expects that in t
 find its route map and access control list at `/etc/turnpike/backends.yml`. For Docker Compose, the file in your copy
 of Turnpike `dev-backends.yml` is mounted into the Flask container at this path:
 
-    - name: ping
-      route: /api/ping-service
-      origin: http://web:5000/api/ping-service
+    - name: turnpike
+      route: /api/turnpike
+      origin: http://web:5000/api/turnpike
       auth:
         saml: "True"
     - name: healthcheck

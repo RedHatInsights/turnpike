@@ -214,17 +214,16 @@ health = HealthCheck()
 
 app.add_url_rule("/_healthcheck/", view_func=health.run)
 
-#######################
-### MOCKED SERVICES ###
-#######################
-@app.route("/api/ping-service/ping")
-def ping():
-    response = "PONG!\n\n"
+##################################
+### TURNPIKE SERVICE ENDPOINTS ###
+##################################
+@app.route("/api/turnpike/identity")
+def identity():
     if request.headers.get("X-Rh-Identity"):
         try:
-            response += pprint.pformat(json.loads(base64.decodebytes(request.headers["X-Rh-Identity"].encode("utf8"))))
+            response = json.loads(base64.decodebytes(request.headers["X-Rh-Identity"].encode("utf8")))
         except Exception as e:
-            response += f"(Error decoding identity header: {e})"
+            response = {"error": f"Error decoding identity header: {e}"}
     else:
-        response += "(No identity header found.)"
+        response = {"error": "No x-rh-identity header found in the request."}
     return make_response(response, 200)

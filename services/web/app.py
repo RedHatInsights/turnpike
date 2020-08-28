@@ -178,7 +178,7 @@ class AuthView(views.MethodView):
             if authorized:
                 resp = make_response("Authorized", 200)
                 resp.headers["X-RH-Identity"] = self.make_identity_header(
-                    "Associate", "saml-auth", {k: v if len(v) > 1 else v[0] for k, v in auth_data}
+                    "Associate", "saml-auth", {k: v if (len(v) > 1 or k == "Role") else v[0] for k, v in auth_data}
                 )
                 return resp
             else:

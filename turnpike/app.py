@@ -2,7 +2,6 @@ import base64
 import contextlib
 import json
 import os
-import pprint
 from urllib.parse import urlparse
 
 from flask import Flask, request, make_response, url_for, session, views, redirect
@@ -34,7 +33,7 @@ dictConfig(
 
 app = Flask(__name__)
 app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1, x_port=1)
-app.config.from_object("config")
+app.config.from_object("turnpike.config")
 
 session_obj = Session()
 session_obj.init_app(app)

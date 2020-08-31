@@ -2,7 +2,7 @@ version: '3.7'
 
 services:
   web:
-    build: ./services/web
+    build: .
     ports:
       - 5000:5000
     env_file:
@@ -10,14 +10,15 @@ services:
     hostname: web
     privileged: true
     volumes:
-      - "./services/web:/usr/src/app/"
+      - ".:/usr/src/app/"
+      - "./saml:/usr/src/app/turnpike/saml"
       - "./dev-backends.yml:/etc/turnpike/backends.yml"
     networks:
       mynet:
         aliases:
           - web
   nginx:
-    build: ./services/nginx
+    build: ./nginx
     ports:
       - 443:8443
     depends_on:
@@ -25,7 +26,7 @@ services:
     hostname: nginx
     volumes:
       - "./dev-backends.yml:/etc/turnpike/backends.yml"
-      - "./services/nginx/certs:/etc/nginx/certs"
+      - "./nginx/certs:/etc/nginx/certs"
     networks:
       mynet:
         aliases:

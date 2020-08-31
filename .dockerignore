@@ -1,0 +1,10 @@
+.git/
+.vscode/
+saml/
+nginx/
+docs/
+templates/
+scripts/
+Dockerfile
+.dockerignore
+.env

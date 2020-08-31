@@ -1,7 +1,0 @@
-flask
-python3-saml
-pyyaml
-py-healthcheck==1.10.1
-flask-session==0.3.2
-redis
-gunicorn

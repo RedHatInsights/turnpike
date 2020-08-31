@@ -1,0 +1,21 @@
+@startuml turnpike-mTLS
+
+participant "Service Account w/ x509 client cert" as service_account
+box "cloud.redhat.com"
+participant Nginx
+participant "Policy Service" as policy_service
+participant Origin
+end box
+
+service_account -> Nginx: GET /api/turnpike/identity
+note right: Nginx verifies client cert against configured TLS trust
+Nginx -> policy_service: GET /auth
+note left: Nginx asks the Policy Service to authz the cert's subject/issuer
+policy_service -> Nginx: 200 Authorized
+note right: Valid cert confirmed, X-Rh-Identity set
+Nginx -> Origin: /api/turnpike/identity
+note left: With X-Rh-Identity header
+Origin -> Nginx: 200 OK
+Nginx -> service_account: 200 OK
+
+@enduml

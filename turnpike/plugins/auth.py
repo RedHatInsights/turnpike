@@ -26,13 +26,6 @@ class AuthPlugin(TurnpikePlugin):
             self.auth_plugins.append(plugin_instance)
         self.backend_map = {backend["route"]: backend.get("auth", {}) for backend in self.app.config["BACKENDS"]}
 
-    def make_identity_header(self, identity_type, auth_type, auth_data):
-        header_data = dict(
-            identity=dict(type=identity_type, auth_type=auth_type, **{identity_type.lower(): auth_data})
-        )
-        logger.debug(header_data)
-        return base64.encodebytes(json.dumps(header_data).encode("utf8")).replace(b"\n", b"")
-
     def process(self, context):
         logger.debug("Begin auth")
         original_url = request.headers.get("X-Original-Uri", "/api/turnpike/identity")
@@ -58,10 +51,6 @@ class AuthPlugin(TurnpikePlugin):
             if context.auth or context.status_code:
                 # The auth plugin authenticated the user or wants to return immediately
                 logger.debug(f"Auth complete: {context}")
-                if context.auth:
-                    context.headers["X-RH-Identity"] = self.make_identity_header(
-                        "Associate", auth_plugin.name, context.auth
-                    )
                 return context
 
         # If we get here, no plugin reported successful authentication.

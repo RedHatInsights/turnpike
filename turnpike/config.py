@@ -22,7 +22,7 @@ MULTI_VALUE_SAML_ATTRS = os.environ.get("MULTI_VALUE_SAML_ATTRS", "").split(",")
 
 PLUGIN_CHAIN = ["turnpike.plugins.auth.AuthPlugin", "turnpike.plugins.rh_identity.RHIdentityPlugin"]
 
-AUTH_PLUGIN_MAP = ["turnpike.plugins.saml.SAMLAuthPlugin"]
+AUTH_PLUGIN_CHAIN = ["turnpike.plugins.saml.SAMLAuthPlugin"]
 
 DEFAULT_RESPONSE_CODE = 200
 

@@ -139,7 +139,7 @@ class SAMLAuthPlugin(TurnpikeAuthPlugin):
         next_url = request.headers.get("X-Original-Uri")
         return url_for("saml.saml-login", next=next_url)
 
-    def process(self, backend_auth, context):
+    def process(self, context, backend_auth):
         logger.debug("Begin SAML Auth plugin processing")
         if "saml" in backend_auth and "samlUserdata" in session:
             auth_data = session["samlUserdata"].items()

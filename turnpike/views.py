@@ -4,18 +4,9 @@ import logging
 
 from flask import current_app, request, make_response
 
+from .plugin import PolicyContext
 
 logger = logging.getLogger(__name__)
-
-
-class PolicyContext:
-    auth = None
-    headers = {}
-    status_code = None
-    data = {}
-
-    def __str__(self):
-        return f"PolicyContext: auth={self.auth}, headers={self.headers}, status_code={self.status_code}"
 
 
 def policy_view():

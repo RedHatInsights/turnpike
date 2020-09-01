@@ -15,16 +15,19 @@ class AuthPlugin(TurnpikePlugin):
     def __init__(self, app):
         super().__init__(app)
         self.auth_plugins = []
-        for plugin_name in self.app.config["AUTH_PLUGIN_MAP"]:
+        for plugin_name in self.app.config["AUTH_PLUGIN_CHAIN"]:
             mod_name, cls_name = plugin_name.rsplit(".", 1)
             mod = importlib.import_module(mod_name)
             cls = getattr(mod, cls_name)
             if not issubclass(cls, TurnpikeAuthPlugin):
                 raise ValueError(f"Auth plugin {plugin_name} is not a TurnpikeAuthPlugin.")
             plugin_instance = cls(app)
-            plugin_instance.register_blueprint()
             self.auth_plugins.append(plugin_instance)
         self.backend_map = {backend["route"]: backend.get("auth", {}) for backend in self.app.config["BACKENDS"]}
+
+    def register_blueprint(self):
+        for plugin_instance in self.auth_plugins:
+            plugin_instance.register_blueprint()
 
     def process(self, context):
         logger.debug("Begin auth")
@@ -47,7 +50,7 @@ class AuthPlugin(TurnpikePlugin):
             logger.debug("No auth required for backend")
             return context
         for auth_plugin in self.auth_plugins:
-            context = auth_plugin.process(backend_auth, context)
+            context = auth_plugin.process(context, backend_auth)
             if context.auth or context.status_code:
                 # The auth plugin authenticated the user or wants to return immediately
                 logger.debug(f"Auth complete: {context}")

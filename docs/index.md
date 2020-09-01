@@ -110,6 +110,23 @@ your Python expression could be:
 The evaluation would use set-logic to look for overlaps. If there were any overlaps, the predicate would evaluate to
 `True`. If not, `False`.
 
+Customizing and Extending Turnpike
+----------------------------------
+
+Turnpike's policy service is based on passing a request through a series of plugins that
+evaluate the request for conformity with the deployment policies. These plugins allows
+for a great deal of customization and enhancement with minimal code changes.
+
+The plugin chain is configurable in the Flask application using the `PLUGIN_CHAIN`
+setting, which contains a list of Python references to classes that subclass the
+`TurnpikePlugin` abstract base class.
+
+The `turnpike.plugins.auth.AuthPlugin` has its own special type of sub-plugin that
+implements the `TurnpikeAuthPlugin` abstract base class. By setting a separate list of
+authentication methods as `AUTH_PLUGIN_CHAIN`, you can customize the way that your
+deployment supports authenticating and authorizing requests.
+
+See the docstrings on those classes for more details.
 
 [auth_request]: https://docs.nginx.com/nginx/admin-guide/security-controls/configuring-subrequest-authentication/
 [flask]: https://flask.palletsprojects.com/en/1.1.x/

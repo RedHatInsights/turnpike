@@ -39,3 +39,10 @@ def identity():
     else:
         response = {"error": "No x-rh-identity header found in the request."}
     return make_response(response, 200)
+
+
+def nginx_config_data():
+    to_return = set()
+    for plugin in current_app.config.get("PLUGIN_CHAIN_OBJS", []):
+        to_return = to_return.union(set(plugin.headers_to_forward))
+    return make_response(json.dumps(list(to_return)), 200, {"Content-Type": "application/json"})

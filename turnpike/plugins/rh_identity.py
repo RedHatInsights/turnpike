@@ -7,6 +7,8 @@ from ..plugin import TurnpikePlugin
 
 
 class RHIdentityPlugin(TurnpikePlugin):
+    headers_to_forward = ["X-RH-Identity"]
+
     def process(self, context):
         if context.auth:
             identity_type = context.auth["auth_plugin"].principal_type
@@ -16,7 +18,7 @@ class RHIdentityPlugin(TurnpikePlugin):
                 identity=dict(type=identity_type, auth_type=auth_type, **{identity_type.lower(): auth_data})
             )
             current_app.logger.debug(f"Identity header content: {header_data}")
-            current_app.context.headers["X-RH-Identity"] = base64.encodebytes(
-                json.dumps(header_data).encode("utf8")
-            ).replace(b"\n", b"")
+            context.headers["X-RH-Identity"] = base64.encodebytes(json.dumps(header_data).encode("utf8")).replace(
+                b"\n", b""
+            )
         return context

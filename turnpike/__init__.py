@@ -40,6 +40,7 @@ def create_app(test_config=None):
 
     health = HealthCheck()
     app.add_url_rule("/_healthcheck/", view_func=health.run)
+    app.add_url_rule("/_nginx_config/", view_func=views.nginx_config_data)
 
     chain_objs = []
     for plugin_name in app.config["PLUGIN_CHAIN"]:

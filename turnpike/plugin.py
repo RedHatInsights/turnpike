@@ -48,6 +48,11 @@ class TurnpikePlugin:
     subclass of TurnpikePlugin in your configuration's `PLUGIN_CHAIN` list, it
     will have the opportunity to process incoming requests.
 
+    Attributes:
+
+    * `headers_to_forward` - A list of header names this plugin may add to the
+      response that should be included in the request to the origin server.
+
     Methods:
 
     * `process(self, context)` - All subclasses _must_ implement this method.
@@ -62,6 +67,8 @@ class TurnpikePlugin:
       this method, referencing `self.app` instead of `Flask.current_app`, as
       this method is called before the Flask app context is prepared.
     """
+
+    headers_to_forward = []
 
     def __init__(self, app):
         self.app = app

@@ -115,7 +115,7 @@ Customizing and Extending Turnpike
 ----------------------------------
 
 Turnpike's policy service is based on passing a request through a series of plugins that
-evaluate the request for conformity with the deployment policies. These plugins allows
+evaluate the request for conformity with the deployment policies. These plugins allow
 for a great deal of customization and enhancement with minimal code changes.
 
 The plugin chain is configurable in the Flask application using the `PLUGIN_CHAIN`

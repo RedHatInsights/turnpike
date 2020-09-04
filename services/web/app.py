@@ -175,7 +175,7 @@ class AuthView(views.MethodView):
             app.logger.debug(f"SAML auth_data: {auth_data}")
             predicate = auth["saml"]
             authorized = eval(predicate, dict(user=auth_data))
-            multi_value_attrs = os.environ.get("MULTI_VALUE_SAML_ATTRS", "").split(",")
+            multi_value_attrs = app.config["MULTI_VALUE_SAML_ATTRS"]
 
             if authorized:
                 resp = make_response("Authorized", 200)

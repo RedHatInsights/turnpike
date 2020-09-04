@@ -1,5 +1,4 @@
 import contextlib
-import logging
 from urllib.parse import urlparse
 
 from flask import Blueprint, current_app, make_response, redirect, request, session, views, url_for
@@ -8,7 +7,6 @@ from onelogin.saml2.utils import OneLogin_Saml2_Utils
 
 from ..plugin import TurnpikeAuthPlugin
 
-logger = logging.getLogger(__name__)
 blueprint = Blueprint("saml", __name__, url_prefix="/saml")
 
 
@@ -84,10 +82,10 @@ class ACSView(SAMLView):
                 self_url = OneLogin_Saml2_Utils.get_self_url(ctx.req)
                 if "RelayState" in request.form and self_url != request.form["RelayState"]:
                     relay_state = ctx.auth.redirect_to(request.form["RelayState"])
-                    logger.debug(f"Redirecting to {relay_state}")
+                    current_app.logger.debug(f"Redirecting to {relay_state}")
                     return redirect(relay_state)
                 else:
-                    logger.debug("Redirecting to index")
+                    current_app.logger.debug("Redirecting to index")
                     return redirect("/")
             else:
                 if ctx.auth.get_settings().is_debug_active():
@@ -140,10 +138,10 @@ class SAMLAuthPlugin(TurnpikeAuthPlugin):
         return url_for("saml.saml-login", next=next_url)
 
     def process(self, context, backend_auth):
-        logger.debug("Begin SAML Auth plugin processing")
+        current_app.logger.debug("Begin SAML Auth plugin processing")
         if "saml" in backend_auth and "samlUserdata" in session:
             auth_data = session["samlUserdata"].items()
-            logger.debug(f"SAML auth_data: {auth_data}")
+            current_app.logger.debug(f"SAML auth_data: {auth_data}")
             multi_value_attrs = self.app.config["MULTI_VALUE_SAML_ATTRS"]
             context.auth = dict(
                 auth_data={k: v if (len(v) > 1 or (k in multi_value_attrs)) else v[0] for k, v in auth_data}, 

@@ -7,6 +7,9 @@ class PolicyContext:
 
     This is a dataclass with several attributes.
 
+    * `backend` represents the entry in the configured backends that the policy
+       inquiry is regarding. It is pulled from the `BACKENDS` configuration value.
+
     * `auth` represents the authentication state of the request. An unauthenticated
       request has `auth = None`, whereas an authenticated request has `auth` as
       a dictionary with two keys: `auth_plugin` which points to the TurnpikeAuthPlugin
@@ -29,13 +32,14 @@ class PolicyContext:
       dictionary is the proper way to go.
     """
 
+    backend = None
     auth = None
     headers = {}
     status_code = None
     data = {}
 
     def __str__(self):
-        return f"PolicyContext: auth={self.auth}, headers={self.headers}, status_code={self.status_code}"
+        return f"PolicyContext: backend={self.backend} auth={self.auth}, headers={self.headers}, status_code={self.status_code}"
 
 
 class TurnpikePlugin:

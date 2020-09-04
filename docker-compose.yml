@@ -46,5 +46,16 @@ services:
       mynet:
         aliases:
           - redis
+  echo-server:
+    image: jmalloc/echo-server:latest
+    hostname: echo-server
+    ports:
+      - 8080:8080
+    networks:
+      mynet:
+        aliases:
+          - echo-server
+    environment:
+      PORT: 8080
 networks:
   mynet:

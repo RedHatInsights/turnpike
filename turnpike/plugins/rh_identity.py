@@ -1,11 +1,9 @@
 import base64
 import json
-import logging
+
+from flask import current_app
 
 from ..plugin import TurnpikePlugin
-
-
-logger = logging.getLogger(__name__)
 
 
 class RHIdentityPlugin(TurnpikePlugin):
@@ -17,8 +15,8 @@ class RHIdentityPlugin(TurnpikePlugin):
             header_data = dict(
                 identity=dict(type=identity_type, auth_type=auth_type, **{identity_type.lower(): auth_data})
             )
-            logger.debug(f"Identity header content: {header_data}")
-            context.headers["X-RH-Identity"] = base64.encodebytes(json.dumps(header_data).encode("utf8")).replace(
-                b"\n", b""
-            )
+            current_app.logger.debug(f"Identity header content: {header_data}")
+            current_app.context.headers["X-RH-Identity"] = base64.encodebytes(
+                json.dumps(header_data).encode("utf8")
+            ).replace(b"\n", b"")
         return context

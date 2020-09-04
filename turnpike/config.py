@@ -30,7 +30,5 @@ AUTH_PLUGIN_CHAIN = ["turnpike.plugins.saml.SAMLAuthPlugin"]
 
 DEFAULT_RESPONSE_CODE = 200
 
-EDGE_PROXY_IP = "172.20.0.1"
-
 with open(os.environ["BACKENDS_CONFIG_MAP"]) as ifs:
     BACKENDS = yaml.safe_load(ifs)

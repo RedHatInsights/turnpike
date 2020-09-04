@@ -13,10 +13,13 @@ services:
       - ".:/usr/src/app/"
       - "./saml:/usr/src/app/turnpike/saml"
       - "./dev-backends.yml:/etc/turnpike/backends.yml"
+      - "./dev-config.py:/etc/turnpike/dev-config.py"
     networks:
       mynet:
         aliases:
           - web
+    environment:
+      TURNPIKE_CONFIG: /etc/turnpike/dev-config.py
   nginx:
     build: ./nginx
     ports:

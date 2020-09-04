@@ -3,3 +3,4 @@ nginx/certs/
 saml/
 *.pyc
 docs/*.png
+dev-config.py

@@ -1,5 +1,6 @@
 .env
-/services/nginx/certs/
-/services/web/saml/
+nginx/certs/
+saml/
 *.pyc
 docs/*.png
+dev-config.py

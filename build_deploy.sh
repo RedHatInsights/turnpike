@@ -15,8 +15,8 @@ DOCKER_CONF="$PWD/.docker"
 mkdir -p "$DOCKER_CONF"
 docker --config="$DOCKER_CONF" login -u="$QUAY_USER" -p="$QUAY_TOKEN" quay.io
 
-docker --config="$DOCKER_CONF" build -t "${NGINX_IMAGE}:${IMAGE_TAG}" services/nginx
-docker --config="$DOCKER_CONF" build -t "${WEB_IMAGE}:${IMAGE_TAG}" services/web
+docker --config="$DOCKER_CONF" build -t "${NGINX_IMAGE}:${IMAGE_TAG}" nginx
+docker --config="$DOCKER_CONF" build -t "${WEB_IMAGE}:${IMAGE_TAG}" .
 
 docker --config="$DOCKER_CONF" push "${NGINX_IMAGE}:${IMAGE_TAG}"
 docker --config="$DOCKER_CONF" push "${WEB_IMAGE}:${IMAGE_TAG}"

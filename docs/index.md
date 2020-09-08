@@ -29,13 +29,10 @@ As with any SAML SP configuration, you will need:
 2. The SSL certificate for your SAML Identity Provider (IdP)
 3. The configuration of your Identity Provider as exposed by their IdP metadata endpoint.
 
-Then in your copy of the Turnpike code, in `services/web/saml` create the following files:
+Then in your copy of the Turnpike code, in `/saml` create the following files:
 
-1. `certs/idp.crt` - The PEM encoded certificate for your IdP
-2. `certs/sp.crt` - The PEM encoded certificate for your Turnpike install
-3. `certs/sp.key` - The PEM encoded private key for your Turnpike install
-4. `settings.json`- The metadata settings for the IdP and SP (an [example][settings-example])
-5. `advanced_settings.json` - Advanced SAML settings for the IdP and SP (an [example][adv-settings-example])
+1. `settings.json`- The metadata settings for the IdP and SP (an [example][settings-example])
+2. `advanced_settings.json` - Advanced SAML settings for the IdP and SP (an [example][adv-settings-example])
 
 You can fill out the latter two by finding corresponding fields in your IdP's metadata file and with collaboration with
 their staff. For the Service Provider urls, you should use the following paths relative to your Turnpike hostname:
@@ -47,6 +44,9 @@ their staff. For the Service Provider urls, you should use the following paths r
 If you're looking to simply demo Turnpike or aren't ready to integrate with your real IdP yet, you can use the free
 SAML test integration services available at https://samltest.id
 
+You will also need to generate a TLS certificate for the hostname you're going to use to access your running development
+environment. In `/nginx/certs`, name the certificate as `cert.pem` and the private key as `key.pem`.
+
 If you are deploying Turnpike in Kubernetes or OpenShift, you should mount these configuration files using a
 combination of ConfigMap and Secret resources mounted into your running pods.
 
@@ -55,7 +55,8 @@ Running Using Docker Compose
 
 The simplest way to run Turnpike locally is using Docker Compose.
 
-First, you need to set proper environment variables. Copy the `.env.example` file to `.env` and customize it. You'll
+First, you need to set proper environment variables. Copy the `.env.example` file to `.env`, copy the
+`dev-config.py.example` to `dev-config.py`,  and customize them both as needed. You'll
 need to generate a secret key for session security and you'll need to set the `SERVER_NAME` to the hostname you're
 using for your SAML Service Provider, the same as the subject in your SP certificate.
 
@@ -110,6 +111,23 @@ your Python expression could be:
 The evaluation would use set-logic to look for overlaps. If there were any overlaps, the predicate would evaluate to
 `True`. If not, `False`.
 
+Customizing and Extending Turnpike
+----------------------------------
+
+Turnpike's policy service is based on passing a request through a series of plugins that
+evaluate the request for conformity with the deployment policies. These plugins allow
+for a great deal of customization and enhancement with minimal code changes.
+
+The plugin chain is configurable in the Flask application using the `PLUGIN_CHAIN`
+setting, which contains a list of Python references to classes that subclass the
+`TurnpikePlugin` abstract base class.
+
+The `turnpike.plugins.auth.AuthPlugin` has its own special type of sub-plugin that
+implements the `TurnpikeAuthPlugin` abstract base class. By setting a separate list of
+authentication methods as `AUTH_PLUGIN_CHAIN`, you can customize the way that your
+deployment supports authenticating and authorizing requests.
+
+See the docstrings on those classes for more details.
 
 [auth_request]: https://docs.nginx.com/nginx/admin-guide/security-controls/configuring-subrequest-authentication/
 [flask]: https://flask.palletsprojects.com/en/1.1.x/

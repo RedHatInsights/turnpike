@@ -7,7 +7,7 @@ from ..plugin import TurnpikePlugin
 
 
 class RHIdentityPlugin(TurnpikePlugin):
-    headers_to_forward = ["X-RH-Identity"]
+    headers_to_forward = {"X-RH-Identity"}
 
     def process(self, context):
         if context.auth:

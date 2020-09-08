@@ -42,7 +42,13 @@ def identity():
 
 
 def nginx_config_data():
-    to_return = set()
+    to_upstream = set()
+    to_policy_service = set()
     for plugin in current_app.config.get("PLUGIN_CHAIN_OBJS", []):
-        to_return = to_return.union(set(plugin.headers_to_forward))
-    return make_response(json.dumps(list(to_return)), 200, {"Content-Type": "application/json"})
+        to_upstream = to_upstream.union(plugin.headers_to_forward)
+        to_policy_service = to_policy_service.union(plugin.headers_needed)
+    response_dict = dict(
+        to_upstream=list(to_upstream), 
+        to_policy_service=list(to_policy_service),
+        blueprints=[bp.url_prefix for bp in current_app.blueprints.values()]) 
+    return make_response(json.dumps(response_dict), 200,  {"Content-Type": "application/json"})

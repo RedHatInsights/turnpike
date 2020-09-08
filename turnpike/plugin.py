@@ -50,8 +50,10 @@ class TurnpikePlugin:
 
     Attributes:
 
-    * `headers_to_forward` - A list of header names this plugin may add to the
+    * `headers_to_forward` - A set of header names this plugin may add to the
       response that should be included in the request to the origin server.
+    * `headers_needed` - A set of header names this plugin expects to be
+      forwarded in the request to the policy service, if they exist.
 
     Methods:
 
@@ -68,7 +70,8 @@ class TurnpikePlugin:
       this method is called before the Flask app context is prepared.
     """
 
-    headers_to_forward = []
+    headers_to_forward = set()
+    headers_needed = set()
 
     def __init__(self, app):
         self.app = app
@@ -92,6 +95,10 @@ class TurnpikeAuthPlugin:
     * `name` - The name of this auth plugin, for use in response headers
     * `principal_type` - The types of principals this plugin verifies, for use
       in response headers
+    * `headers_to_forward` - A set of header names this plugin may add to the
+      response that should be included in the request to the origin server.
+    * `headers_needed` - A set of header names this plugin expects to be
+      forwarded in the request to the policy service, if they exist.
 
     Methods:
 
@@ -126,6 +133,8 @@ class TurnpikeAuthPlugin:
 
     name = "unnamed"
     principal_type = "unknown"
+    headers_to_forward = set()
+    headers_needed = set()
 
     def __init__(self, app):
         self.app = app

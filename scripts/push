@@ -1,5 +1,8 @@
 #!/bin/bash
 
+# you will need to ensure you are logged in to be able to push to the OpenShift registry:
+# `docker login -u <user> -p <token> registry.insights-dev.openshift.com:443`
+
 ENV=$1
 SUPPORTED_ENV_MSG="Currently supported environments: [ci]"
 

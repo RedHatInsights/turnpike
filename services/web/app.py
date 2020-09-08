@@ -175,10 +175,12 @@ class AuthView(views.MethodView):
             app.logger.debug(f"SAML auth_data: {auth_data}")
             predicate = auth["saml"]
             authorized = eval(predicate, dict(user=auth_data))
+            multi_value_attrs = app.config["MULTI_VALUE_SAML_ATTRS"]
+
             if authorized:
                 resp = make_response("Authorized", 200)
                 resp.headers["X-RH-Identity"] = self.make_identity_header(
-                    "Associate", "saml-auth", {k: v if len(v) > 1 else v[0] for k, v in auth_data}
+                    "Associate", "saml-auth", {k: v if (len(v) > 1 or (k in multi_value_attrs)) else v[0] for k, v in auth_data}
                 )
                 return resp
             else:
@@ -217,7 +219,7 @@ app.add_url_rule("/_healthcheck/", view_func=health.run)
 ##################################
 ### TURNPIKE SERVICE ENDPOINTS ###
 ##################################
-@app.route("/api/turnpike/identity")
+@app.route("/api/turnpike/identity/")
 def identity():
     if request.headers.get("X-Rh-Identity"):
         try:

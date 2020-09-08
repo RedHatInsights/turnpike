@@ -59,8 +59,6 @@ def main(args):
 
 
 if __name__ == "__main__":
-    import argparse
-
     parser = argparse.ArgumentParser(description="Build nginx backend configurations from config map")
     parser.add_argument("config_map_path", help="Path to the config map with routes")
     parser.add_argument("nginx_confd_dir", help="Path to output nginx conf.d files")

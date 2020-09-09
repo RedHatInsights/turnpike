@@ -42,7 +42,15 @@ def main(args):
         except error.URLError:
             print("Could not contact Flask. Assuming it is still starting up. Sleeping 3 seconds.")
             time.sleep(3)
-    headers_to_capture = json.load(response_obj)
+    nginx_config = json.load(response_obj)
+    headers_to_upstream = nginx_config['to_upstream']
+    headers_to_policy_service = nginx_config['to_policy_service']
+    blueprints = nginx_config['blueprints']
+
+    with open("/etc/nginx/api_gateway.conf.j2") as ifs:
+        template = jinja2.Template(ifs.read())
+    with open("/etc/nginx/api_gateway.conf", "w") as ofs:
+        ofs.write(template.render(headers=headers_to_policy_service, blueprints=blueprints, **os.environ))
 
     with open("/etc/nginx/backend_template.conf.j2") as ifs:
         template = jinja2.Template(ifs.read())
@@ -53,15 +61,14 @@ def main(args):
         if route.strip("/") in FORBIDDEN_ROUTES:
             warnings.warn(f"Forbidden route found in config map: {route} - skipping.")
 
-        with open(os.path.join(args.nginx_confd_dir, f"{name}.conf"), "w") as ofs:
-            ofs.write(template.render(headers=headers_to_capture, **backend))
+        with open(f"/etc/nginx/api_conf.d/{name}.conf", "w") as ofs:
+            ofs.write(template.render(headers=headers_to_upstream, **backend))
     print("Done.")
 
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Build nginx backend configurations from config map")
     parser.add_argument("config_map_path", help="Path to the config map with routes")
-    parser.add_argument("nginx_confd_dir", help="Path to output nginx conf.d files")
 
     args = parser.parse_args()
     main(args)

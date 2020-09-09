@@ -17,6 +17,8 @@ class AuthPlugin(TurnpikePlugin):
                 raise ValueError(f"Auth plugin {plugin_name} is not a TurnpikeAuthPlugin.")
             plugin_instance = cls(app)
             self.auth_plugins.append(plugin_instance)
+            self.headers_to_forward = self.headers_to_forward.union(plugin_instance.headers_to_forward)
+            self.headers_needed = self.headers_needed.union(plugin_instance.headers_needed)
 
     def register_blueprint(self):
         for plugin_instance in self.auth_plugins:

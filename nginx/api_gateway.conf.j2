@@ -45,6 +45,6 @@ server {
 
     error_page 401 = @error401;
     location @error401 {
-        return 302 $scheme://$proxy_host$login_url;
+        return 302 https://$proxy_host$login_url;
     }
 }

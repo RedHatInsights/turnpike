@@ -46,7 +46,7 @@ services:
        ssl_verify_depth 3;
        ssl_client_certificate certs/ca.pem;
        if (${_dollarhack:-$}ssl_client_verify = "SUCCESS") {
-           set ${_dollarhack:-$}http_x_rh_certauth_cn /${_dollarhack:-$}ssl_client_s_dn;
+           set ${_dollarhack:-$}http_x_rh_certauth_subject /${_dollarhack:-$}ssl_client_s_dn;
            set ${_dollarhack:-$}http_x_rh_certauth_issuer /${_dollarhack:-$}ssl_client_i_dn;
        }
   redis:

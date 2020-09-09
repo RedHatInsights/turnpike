@@ -14,9 +14,17 @@ data is stored in Redis to better manage content and expiry.
 
 ![Turnpike Architecture](turnpike-architecture.png)
 
-A successful service request workflow looks like:
+A successful SAML user request workflow looks like:
 
 ![Turnpike Userflow](turnpike-userflow.png)
+
+A successful mTLS request workflow looks like:
+
+![mTLS Flow](mtls.png)
+
+Note: TLS can be terminated either with Nginx itself, or with a standalone service in front of Nginx. The diagram's
+"mTLS Gateway" refers to whatever service terminates TLS. Also, the expected subject and issuer header names can be
+adjusted by setting `HEADER_CERTAUTH_SUBJECT` and `HEADER_CERTAUTH_ISSUER` variables.
 
 Nginx Configuration
 -------------------
@@ -134,7 +142,8 @@ For example to restrict the endpoint to a certificate with the DN of `/CN=test`,
 
     x509['subject_dn'] == '/CN=test'
 
-Note that CRL and/or OCSP support should be configured in `NGINX_SSL_CONFIG` as needed.
+If using TLS terminated at Nginx, note that CRL and/or OCSP support should be configured in `NGINX_SSL_CONFIG` as
+needed.
 
 Customizing and Extending Turnpike
 ----------------------------------

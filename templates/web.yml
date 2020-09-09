@@ -83,7 +83,7 @@ objects:
             terminationMessagePath: /dev/termination-log
             terminationMessagePolicy: File
             volumeMounts:
-              - mountPath: /usr/src/app/saml/
+              - mountPath: /usr/src/app/turnpike/saml/
                 name: turnpike-saml
                 readOnly: true
               - mountPath: /etc/turnpike

@@ -20,13 +20,16 @@ PERMANENT_SESSION_LIFETIME = 60 * 60 * 4
 SESSION_COOKIE_SECURE = True
 MULTI_VALUE_SAML_ATTRS = os.environ.get("MULTI_VALUE_SAML_ATTRS", "").split(",")
 
+HEADER_CERTAUTH_SUBJECT = os.environ.get("HEADER_CERTAUTH_SUBJECT", "x-rh-certauth-subject")
+HEADER_CERTAUTH_ISSUER = os.environ.get("HEADER_CERTAUTH_ISSUER", "x-rh-certauth-issuer")
+
 PLUGIN_CHAIN = [
     "turnpike.plugins.auth.AuthPlugin",
     "turnpike.plugins.source_ip.SourceIPPlugin",
     "turnpike.plugins.rh_identity.RHIdentityPlugin",
 ]
 
-AUTH_PLUGIN_CHAIN = ["turnpike.plugins.saml.SAMLAuthPlugin"]
+AUTH_PLUGIN_CHAIN = ["turnpike.plugins.x509.X509AuthPlugin", "turnpike.plugins.saml.SAMLAuthPlugin"]
 
 DEFAULT_RESPONSE_CODE = 200
 

@@ -14,9 +14,26 @@ data is stored in Redis to better manage content and expiry.
 
 ![Turnpike Architecture](turnpike-architecture.png)
 
-A successful service request workflow looks like:
+A successful SAML user request workflow looks like:
 
 ![Turnpike Userflow](turnpike-userflow.png)
+
+A successful mTLS request workflow looks like:
+
+![mTLS Flow](mtls.png)
+
+Note: TLS can be terminated either with Nginx itself, or with a standalone service in front of Nginx. The diagram's
+"mTLS Gateway" refers to whatever service terminates TLS. Also, the expected subject and issuer header names can be
+adjusted by setting `HEADER_CERTAUTH_SUBJECT` and `HEADER_CERTAUTH_ISSUER` variables.
+
+Nginx Configuration
+-------------------
+
+In `services/nginx`, create the following files:
+
+1. `certs/cert.pem` - The PEM encoded certificate for Nginx (can be the same as the web cert)
+2. `certs/key.pem` - The PEM encoded certificate for Nginx (can be the same as the web key)
+3. `certs/ca.pem` - The PEM encoded trust chain to verify client certificates
 
 SAML Service Provider Configuration
 -----------------------------------
@@ -46,6 +63,11 @@ SAML test integration services available at https://samltest.id
 
 You will also need to generate a TLS certificate for the hostname you're going to use to access your running development
 environment. In `/nginx/certs`, name the certificate as `cert.pem` and the private key as `key.pem`.
+
+You can use `scripts/setup_devel_env` to configure the certs and configure to use the samltest.id IdP. Once the app is
+running, you will need to visit https://samltest.id/upload.php and upload https://turnpike.example.com/saml/metadata.xml
+before the IdP will recognize your turnpike instance. The SP entityId includes a uuid so that you don't accidentally
+overwrite another developer's SP XML.
 
 If you are deploying Turnpike in Kubernetes or OpenShift, you should mount these configuration files using a
 combination of ConfigMap and Secret resources mounted into your running pods.
@@ -98,10 +120,11 @@ rules.
 
 If a route has a key `auth`, then it will require authentication. The `auth` key's value should be a set of key/value
 pairs representing supported authentication schemes and corresponding authorization rules. At this time, the only
-supported authentication scheme is `saml`. The value associated with `saml` should be a Python expression that evaluates
-to `True` or `False`. The only variable in the expression is a dictionary `user` which contains the SAML assertion for
-the requesting user. If the assertion had multiple `AttributeValue`s for a single `Attribute`, then those values are
-represented as a list of values.
+supported authentication schemes are `saml`, `x509`.
+
+The value associated with `saml` should be a Python expression that evaluates to `True` or `False`. The only variable
+in the expression is a dictionary `user` which contains the SAML assertion for the requesting user. If the assertion
+had multiple `AttributeValue`s for a single `Attribute`, then those values are represented as a list of values.
 
 So for example, if you wanted to limit access to a route to users who had the role `admin`, `auditor`, or `manager`,
 your Python expression could be:
@@ -110,6 +133,17 @@ your Python expression could be:
 
 The evaluation would use set-logic to look for overlaps. If there were any overlaps, the predicate would evaluate to
 `True`. If not, `False`.
+
+`x509` also takes a Python expression which evaluates to `True` or `False`. It is passed a dictionary `x509` which
+contains two attributes: `subject_dn` and `issuer_dn` which can be used to further restrict which certs can be used
+(nginx already verifies the trust chain based on the configured CA file).
+
+For example to restrict the endpoint to a certificate with the DN of `/CN=test`, you could use:
+
+    x509['subject_dn'] == '/CN=test'
+
+If using TLS terminated at Nginx, note that CRL and/or OCSP support should be configured in `NGINX_SSL_CONFIG` as
+needed.
 
 Customizing and Extending Turnpike
 ----------------------------------

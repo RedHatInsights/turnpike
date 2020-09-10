@@ -42,6 +42,13 @@ services:
       NGINX_SSL_CONFIG: |
        ssl_certificate certs/cert.pem;
        ssl_certificate_key certs/key.pem;
+       ssl_verify_client optional;
+       ssl_verify_depth 3;
+       ssl_client_certificate certs/ca.pem;
+       if (${_dollarhack:-$}ssl_client_verify = "SUCCESS") {
+           set ${_dollarhack:-$}http_x_rh_certauth_subject /${_dollarhack:-$}ssl_client_s_dn;
+           set ${_dollarhack:-$}http_x_rh_certauth_issuer /${_dollarhack:-$}ssl_client_i_dn;
+       }
   redis:
     image: redis:6
     hostname: redis

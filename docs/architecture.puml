@@ -4,6 +4,7 @@
 LAYOUT_LEFT_RIGHT
 
 Person(associate, "Red Hat Associate")
+System(service_account, "Service Account")
 
 System_Boundary(c_rh_c, "cloud.redhat.com"){
 
@@ -19,6 +20,7 @@ System_Boundary(c_rh_c, "cloud.redhat.com"){
 System_Ext(rhsso, "Red Hat Internal SSO")
 
 Rel(associate, nginx, "Uses", "HTTPS")
+Rel(service_account, nginx, "Uses", "mTLS")
 Rel(nginx, flask, "Delegates authz to", "HTTPS")
 Rel(associate, rhsso, "Authenticates", "HTTPS+SAML")
 Rel(flask, rhsso, "Validates assertion", "HTTPS+SAML")

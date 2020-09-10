@@ -1,0 +1,80 @@
+#!/bin/bash
+set -e
+
+# add turnpike to the hosts file
+echo "Ensuring turnpike.example.com is in hosts file"
+grep -q turnpike.example.com /etc/hosts || sudo bash -c "echo '127.0.0.1 turnpike.example.com' >> /etc/hosts"
+
+# generate certs
+echo "Ensuring nginx is configured"
+test -d nginx/certs || mkdir nginx/certs
+test -f nginx/certs/ca.key || openssl genrsa -out nginx/certs/ca.key
+test -f nginx/certs/ca.csr || openssl req -new -key nginx/certs/ca.key -out nginx/certs/ca.csr -subj /CN=dev_ca/
+test -f nginx/certs/ca.pem || openssl x509 -req -days 720 -in nginx/certs/ca.csr -signkey nginx/certs/ca.key -out nginx/certs/ca.pem
+test -f nginx/certs/key.pem || openssl genrsa -out nginx/certs/key.pem
+test -f nginx/certs/cert.csr || openssl req -new -key nginx/certs/key.pem -out nginx/certs/cert.csr -subj /CN=turnpike.example.com/
+test -f nginx/certs/cert.pem || openssl x509 -req -days 720 -in nginx/certs/cert.csr -CA nginx/certs/ca.pem -CAkey nginx/certs/ca.key -CAcreateserial -out nginx/certs/cert.pem
+
+# install certs to auth service
+echo "Ensuring auth service is configured"
+test -f saml/settings.json || cat << EOF > saml/settings.json
+{
+    "strict": true,
+    "debug": true,
+    "sp": {
+        "entityId": "https://turnpike.example.com/saml/metadata.xml?$(uuidgen)",
+        "assertionConsumerService": {
+            "url": "https://turnpike.example.com/saml/acs/",
+            "binding": "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST"
+        },
+        "singleLogoutService": {
+            "url": "https://turnpike.example.com/saml/sls/",
+            "binding": "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect"
+        },
+        "NameIDFormat": "urn:oasis:names:tc:SAML:1.1:nameid-format:unspecified"
+    },
+    "idp": {
+        "entityId": "https://samltest.id/saml/idp",
+        "singleSignOnService": {
+            "url": "https://samltest.id/idp/profile/SAML2/Redirect/SSO",
+            "binding": "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect"
+        },
+        "x509cert": "MIIDEjCCAfqgAwIBAgIVAMECQ1tjghafm5OxWDh9hwZfxthWMA0GCSqGSIb3DQEB\nCwUAMBYxFDASBgNVBAMMC3NhbWx0ZXN0LmlkMB4XDTE4MDgyNDIxMTQwOVoXDTM4\nMDgyNDIxMTQwOVowFjEUMBIGA1UEAwwLc2FtbHRlc3QuaWQwggEiMA0GCSqGSIb3\nDQEBAQUAA4IBDwAwggEKAoIBAQC0Z4QX1NFKs71ufbQwoQoW7qkNAJRIANGA4iM0\nThYghul3pC+FwrGv37aTxWXfA1UG9njKbbDreiDAZKngCgyjxj0uJ4lArgkr4AOE\njj5zXA81uGHARfUBctvQcsZpBIxDOvUUImAl+3NqLgMGF2fktxMG7kX3GEVNc1kl\nbN3dfYsaw5dUrw25DheL9np7G/+28GwHPvLb4aptOiONbCaVvh9UMHEA9F7c0zfF\n/cL5fOpdVa54wTI0u12CsFKt78h6lEGG5jUs/qX9clZncJM7EFkN3imPPy+0HC8n\nspXiH/MZW8o2cqWRkrw3MzBZW3Ojk5nQj40V6NUbjb7kfejzAgMBAAGjVzBVMB0G\nA1UdDgQWBBQT6Y9J3Tw/hOGc8PNV7JEE4k2ZNTA0BgNVHREELTArggtzYW1sdGVz\ndC5pZIYcaHR0cHM6Ly9zYW1sdGVzdC5pZC9zYW1sL2lkcDANBgkqhkiG9w0BAQsF\nAAOCAQEASk3guKfTkVhEaIVvxEPNR2w3vWt3fwmwJCccW98XXLWgNbu3YaMb2RSn\n7Th4p3h+mfyk2don6au7Uyzc1Jd39RNv80TG5iQoxfCgphy1FYmmdaSfO8wvDtHT\nTNiLArAxOYtzfYbzb5QrNNH/gQEN8RJaEf/g/1GTw9x/103dSMK0RXtl+fRs2nbl\nD1JJKSQ3AdhxK/weP3aUPtLxVVJ9wMOQOfcy02l+hHMb6uAjsPOpOVKqi3M8XmcU\nZOpx4swtgGdeoSpeRyrtMvRwdcciNBp9UZome44qZAYH1iqrpmmjsfI9pJItsgWu\n3kXPjhSfj1AJGR1l9JGvJrHki1iHTA=="
+    }
+}
+EOF
+test -f saml/advanced_settings.json || cat << EOF > saml/advanced_settings.json
+{
+    "security": {
+        "nameIdEncrypted": false,
+        "authnRequestsSigned": false,
+        "logoutRequestSigned": false,
+        "logoutResponseSigned": false,
+        "signMetadata": false,
+        "wantMessagesSigned": false,
+        "wantAssertionsSigned": false,
+        "wantNameId" : true,
+        "wantNameIdEncrypted": false,
+        "wantAssertionsEncrypted": false,
+        "signatureAlgorithm": "http://www.w3.org/2001/04/xmldsig-more#rsa-sha256",
+        "digestAlgorithm": "http://www.w3.org/2001/04/xmlenc#sha256"
+    },
+    "contactPerson": {
+        "technical": {
+            "givenName": "technical_name",
+            "emailAddress": "technical@example.com"
+        },
+        "support": {
+            "givenName": "support_name",
+            "emailAddress": "support@example.com"
+        }
+    },
+    "organization": {
+        "en-US": {
+            "name": "sp_test",
+            "displayname": "SP test",
+            "url": "http://sp.example.com"
+        }
+    }
+}
+EOF

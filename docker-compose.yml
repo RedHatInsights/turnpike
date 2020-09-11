@@ -36,7 +36,7 @@ services:
           - nginx
     environment:
       NGINX_LISTEN: 8443 ssl
-      NGINX_SERVER_NAME: nginx
+      NGINX_SERVER_NAME: ${SERVER_NAME}
       FLASK_SERVICE_URL: http://web:5000
       FLASK_SERVER_NAME: ${SERVER_NAME}
       NGINX_SSL_CONFIG: |

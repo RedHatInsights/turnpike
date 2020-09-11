@@ -1,6 +1,8 @@
 server {
     listen       {{ NGINX_LISTEN }} default_server;
     server_name  {{ NGINX_SERVER_NAME }};
+    port_in_redirect off;
+    server_name_in_redirect on;
     {{ NGINX_SSL_CONFIG }}
     include      api_conf.d/*.conf;
     set          $proxy_host {{ FLASK_SERVER_NAME }};

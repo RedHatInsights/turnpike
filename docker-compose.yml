@@ -67,3 +67,5 @@ services:
           - echo-server
     environment:
       PORT: 8080
+networks:
+  mynet:

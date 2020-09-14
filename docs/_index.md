@@ -22,7 +22,7 @@ A successful SAML user request workflow looks like:
 
 A successful mTLS request workflow looks like:
 
-![mTLS Flow](mtls.png)
+![mTLS Flow](turnpike-mtls.png)
 
 Route map and Attribute based access control
 --------------------------------------------

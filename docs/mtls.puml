@@ -1,4 +1,4 @@
-@startuml turnpike-mTLS
+@startuml turnpike-mtls
 
 participant "Service Account w/ x509 client cert" as service_account
 box "cloud.redhat.com"

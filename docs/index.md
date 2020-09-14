@@ -22,87 +22,11 @@ A successful mTLS request workflow looks like:
 
 ![mTLS Flow](mtls.png)
 
-Note: TLS can be terminated either with Nginx itself, or with a standalone service in front of Nginx. The diagram's
-"mTLS Gateway" refers to whatever service terminates TLS. Also, the expected subject and issuer header names can be
-adjusted by setting `HEADER_CERTAUTH_SUBJECT` and `HEADER_CERTAUTH_ISSUER` variables.
-
-Nginx Configuration
--------------------
-
-In `services/nginx`, create the following files:
-
-1. `certs/cert.pem` - The PEM encoded certificate for Nginx (can be the same as the web cert)
-2. `certs/key.pem` - The PEM encoded certificate for Nginx (can be the same as the web key)
-3. `certs/ca.pem` - The PEM encoded trust chain to verify client certificates
-
-SAML Service Provider Configuration
------------------------------------
-
-The implementation of a SAML service provider uses the OneLogin [python3-saml][python3-saml] library.
-
-As with any SAML SP configuration, you will need:
-
-1. An SSL certificate and key for your Turnpike gateway
-2. The SSL certificate for your SAML Identity Provider (IdP)
-3. The configuration of your Identity Provider as exposed by their IdP metadata endpoint.
-
-Then in your copy of the Turnpike code, in `/saml` create the following files:
-
-1. `settings.json`- The metadata settings for the IdP and SP (an [example][settings-example])
-2. `advanced_settings.json` - Advanced SAML settings for the IdP and SP (an [example][adv-settings-example])
-
-You can fill out the latter two by finding corresponding fields in your IdP's metadata file and with collaboration with
-their staff. For the Service Provider urls, you should use the following paths relative to your Turnpike hostname:
-
-* Entity ID/metadata URL: `/saml/metadata.xml`
-* ACS: `/saml/acs/`
-* SLS: `/saml/sls/`
-
-If you're looking to simply demo Turnpike or aren't ready to integrate with your real IdP yet, you can use the free
-SAML test integration services available at https://samltest.id
-
-You will also need to generate a TLS certificate for the hostname you're going to use to access your running development
-environment. In `/nginx/certs`, name the certificate as `cert.pem` and the private key as `key.pem`.
-
-You can use `scripts/setup_devel_env` to configure the certs and configure to use the samltest.id IdP. Once the app is
-running, you will need to visit https://samltest.id/upload.php and upload https://turnpike.example.com/saml/metadata.xml
-before the IdP will recognize your turnpike instance. The SP entityId includes a uuid so that you don't accidentally
-overwrite another developer's SP XML.
-
-If you are deploying Turnpike in Kubernetes or OpenShift, you should mount these configuration files using a
-combination of ConfigMap and Secret resources mounted into your running pods.
-
-Running Using Docker Compose
-----------------------------
-
-The simplest way to run Turnpike locally is using Docker Compose.
-
-First, you need to set proper environment variables. Copy the `.env.example` file to `.env`, copy the
-`dev-config.py.example` to `dev-config.py`,  and customize them both as needed. You'll
-need to generate a secret key for session security and you'll need to set the `SERVER_NAME` to the hostname you're
-using for your SAML Service Provider, the same as the subject in your SP certificate.
-
-Then, from the root of your copy of Turnpike, simply run:
-
-    docker-compose build
-    docker-compose up
-
-If the subject of the SP certificate does not resolve to your local machine, you may have to add a mapping in your
-`/etc/hosts` file. For example, if you issued your SP certificate to `cn=turnpike.example.com`, then you may need to add
-to your `/etc/hosts` file a line:
-
-    127.0.0.1  turnpike.example.com
-
-Then, go to https://turnpike.example.com/api/turnpike/identity in your browser. You should immediately be redirected to
-your configured IdP's login page, or if you're already logged into your IdP, a page that outputs the content of your
-IdP's SAML assertion.
-
-Route Map and Attribute Based Access Control
+Route map and Attribute based access control
 --------------------------------------------
 
-Whether in Docker Compose or in Kubernetes/OpenShift, Turnpike expects that in the Flask container it will be able to
-find its route map and access control list at `/etc/turnpike/backends.yml`. For Docker Compose, the file in your copy
-of Turnpike `dev-backends.yml` is mounted into the Flask container at this path:
+Turnpike is configured using a route map that lists what URLs to expose, what upstream URLs to reverse proxy them to,
+and what authentication/authorization requirements it should enforce. For example:
 
     - name: turnpike
       route: /api/turnpike
@@ -113,7 +37,7 @@ of Turnpike `dev-backends.yml` is mounted into the Flask container at this path:
       route: /_healthcheck
       origin: http://web:5000/_healthcheck
 
-The file is a list of routes. Each route has three required fields: a `name` which must be a unique string, a `route`
+The map is a list of routes. Each route has three required fields: a `name` which must be a unique string, a `route`
 which represents a URL prefix substring to match for this route, and an `origin` which represents the URL to proxy to.
 The substring matching of `route` and the rewriting to `origin` are the same as the Nginx location matching and rewrite
 rules.
@@ -134,6 +58,9 @@ your Python expression could be:
 The evaluation would use set-logic to look for overlaps. If there were any overlaps, the predicate would evaluate to
 `True`. If not, `False`.
 
+> Note: Presently the RHCSP Turnpike installation does terminate mTLS and thus does not report the necessary HTTP
+  headers to enforce x.509 authn/authz requests. This is forthcoming.
+
 `x509` also takes a Python expression which evaluates to `True` or `False`. It is passed a dictionary `x509` which
 contains two attributes: `subject_dn` and `issuer_dn` which can be used to further restrict which certs can be used
 (nginx already verifies the trust chain based on the configured CA file).
@@ -142,29 +69,38 @@ For example to restrict the endpoint to a certificate with the DN of `/CN=test`,
 
     x509['subject_dn'] == '/CN=test'
 
-If using TLS terminated at Nginx, note that CRL and/or OCSP support should be configured in `NGINX_SSL_CONFIG` as
-needed.
-
-Customizing and Extending Turnpike
+How to create a new Turnpike Route
 ----------------------------------
 
-Turnpike's policy service is based on passing a request through a series of plugins that
-evaluate the request for conformity with the deployment policies. These plugins allow
-for a great deal of customization and enhancement with minimal code changes.
+The route map for Turnpike is managed in app-interface as a `ConfigMap`. To create or modify a route for the RHCSP
+Turnpike installation, you'll have to modify it and create a Merge Request.
 
-The plugin chain is configurable in the Flask application using the `PLUGIN_CHAIN`
-setting, which contains a list of Python references to classes that subclass the
-`TurnpikePlugin` abstract base class.
+1. Start with stage. In the app-interface tree, edit the file at:
+   `/resources/insights-stage/turnpike-stage/turnpike-stage-routes.configmap.yml`
 
-The `turnpike.plugins.auth.AuthPlugin` has its own special type of sub-plugin that
-implements the `TurnpikeAuthPlugin` abstract base class. By setting a separate list of
-authentication methods as `AUTH_PLUGIN_CHAIN`, you can customize the way that your
-deployment supports authenticating and authorizing requests.
+2. Make sure you allow Turnpike access to your service's namespace. Modify your namespace file, which if your app's
+   name is `myapp` should be at `/data/services/insights/myapp/namespaces/stage-myapp-stage.yml`. Under the
+   `networkPoliciesAllow` key, add to the list `$ref: /services/insights/turnpike/namespaces/stage-turnpike-stage.yml`
 
-See the docstrings on those classes for more details.
+3. Open a Merge Request. Please tag `@jginsber` or `@kwalsh` to double check your changes.
+
+4. If the merge request works, you should be able to see your route in action at `internal.cloud.stage.redhat.com`
+
+5. If everything looks good, we can move to production. In the app-interface tree, edit the files as before at
+   `/resources/insights-prod/turnpike-prod/turnpike-prod-routes.configmap.yml` and
+   `/data/services/insights/myapp/namespaces/prod-myapp-prod.yml` (but don't forget to allow the `prod-turnpike-prod`
+   namespace instead of the `stage-turnpike-stage` one.)
+
+6. Open a Merge Request. Please tag whomever double-checked your stage changes.
+
+If the merge request works, you should be able to see your route in action at `internal.cloud.redhat.com`.
+
+Reporting issues
+----------------
+
+If you have questions, reach out to the Platform Infrastructure team. To report issues, do so at the GitHub repository
+for Turnpike: https://github.com/RedHatInsights/turnpike
+
 
 [auth_request]: https://docs.nginx.com/nginx/admin-guide/security-controls/configuring-subrequest-authentication/
 [flask]: https://flask.palletsprojects.com/en/1.1.x/
-[python3-saml]: https://github.com/onelogin/python3-saml
-[settings-example]: https://github.com/onelogin/python3-saml/blob/master/demo-flask/saml/settings.json
-[adv-settings-example]: https://github.com/onelogin/python3-saml/blob/master/demo-flask/saml/advanced_settings.json

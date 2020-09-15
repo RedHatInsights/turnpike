@@ -6,6 +6,20 @@ date: 2020-09-14T18:20:00-04:00
 The Turnpike Web Gateway offers protected access to hosted web applications and API services using SAML authentication
 and attribute-based access control. It uses the Nginx web server, a Python/Flask policy server, and a Redis database.
 
+When to use Turnpike
+--------------------
+
+If you are developing an application or service on the Cloud Services Platform that has views or APIs that are not
+meant for customer consumption, you probably want to expose them through Turnpike. Examples of use cases include:
+
+* Administrative or monitoring interfaces to your cloud.redhat.com-hosted application or service
+* Exposing platform-hosted data to trusted applications running behind the Red Hat firewall
+* Enabling support interfaces to your application or service
+
+If what you're building is meant to be accessed by customers or customer-managed infrastructure, the 3Scale API Gateway
+is the proper place to go. If what you are building has components not meant for customer use or access, Turnpike is an
+appropriate place to route through.
+
 How it works
 ------------
 
@@ -70,6 +84,56 @@ contains two attributes: `subject_dn` and `issuer_dn` which can be used to furth
 For example to restrict the endpoint to a certificate with the DN of `/CN=test`, you could use:
 
     x509['subject_dn'] == '/CN=test'
+
+X-RH-Identity
+-------------
+
+Like services that are customer-facing, services routed by Turnpike present information about the authenticated
+principal using the `X-RH-Identity` header, however whereas customer-facing services receive a header with a type of
+`User` or `System`, Turnpike issued headers have a type of `Associate` for SAML authenticated users and of `X509` for
+mTLS authenticated users.
+
+These are best shared by example. For SAML authentication:
+
+    {
+      "identity": {
+        // The associate section contains the Associate type principal data
+        "associate": {
+          // The Roles correspond to LDAP groups
+          "Role": [
+            "some-ldap-group",
+            "another-ldap-group"
+          ],
+          "email": "jschmoe@redhat.com",
+          "givenName": "Joseph",
+          "rhatUUID": "01234567-89ab-cdef-0123-456789abcdef",
+          "surname": "Schmoe"
+        },
+        // In the future, Associates might be authenticated through other means
+        "auth_type": "saml-auth",
+        // The Associate type asserts that the request comes from an active Red Hat employee
+        "type": "Associate"
+      }
+    }
+
+Or alternatively, for mTLS:
+
+    {
+      "identity": {
+        "x509": {
+          // The subject presented by the client
+          "subject_dn": "/CN=some-host.example.com",
+          // All trusted CAs will have to be configured by the platform team at the edge
+          "issuer_dn": "/CN=certificate-authority.example.com"
+        },
+        "auth_type": "X509",
+        // The X509 type asserts that the request comes from a system with a trusted x.509 certificate
+        "type": "X509"
+      }
+    }
+
+If your application needs to vary its functionality based on the requesting user or if your application needs to
+perform more granular access control, it will need to consume this header to do so.
 
 How to create a new Turnpike Route
 ----------------------------------

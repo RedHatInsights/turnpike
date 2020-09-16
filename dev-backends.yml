@@ -19,3 +19,6 @@
   origin: http://echo-server:8080/
   source_ip:
     - 240.0.0.0/4
+- name: Jaeger server
+  route: /api/jaeger
+  origin: http://jaeger.jaeger-ci.svc.cluster.local:16686

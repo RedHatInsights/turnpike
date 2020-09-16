@@ -135,6 +135,25 @@ Or alternatively, for mTLS:
 If your application needs to vary its functionality based on the requesting user or if your application needs to
 perform more granular access control, it will need to consume this header to do so.
 
+URL conventions in Turnpike
+----------------------------------
+
+When creating Turnpike routes, to promote harmonious co-existence, your Turnpike-exposed URLs should fit into the
+following rules:
+
+* If you're exposing an API for app `myapp`, your route should begin with `/api/myapp/`
+* If you're exposing a web application with its own HTML interface for app `myapp`, your route should being with 
+  `/app/myapp/`
+
+In the future, we imagine having a common chrome for building user interfaces integated with Turnpike routed APIs.
+
+There are no restrictions on what your origin URLs must look like, however be sure in your exposed application or APIs
+to be aware of URLs being returned to the user in HTML documents or API hypermedia, so that they conform to the URLs as
+the user would perceive them.
+
+If your origin route is to the root path of your service, your `route` and `origin` values _must_ contain a trailing
+slash.
+
 How to create a new Turnpike Route
 ----------------------------------
 

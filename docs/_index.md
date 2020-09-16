@@ -154,6 +154,12 @@ the user would perceive them.
 If your origin route is to the root path of your service, your `route` and `origin` values _must_ contain a trailing
 slash.
 
+For security purposes, it's advisable to have a different service serving Turnpike routed views than the one serving
+3scale routed views. If you choose that the service exposed via Turnpike be the same service you expose via 3scale, you
+are _strongly_ encouraged to pick a completely different URL space in your service to differentiate Turnpike exposed 
+views from 3scale exposed views. For example, the RBAC service exposes its Turnpike routed views from the URL prefix
+`/_private/` so as not to accidentally expose these views to the public.
+
 How to create a new Turnpike Route
 ----------------------------------
 

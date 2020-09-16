@@ -135,6 +135,31 @@ Or alternatively, for mTLS:
 If your application needs to vary its functionality based on the requesting user or if your application needs to
 perform more granular access control, it will need to consume this header to do so.
 
+URL conventions in Turnpike
+----------------------------------
+
+When creating Turnpike routes, to promote harmonious co-existence, your Turnpike-exposed URLs should fit into the
+following rules:
+
+* If you're exposing an API for app `myapp`, your route should begin with `/api/myapp/`
+* If you're exposing a web application with its own HTML interface for app `myapp`, your route should being with 
+  `/app/myapp/`
+
+In the future, we imagine having a common chrome for building user interfaces integated with Turnpike routed APIs.
+
+There are no restrictions on what your origin URLs must look like, however be sure in your exposed application or APIs
+to be aware of URLs being returned to the user in HTML documents or API hypermedia, so that they conform to the URLs as
+the user would perceive them.
+
+If your origin route is to the root path of your service, your `route` and `origin` values _must_ contain a trailing
+slash.
+
+For security purposes, it's advisable to have a different service serving Turnpike routed views than the one serving
+3scale routed views. If you choose that the service exposed via Turnpike be the same service you expose via 3scale, you
+are _strongly_ encouraged to pick a completely different URL space in your service to differentiate Turnpike exposed 
+views from 3scale exposed views. For example, the RBAC service exposes its Turnpike routed views from the URL prefix
+`/_private/` so as not to accidentally expose these views to the public.
+
 How to create a new Turnpike Route
 ----------------------------------
 

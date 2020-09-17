@@ -140,14 +140,15 @@ class SAMLAuthPlugin(TurnpikeAuthPlugin):
     def process(self, context, backend_auth):
         current_app.logger.debug("Begin SAML Auth plugin processing")
         if "saml" in backend_auth and "samlUserdata" in session:
-            auth_data = session["samlUserdata"].items()
-            current_app.logger.debug(f"SAML auth_data: {auth_data}")
+            auth_dict = session["samlUserdata"]
+            auth_tuples = auth_dict.items()
+            current_app.logger.debug(f"SAML auth_data: {auth_tuples}")
             multi_value_attrs = self.app.config["MULTI_VALUE_SAML_ATTRS"]
             context.auth = dict(
-                auth_data={k: v if (len(v) > 1 or (k in multi_value_attrs)) else v[0] for k, v in auth_data}, 
+                auth_data={k: v if (len(v) > 1 or (k in multi_value_attrs)) else v[0] for k, v in auth_tuples},
                 auth_plugin=self)
             predicate = backend_auth["saml"]
-            authorized = eval(predicate, dict(user=auth_data))
+            authorized = eval(predicate, dict(user=auth_dict))
             if not authorized:
                 context.status_code = 403
         return context

@@ -1,15 +1,17 @@
-FROM python:3.6-slim-buster
+FROM quay.io/app-sre/centos:8
 
 WORKDIR /usr/src/app
 
 ENV FLASK_RUN_HOST 0.0.0.0
 ENV BACKENDS_CONFIG_MAP=/etc/turnpike/backends.yml
 COPY ./Pipfile ./Pipfile.lock /usr/src/app/
-RUN pip install --no-cache-dir --upgrade pip pipenv && apt-get update && \
-    apt-get install -y pkg-config gcc libxmlsec1 libxmlsec1-dev --no-install-suggests --no-install-recommends && \
+RUN dnf install -y dnf-plugins-core && \
+    dnf config-manager --set-enabled PowerTools && \
+    dnf install -y gcc xmlsec1 xmlsec1-devel python3-pip python36 python3-devel libtool-ltdl-devel xmlsec1-openssl xmlsec1-openssl-devel openssl && \
+    pip3 install --no-cache-dir --upgrade pip pipenv && \
     pipenv lock --requirements > requirements.txt && \
     pip install --no-cache-dir -r requirements.txt && \
-    apt-get remove --purge --auto-remove -y gcc pkg-config && \
-    rm -rf /var/lib/apt/lists/*
+    dnf remove -y gcc python3-devel && \
+    rm -rf /var/lib/dnf /var/cache/dnf
 COPY . /usr/src/app/
 CMD ["./run-server.sh"]

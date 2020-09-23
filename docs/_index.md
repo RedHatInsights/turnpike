@@ -67,8 +67,8 @@ in the expression is a dictionary `user` which contains the SAML assertion for t
 had multiple `AttributeValue`s for a single `Attribute`, then those values are represented as a list of values.
 
 > Note: The Red Hat SSO SAML assertion will return LDAP roles which Turnpike makes available to your predicates via:
-`user['Role']`. Production uses your production LDAP groups, while Stage and other non-prod environments use groups
-configured at: https://rover.stage.redhat.com/groups/
+`user['Role']`. Production SSO will return your production LDAP groups, configured at https://rover.redhat.com/groups/ while
+Stage and other non-prod environments will return groups configured at: https://rover.stage.redhat.com/groups/
 
 So for example, if you wanted to limit access to a route to users who had the role `admin`, `auditor`, or `manager`,
 your Python expression could be:

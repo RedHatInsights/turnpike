@@ -66,10 +66,14 @@ The value associated with `saml` should be a Python expression that evaluates to
 in the expression is a dictionary `user` which contains the SAML assertion for the requesting user. If the assertion
 had multiple `AttributeValue`s for a single `Attribute`, then those values are represented as a list of values.
 
+> Note: The Red Hat SSO SAML assertion will return LDAP roles which Turnpike makes available to your predicates via:
+`user['Role']`. Production SSO will return your production LDAP groups, configured at https://rover.redhat.com/groups/ while
+Stage and other non-prod environments will return groups configured at: https://rover.stage.redhat.com/groups/
+
 So for example, if you wanted to limit access to a route to users who had the role `admin`, `auditor`, or `manager`,
 your Python expression could be:
 
-    set(['admin', 'auditor', 'manager']).intersection(set(user['roles']))
+    set(['admin', 'auditor', 'manager']).intersection(set(user['Role']))
 
 The evaluation would use set-logic to look for overlaps. If there were any overlaps, the predicate would evaluate to
 `True`. If not, `False`.
@@ -142,7 +146,7 @@ When creating Turnpike routes, to promote harmonious co-existence, your Turnpike
 following rules:
 
 * If you're exposing an API for app `myapp`, your route should begin with `/api/myapp/`
-* If you're exposing a web application with its own HTML interface for app `myapp`, your route should being with 
+* If you're exposing a web application with its own HTML interface for app `myapp`, your route should being with
   `/app/myapp/`
 
 In the future, we imagine having a common chrome for building user interfaces integated with Turnpike routed APIs.
@@ -156,7 +160,7 @@ slash.
 
 For security purposes, it's advisable to have a different service serving Turnpike routed views than the one serving
 3scale routed views. If you choose that the service exposed via Turnpike be the same service you expose via 3scale, you
-are _strongly_ encouraged to pick a completely different URL space in your service to differentiate Turnpike exposed 
+are _strongly_ encouraged to pick a completely different URL space in your service to differentiate Turnpike exposed
 views from 3scale exposed views. For example, the RBAC service exposes its Turnpike routed views from the URL prefix
 `/_private/` so as not to accidentally expose these views to the public.
 

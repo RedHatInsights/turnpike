@@ -175,6 +175,24 @@ To run local unit tests:
 $ pytest
 ```
 
+For testing SAML functionality, when the Flask config has `TESTING` set to a value that
+resolves to `True`, an additional endpoint exists at `/saml/mock/` which, if you `POST`
+a JSON object representing the contents of the SAML assertion you want to test with,
+will set the requestor's session to contain that assertion. The response will have a
+`Set-Cookie` header for the session; simply present that as a `Cookie` header in
+subsequent requests to use the stored session.
+
+    $ curl -vk -H "Content-Type: application/json" -d '{"foo":"bar"}' https://turnpike.example.com/saml/mock/
+    ... snip ...
+    < HTTP/1.1 204 NO CONTENT
+    < Server: nginx/1.14.1
+    < Set-Cookie: session=b56b832d-8aaa-4c06-9e80-3b424f0fcab2; Domain=.turnpike.example.com; Expires=Thu, 24-Sep-2020 22:05:43 GMT; Secure; HttpOnly; Path=/
+    < 
+    $ curl -k -H "Cookie: session=b56b832d-8aaa-4c06-9e80-3b424f0fcab2" https://turnpike.example.com/api/turnpike/identity/
+    {"identity":{"associate":{"foo":"bar"},"auth_type":"saml-auth","type":"Associate"}}
+
+This endpoint returns a 404 if `TESTING` is not enabled.
+
 ## Linting/pre-commit
 Linting will run automatically with `black` in a pre-commit hook, but you'll need to run `pre-commit install` first. 
 You can also run it manually with `pre-commit run -a`.

@@ -1,7 +1,7 @@
 import contextlib
 from urllib.parse import urlparse
 
-from flask import Blueprint, current_app, make_response, redirect, request, session, views, url_for
+from flask import Blueprint, abort, current_app, make_response, redirect, request, session, views, url_for
 from onelogin.saml2.auth import OneLogin_Saml2_Auth
 from onelogin.saml2.utils import OneLogin_Saml2_Utils
 
@@ -74,10 +74,6 @@ class ACSView(SAMLView):
                 if "AuthNRequestID" in session:
                     del session["AuthNRequestID"]
                 session["samlUserdata"] = ctx.auth.get_attributes()
-                session["samlNameId"] = ctx.auth.get_nameid()
-                session["samlNameIdFormat"] = ctx.auth.get_nameid_format()
-                session["samlNameIdNameQualifier"] = ctx.auth.get_nameid_nq()
-                session["samlNameIdSPNameQualifier"] = ctx.auth.get_nameid_spnq()
                 session["samlSessionIndex"] = ctx.auth.get_session_index()
                 self_url = OneLogin_Saml2_Utils.get_self_url(ctx.req)
                 if "RelayState" in request.form and self_url != request.form["RelayState"]:
@@ -120,10 +116,23 @@ class SLSView(SAMLView):
                 return resp
 
 
+class MockSAMLAssertionView(views.MethodView):
+    def post(self):
+        if not current_app.config.get('TESTING'):
+            abort(404)
+        if request.mimetype != "application/json":
+            return make_response("Content type must be application/json", 415)
+        saml_user_data = request.json
+        session["samlUserdata"] = saml_user_data
+        session["samlSessionIndex"] = -1
+        return make_response("", 204)
+    
+
 blueprint.add_url_rule("/metadata.xml", view_func=MetadataView.as_view("saml-metadata"))
 blueprint.add_url_rule("/login/", view_func=LoginView.as_view("saml-login"))
 blueprint.add_url_rule("/acs/", view_func=ACSView.as_view("saml-acs"))
 blueprint.add_url_rule("/sls/", view_func=SLSView.as_view("saml-sls"))
+blueprint.add_url_rule("/mock/", view_func=MockSAMLAssertionView.as_view("saml-mock"))
 
 
 class SAMLAuthPlugin(TurnpikeAuthPlugin):

@@ -48,7 +48,8 @@ def nginx_config_data():
         to_upstream = to_upstream.union(plugin.headers_to_forward)
         to_policy_service = to_policy_service.union(plugin.headers_needed)
     response_dict = dict(
-        to_upstream=list(to_upstream), 
+        to_upstream=list(to_upstream),
         to_policy_service=list(to_policy_service),
-        blueprints=[bp.url_prefix for bp in current_app.blueprints.values()]) 
-    return make_response(json.dumps(response_dict), 200,  {"Content-Type": "application/json"})
+        blueprints=[bp.url_prefix for bp in current_app.blueprints.values()],
+    )
+    return make_response(json.dumps(response_dict), 200, {"Content-Type": "application/json"})

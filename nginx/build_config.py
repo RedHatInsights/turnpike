@@ -4,7 +4,7 @@ import argparse
 import json
 import os
 import time
-from urllib import request, error
+from urllib import parse, request, error
 import warnings
 
 import jinja2
@@ -13,7 +13,38 @@ import yaml.error
 
 
 # Do not include leading or trailing slashes in these routes
-FORBIDDEN_ROUTES = ["", "saml", "auth", "_nginx"]
+PROTECTED_ROUTES = ["saml", "auth", "_nginx"]
+ALLOWED_ROUTES = os.environ.get('TURNPIKE_ALLOWED_ROUTES', ["public", "api", "app"])
+ALLOWED_NO_AUTH_ROUTES = os.environ.get('TURNPIKE_NO_AUTH_ROUTES', ["public"])
+ALLOWED_ORIGIN_DOMAINS = os.environ.get('TURNPIKE_ALLOWED_ORIGIN_DOMAINS', [".svc.cluster.local"])
+
+
+def validate_route(backend):
+    name = backend["name"]
+    route = backend["route"]
+    # The route must be a valid path
+    if not (route.startswith('/') and parse.urlparse(route).path == route):
+        warnings.warn(f"Routes must be valid URL paths: {route} - skipping {name}.")
+        return False
+    # The origin must be a URL in a trusted domain
+    origin_hostname = parse.urlparse(backend["origin"]).netloc.split(':', 1)[0]
+    if not any([origin_hostname.endswith(allowed_domain) for allowed_domain in ALLOWED_ORIGIN_DOMAINS]):
+        warnings.warn(f"Route origin is in an untrusted domain: {origin_hostname} - skipping {name}.")
+        return False
+    first_path_segment = route.strip('/').split('/', 1)[0]
+    # Routes Turnpike needs to function are off limits
+    if first_path_segment in PROTECTED_ROUTES:
+        warnings.warn(f"Protected route found in config map: {route} - skipping {name}.")
+        return False
+    # Routes must be in an allowed section of URL-space or begin with an underscore
+    if not (first_path_segment in ALLOWED_ROUTES or first_path_segment.startswith('_')):
+        warnings.warn(f"Route found outside of allowed prefixes: {route} - skipping {name}.")
+        return False
+    # Routes must have authentication required unless they're in an allowed section of URL-space
+    if not (first_path_segment in ALLOWED_NO_AUTH_ROUTES or 'auth' in backend):
+        warnings.warn(f"Route not in public area of URL space but did not require auth: {route} - skipping {name}")
+        return False
+    return True
 
 
 def main(args):
@@ -55,12 +86,8 @@ def main(args):
     with open("/etc/nginx/backend_template.conf.j2") as ifs:
         template = jinja2.Template(ifs.read())
     for backend in backends:
-        name = backend["name"]
+        name = backend['name']
         print(f"Processing backend configuration for {name}")
-        route = backend["route"]
-        if route.strip("/") in FORBIDDEN_ROUTES:
-            warnings.warn(f"Forbidden route found in config map: {route} - skipping.")
-
         with open(f"/etc/nginx/api_conf.d/{name}.conf", "w") as ofs:
             ofs.write(template.render(headers=headers_to_upstream, **backend))
     print("Done.")

@@ -118,7 +118,7 @@ class SLSView(SAMLView):
 
 class MockSAMLAssertionView(views.MethodView):
     def post(self):
-        if not current_app.config.get('TESTING'):
+        if not current_app.config.get("TESTING"):
             abort(404)
         if request.mimetype != "application/json":
             return make_response("Content type must be application/json", 415)
@@ -126,7 +126,7 @@ class MockSAMLAssertionView(views.MethodView):
         session["samlUserdata"] = saml_user_data
         session["samlSessionIndex"] = -1
         return make_response("", 204)
-    
+
 
 blueprint.add_url_rule("/metadata.xml", view_func=MetadataView.as_view("saml-metadata"))
 blueprint.add_url_rule("/login/", view_func=LoginView.as_view("saml-login"))
@@ -155,7 +155,8 @@ class SAMLAuthPlugin(TurnpikeAuthPlugin):
             multi_value_attrs = self.app.config["MULTI_VALUE_SAML_ATTRS"]
             context.auth = dict(
                 auth_data={k: v if (len(v) > 1 or (k in multi_value_attrs)) else v[0] for k, v in auth_tuples},
-                auth_plugin=self)
+                auth_plugin=self,
+            )
             predicate = backend_auth["saml"]
             authorized = eval(predicate, dict(user=auth_dict))
             if not authorized:

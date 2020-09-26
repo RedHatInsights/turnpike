@@ -102,8 +102,8 @@ IdP's SAML assertion.
 
 ### Route Map and Attribute Based Access Control
 
-Turnpike expects that in the Flask container it will be able to find its route map and access control list at 
-`/etc/turnpike/backends.yml`. For Docker Compose, the file in your copy of Turnpike `dev-backends.yml` is mounted into 
+Turnpike expects that in the Flask container it will be able to find its route map and access control list at
+`/etc/turnpike/backends.yml`. For Docker Compose, the file in your copy of Turnpike `dev-backends.yml` is mounted into
 the Flask container at this path:
 
     - name: turnpike
@@ -187,14 +187,14 @@ subsequent requests to use the stored session.
     < HTTP/1.1 204 NO CONTENT
     < Server: nginx/1.14.1
     < Set-Cookie: session=b56b832d-8aaa-4c06-9e80-3b424f0fcab2; Domain=.turnpike.example.com; Expires=Thu, 24-Sep-2020 22:05:43 GMT; Secure; HttpOnly; Path=/
-    < 
+    <
     $ curl -k -H "Cookie: session=b56b832d-8aaa-4c06-9e80-3b424f0fcab2" https://turnpike.example.com/api/turnpike/identity/
     {"identity":{"associate":{"foo":"bar"},"auth_type":"saml-auth","type":"Associate"}}
 
 This endpoint returns a 404 if `TESTING` is not enabled.
 
 ## Linting/pre-commit
-Linting will run automatically with `black` in a pre-commit hook, but you'll need to run `pre-commit install` first. 
+Linting will run automatically with `black` in a pre-commit hook, but you'll need to run `pre-commit install` first.
 You can also run it manually with `pre-commit run -a`.
 
 

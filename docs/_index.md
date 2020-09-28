@@ -139,30 +139,43 @@ Or alternatively, for mTLS:
 If your application needs to vary its functionality based on the requesting user or if your application needs to
 perform more granular access control, it will need to consume this header to do so.
 
-URL conventions in Turnpike
-----------------------------------
+Best practices when creating routes
+-----------------------------------
 
-When creating Turnpike routes, to promote harmonious co-existence, your Turnpike-exposed URLs should fit into the
+When creating Turnpike routes, to promote harmonious co-existence, your Turnpike-exposed URLs must fit into the
 following rules:
 
-* If you're exposing an API for app `myapp`, your route should begin with `/api/myapp/`
-* If you're exposing a web application with its own HTML interface for app `myapp`, your route should being with
-  `/app/myapp/`
+* If you're exposing an API for app `myapp`, your route should begin with `/api/myapp/` - these routes must require 
+  authentication.
+* If you're exposing a web application with its own HTML interface for app `myapp`, your route should begin with
+  `/app/myapp/` - these routes must require authentication.
+* If you're exposing a route and really need it to require no authentication at all:
+  * You probably should be exposing the route through 3scale. The Turnpike gateway is really for internal associates 
+    only.
+  * But if you really, really have a good reason to still need it, your route must begin with `/public/`
 
 In the future, we imagine having a common chrome for building user interfaces integated with Turnpike routed APIs.
 
-There are no restrictions on what your origin URLs must look like, however be sure in your exposed application or APIs
+All `origin` URLs must be services within the OpenShift cluster, however be sure in your exposed application or APIs
 to be aware of URLs being returned to the user in HTML documents or API hypermedia, so that they conform to the URLs as
 the user would perceive them.
 
-If your origin route is to the root path of your service, your `route` and `origin` values _must_ contain a trailing
-slash.
+If your origin route is to the root path of your service, your `route` and `origin` values must contain a trailing
+slash. The forwarding mechanism uses Nginx's [proxy_pass][proxy_pass] directive, so an `origin` of a URL without a path
+at the end will reuse the request path in the same form. 
 
 For security purposes, it's advisable to have a different service serving Turnpike routed views than the one serving
 3scale routed views. If you choose that the service exposed via Turnpike be the same service you expose via 3scale, you
 are _strongly_ encouraged to pick a completely different URL space in your service to differentiate Turnpike exposed
 views from 3scale exposed views. For example, the RBAC service exposes its Turnpike routed views from the URL prefix
 `/_private/` so as not to accidentally expose these views to the public.
+
+For operational integrity purposes, it's advisable for destructive operations exposed through Turnpike routes to be
+closely guarded and audited. For example, every request that writes to a database with customer data should be logged
+with the user who requested it and the specific operations performed. Additionally, it's a good idea to require a
+specific environment variable be set to a date-time in the future in order for destructive operations to be allowed;
+that way, an app-interface Merge Request would be required to enable destructive operations, and the passage of time
+would disable them automatically without a subsequent app-interface Merge Request.
 
 How to create a new Turnpike Route
 ----------------------------------
@@ -199,3 +212,4 @@ for Turnpike: https://github.com/RedHatInsights/turnpike
 
 [auth_request]: https://docs.nginx.com/nginx/admin-guide/security-controls/configuring-subrequest-authentication/
 [flask]: https://flask.palletsprojects.com/en/1.1.x/
+[proxy_pass]: https://nginx.org/en/docs/http/ngx_http_proxy_module.html#proxy_pass

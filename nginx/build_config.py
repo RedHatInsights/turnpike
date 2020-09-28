@@ -88,8 +88,9 @@ def main(args):
     for backend in backends:
         name = backend['name']
         print(f"Processing backend configuration for {name}")
-        with open(f"/etc/nginx/api_conf.d/{name}.conf", "w") as ofs:
-            ofs.write(template.render(headers=headers_to_upstream, **backend))
+        if validate_route(backend):
+            with open(f"/etc/nginx/api_conf.d/{name}.conf", "w") as ofs:
+                ofs.write(template.render(headers=headers_to_upstream, **backend))
     print("Done.")
 
 

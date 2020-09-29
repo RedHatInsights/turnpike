@@ -17,7 +17,7 @@ services:
     networks:
       mynet:
         aliases:
-          - web
+          - web.svc.cluster.local
     environment:
       TURNPIKE_CONFIG: /etc/turnpike/dev-config.py
   nginx:
@@ -33,11 +33,11 @@ services:
     networks:
       mynet:
         aliases:
-          - nginx
+          - nginx.svc.cluster.local
     environment:
       NGINX_LISTEN: 8443 ssl
       NGINX_SERVER_NAME: ${SERVER_NAME}
-      FLASK_SERVICE_URL: http://web:5000
+      FLASK_SERVICE_URL: http://web.svc.cluster.local:5000
       FLASK_SERVER_NAME: ${SERVER_NAME}
       NGINX_SSL_CONFIG: |
        ssl_certificate certs/cert.pem;
@@ -55,7 +55,7 @@ services:
     networks:
       mynet:
         aliases:
-          - redis
+          - redis.svc.cluster.local
   echo-server:
     image: jmalloc/echo-server:latest
     hostname: echo-server
@@ -64,7 +64,7 @@ services:
     networks:
       mynet:
         aliases:
-          - echo-server
+          - echo-server.svc.cluster.local
     environment:
       PORT: 8080
 networks:

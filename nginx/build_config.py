@@ -14,9 +14,9 @@ import yaml.error
 
 # Do not include leading or trailing slashes in these routes
 PROTECTED_ROUTES = ["saml", "auth", "_nginx"]
-ALLOWED_ROUTES = os.environ.get('TURNPIKE_ALLOWED_ROUTES', ["public", "api", "app"])
-ALLOWED_NO_AUTH_ROUTES = os.environ.get('TURNPIKE_NO_AUTH_ROUTES', ["public"])
-ALLOWED_ORIGIN_DOMAINS = os.environ.get('TURNPIKE_ALLOWED_ORIGIN_DOMAINS', [".svc.cluster.local"])
+ALLOWED_ROUTES = json.loads(os.environ.get('TURNPIKE_ALLOWED_ROUTES', '["public", "api", "app"]'))
+ALLOWED_NO_AUTH_ROUTES = json.loads(os.environ.get('TURNPIKE_NO_AUTH_ROUTES', '["public"]'))
+ALLOWED_ORIGIN_DOMAINS = json.loads(os.environ.get('TURNPIKE_ALLOWED_ORIGIN_DOMAINS', '[".svc.cluster.local"]'))
 
 
 def validate_route(backend):

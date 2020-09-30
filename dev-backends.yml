@@ -1,21 +1,21 @@
 - name: turnpike
-  route: /api/turnpike
-  origin: http://web:5000/api/turnpike
+  route: /api/turnpike/
+  origin: http://web.svc.cluster.local:5000/api/turnpike/
   auth:
     saml: "True"
     x509: "True"
 - name: healthcheck
-  route: /_healthcheck
-  origin: http://web:5000/_healthcheck
+  route: /public/healthcheck/
+  origin: http://web.svc.cluster.local:5000/_healthcheck/
 - name: source_ip_allowed
-  route: /test/source_ip/allow/
-  origin: http://echo-server:8080/
+  route: /public/test/source_ip/allow/
+  origin: http://echo-server.svc.cluster.local:8080/
   source_ip:
     - 10.0.0.0/8
     - 192.168.0.0/16
     - 172.16.0.0/12
 - name: source_ip_denied
-  route: /test/source_ip/deny/
-  origin: http://echo-server:8080/
+  route: /public/test/source_ip/deny/
+  origin: http://echo-server.svc.cluster.local:8080/
   source_ip:
     - 240.0.0.0/4

@@ -12,13 +12,14 @@ class X509AuthPlugin(TurnpikeAuthPlugin):
     client certificate's identity. Subclasses may override the headers used
     by setting the `subject_header` and `issuer_header` attributes.
     """
+
     name = "X509"
     principal_type = "X509"
 
     def __init__(self, app):
         super().__init__(app)
-        self.subject_header = self.app.config['HEADER_CERTAUTH_SUBJECT']
-        self.issuer_header = self.app.config['HEADER_CERTAUTH_ISSUER']
+        self.subject_header = self.app.config["HEADER_CERTAUTH_SUBJECT"]
+        self.issuer_header = self.app.config["HEADER_CERTAUTH_ISSUER"]
 
     @property
     def headers_needed(self):
@@ -28,8 +29,7 @@ class X509AuthPlugin(TurnpikeAuthPlugin):
         logger.debug("Begin X509 plugin processing")
         if "x509" in backend_auth and self.subject_header in request.headers:
             auth_data = dict(
-                subject_dn = request.headers[self.subject_header],
-                issuer_dn = request.headers.get(self.issuer_header),
+                subject_dn=request.headers[self.subject_header], issuer_dn=request.headers.get(self.issuer_header)
             )
             logger.debug(f"X509 auth_data: {auth_data}")
             context.auth = dict(auth_data=auth_data, auth_plugin=self)

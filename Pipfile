@@ -7,6 +7,7 @@ verify_ssl = true
 pre-commit = "*"
 flake8 = "*"
 black = "*"
+pytest-mock = "*"
 
 [packages]
 flask = "*"

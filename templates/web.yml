@@ -86,6 +86,9 @@ objects:
               - mountPath: /usr/src/app/turnpike/saml/
                 name: turnpike-saml
                 readOnly: true
+              - mountPath: /usr/src/app/turnpike/saml/cert
+                name: turnpike-saml-signing
+                readOnly: true
               - mountPath: /etc/turnpike
                 name: turnpike-routes
                 readOnly: true
@@ -102,6 +105,9 @@ objects:
           - configMap:
               name: turnpike-routes
             name: turnpike-routes
+          - name: turnpike-saml-signing
+            secret:
+              secretName: saml-signing
 parameters:
 - description: Initial amount of memory the Django container will request.
   displayName: Memory Request

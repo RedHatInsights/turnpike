@@ -86,7 +86,7 @@ objects:
               - mountPath: /usr/src/app/turnpike/saml/
                 name: turnpike-saml
                 readOnly: true
-              - mountPath: /usr/src/app/turnpike/saml/cert
+              - mountPath: /usr/src/app/turnpike/saml/certs
                 name: turnpike-saml-signing
                 readOnly: true
               - mountPath: /etc/turnpike

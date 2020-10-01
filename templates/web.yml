@@ -73,6 +73,13 @@ objects:
                   secretKeyRef:
                     key: redis-password
                     name: redis-password
+              - name: HEADER_CERTAUTH_PSK
+                value: ${HEADER_CERTAUTH_PSK}
+              - name: CDN_PRESHARED_KEY
+                valueFrom:
+                  secretKeyRef:
+                    key: akamai-psk
+                    name: psk
             image: quay.io/cloudservices/turnpike-web:${IMAGE_TAG}
             imagePullPolicy: Always
             name: web
@@ -132,3 +139,6 @@ parameters:
 - description: Image tag
   name: IMAGE_TAG
   required: true
+- description: Header that Akamai sends with the PSK
+  name: HEADER_CERTAUTH_PSK
+  value: "x-rh-insights-certauth-secret"

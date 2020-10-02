@@ -50,7 +50,7 @@ and what authentication/authorization requirements it should enforce. For exampl
       auth:
         saml: "True"
     - name: healthcheck
-      route: /_healthcheck
+      route: /public/healthcheck
       origin: http://web:5000/_healthcheck
 
 The map is a list of routes. Each route has three required fields: a `name` which must be a unique string, a `route`
@@ -180,26 +180,28 @@ would disable them automatically without a subsequent app-interface Merge Reques
 How to create a new Turnpike Route
 ----------------------------------
 
-The route map for Turnpike is managed in app-interface as a `ConfigMap`. To create or modify a route for the RHCSP
-Turnpike installation, you'll have to modify it and create a Merge Request.
+The route map for Turnpike is managed in app-interface as a deployment parameter that feeds
+into a `ConfigMap`. To create or modify a route for the RHCSP Turnpike installation, you'll
+have to modify it and create a Merge Request.
 
 1. Start with stage. In the app-interface tree, edit the file at:
-   `/resources/insights-stage/turnpike-stage/turnpike-stage-routes.configmap.yml`
+   `/data/services/insights/turnpike/namespaces/deploy.yml`
+   and add your route to the `BACKEND_ROUTES` parameter in the staging namespace.
 
 2. Make sure you allow Turnpike access to your service's namespace. Modify your namespace file, which if your app's
    name is `myapp` should be at `/data/services/insights/myapp/namespaces/stage-myapp-stage.yml`. Under the
    `networkPoliciesAllow` key, add to the list `$ref: /services/insights/turnpike/namespaces/stage-turnpike-stage.yml`
 
-3. Open a Merge Request. Please tag `@jginsber` or `@kwalsh` to double check your changes.
+3. Open a Merge Request. One of the Turnpike service owners will `/lgtm` your request.
 
 4. If the merge request works, you should be able to see your route in action at `internal.cloud.stage.redhat.com`
 
 5. If everything looks good, we can move to production. In the app-interface tree, edit the files as before at
-   `/resources/insights-prod/turnpike-prod/turnpike-prod-routes.configmap.yml` and
+   `/data/services/insights/turnpike/deploy.yml` and
    `/data/services/insights/myapp/namespaces/prod-myapp-prod.yml` (but don't forget to allow the `prod-turnpike-prod`
    namespace instead of the `stage-turnpike-stage` one.)
 
-6. Open a Merge Request. Please tag whomever double-checked your stage changes.
+6. Open a Merge Request. Again, a Turnpike service owner will `/lgtm` your request.
 
 If the merge request works, you should be able to see your route in action at `internal.cloud.redhat.com`.
 

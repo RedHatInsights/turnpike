@@ -38,7 +38,26 @@ objects:
                 secretKeyRef:
                   key: redis-password
                   name: redis-password
+            - name: REDISCLI_AUTH
+              valueFrom:
+                secretKeyRef:
+                  key: redis-password
+                  name: redis-password
             image: registry.redhat.io/rhel8/redis-5:${IMAGE_TAG}
+            readinessProbe:
+              exec:
+                command: ['redis-cli', 'ping']
+              initialDelaySeconds: 10
+              periodSeconds: 10
+              successThreshold: 1
+              timeoutSeconds: 3
+            livenessProbe:
+              exec:
+                command: ['redis-cli', 'ping']
+              initialDelaySeconds: 10
+              periodSeconds: 10
+              successThreshold: 1
+              timeoutSeconds: 3
             imagePullPolicy: IfNotPresent
             name: redis
             ports:

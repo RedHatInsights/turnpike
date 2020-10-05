@@ -65,7 +65,7 @@ objects:
                 valueFrom:
                   secretKeyRef:
                     key: gateway-secret
-                    name: apicast-insights-3scale-config
+                    name: gateway-secret
             image: quay.io/cloudservices/turnpike-web:${IMAGE_TAG}
             imagePullPolicy: Always
             name: web

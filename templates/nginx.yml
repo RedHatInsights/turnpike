@@ -41,20 +41,11 @@ objects:
             - name: NGINX_LISTEN
               value: "${NGINX_LISTEN}"
             - name: NGINX_SERVER_NAME
-              valueFrom:
-                configMapKeyRef:
-                  key: nginx-server-name
-                  name: turnpike-env
+              value: "${NGINX_SERVER_NAME}"
             - name: FLASK_SERVICE_URL
-              valueFrom:
-                configMapKeyRef:
-                  key: flask-service-url
-                  name: turnpike-env
+              value: "${FLASK_SERVICE_URL}"
             - name: FLASK_SERVER_NAME
-              valueFrom:
-                configMapKeyRef:
-                  key: flask-server-name
-                  name: turnpike-env
+              value: "${FLASK_SERVER_NAME}"
             - name: NGINX_SSL_CONFIG
               value: "${NGINX_SSL_CONFIG}"
             - name: TURNPIKE_ALLOWED_ROUTES
@@ -71,7 +62,7 @@ objects:
               path: /_nginx/
               port: ${{NGINX_PORT}}
               scheme: ${NGINX_SCHEME}
-            initialDelaySeconds: 60
+            initialDelaySeconds: 10
             periodSeconds: 10
             successThreshold: 1
             timeoutSeconds: 3
@@ -85,7 +76,7 @@ objects:
               path: /_nginx/
               port: ${{NGINX_PORT}}
               scheme: ${NGINX_SCHEME}
-            initialDelaySeconds: 40
+            initialDelaySeconds: 10
             periodSeconds: 10
             successThreshold: 1
             timeoutSeconds: 3
@@ -157,4 +148,13 @@ parameters:
 - description: Domains allowed to be routed to
   name: ALLOWED_ORIGIN_DOMAINS
   value: '[".svc.cluster.local"]'
+  required: true
+- description: Effective hostname for this service
+  name: FLASK_SERVER_NAME
+  required: true
+- description: URL to Flask service
+  name: FLASK_SERVICE_URL
+  required: true
+- description: Nginx default server name
+  name: NGINX_SERVER_NAME
   required: true

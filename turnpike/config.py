@@ -3,6 +3,7 @@ import redis
 import yaml
 
 SECRET_KEY = os.environ.get("SECRET_KEY")
+CDN_PRESHARED_KEY = os.environ.get("CDN_PRESHARED_KEY")
 
 if not SECRET_KEY:
     raise ValueError("No SECRET_KEY set.")
@@ -23,6 +24,7 @@ MULTI_VALUE_SAML_ATTRS = os.environ.get("MULTI_VALUE_SAML_ATTRS", "").split(",")
 
 HEADER_CERTAUTH_SUBJECT = os.environ.get("HEADER_CERTAUTH_SUBJECT", "x-rh-certauth-subject")
 HEADER_CERTAUTH_ISSUER = os.environ.get("HEADER_CERTAUTH_ISSUER", "x-rh-certauth-issuer")
+HEADER_CERTAUTH_PSK = os.environ.get("HEADER_CERTAUTH_PSK", None)
 
 PLUGIN_CHAIN = [
     "turnpike.plugins.auth.AuthPlugin",

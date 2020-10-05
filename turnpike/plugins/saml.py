@@ -151,7 +151,8 @@ class SAMLAuthPlugin(TurnpikeAuthPlugin):
         if "saml" in backend_auth and "samlUserdata" in session:
             auth_dict = session["samlUserdata"]
             auth_tuples = auth_dict.items()
-            current_app.logger.debug(f"SAML auth_data: {auth_tuples}")
+            if current_app.config['AUTH_DEBUG']:
+                current_app.logger.info(f"SAML auth_data: {auth_tuples}")
             multi_value_attrs = self.app.config["MULTI_VALUE_SAML_ATTRS"]
             context.auth = dict(
                 auth_data={k: v if (len(v) > 1 or (k in multi_value_attrs)) else v[0] for k, v in auth_tuples},

@@ -33,6 +33,7 @@ PLUGIN_CHAIN = [
 ]
 
 AUTH_PLUGIN_CHAIN = ["turnpike.plugins.x509.X509AuthPlugin", "turnpike.plugins.saml.SAMLAuthPlugin"]
+AUTH_DEBUG = os.environ.get("AUTH_DEBUG", False)
 
 DEFAULT_RESPONSE_CODE = 200
 

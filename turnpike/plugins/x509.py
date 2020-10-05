@@ -3,8 +3,6 @@ from flask import request
 
 from ..plugin import TurnpikeAuthPlugin
 
-logger = logging.getLogger(__name__)
-
 
 class X509AuthPlugin(TurnpikeAuthPlugin):
     """
@@ -38,12 +36,17 @@ class X509AuthPlugin(TurnpikeAuthPlugin):
         )
 
     def process(self, context, backend_auth):
-        logger.debug("Begin X509 plugin processing")
+        self.app.logger.debug("Begin X509 plugin processing")
+        if self.app.config['AUTH_DEBUG']:
+            self.app.logger.info('x.509 headers found: '
+                                 f'subject={request.headers.get(self.subject_header)} '
+                                 f'issuer={request.headers.get(self.issuer_header)} '
+                                 f'psk_ok={self.psk_check()} ')
         if "x509" in backend_auth and self.subject_header in request.headers and self.psk_check():
             auth_data = dict(
                 subject_dn=request.headers[self.subject_header], issuer_dn=request.headers.get(self.issuer_header)
             )
-            logger.debug(f"X509 auth_data: {auth_data}")
+            self.app.logger.debug(f"X509 auth_data: {auth_data}")
             context.auth = dict(auth_data=auth_data, auth_plugin=self)
             predicate = backend_auth["x509"]
             authorized = eval(predicate, dict(x509=auth_data))

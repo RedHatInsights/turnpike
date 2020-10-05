@@ -116,7 +116,7 @@ parameters:
   displayName: Memory Limit
   name: MEMORY_LIMIT
   required: true
-  value: 1Gi
+  value: 512Mi
 - description: Initial amount of cpu the container will request.
   displayName: CPU Request
   name: CPU_REQUEST

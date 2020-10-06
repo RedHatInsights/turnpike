@@ -22,7 +22,7 @@ PERMANENT_SESSION_LIFETIME = 60 * 60 * 4
 SESSION_COOKIE_SECURE = True
 MULTI_VALUE_SAML_ATTRS = os.environ.get("MULTI_VALUE_SAML_ATTRS", "").split(",")
 
-HEADER_CERTAUTH_SUBJECT = os.environ.get("HEADER_CERTAUTH_SUBJECT", "x-rh-certauth-subject")
+HEADER_CERTAUTH_SUBJECT = os.environ.get("HEADER_CERTAUTH_SUBJECT", "x-rh-certauth-cn")
 HEADER_CERTAUTH_ISSUER = os.environ.get("HEADER_CERTAUTH_ISSUER", "x-rh-certauth-issuer")
 HEADER_CERTAUTH_PSK = os.environ.get("HEADER_CERTAUTH_PSK", None)
 

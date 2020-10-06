@@ -145,12 +145,12 @@ Best practices when creating routes
 When creating Turnpike routes, to promote harmonious co-existence, your Turnpike-exposed URLs must fit into the
 following rules:
 
-* If you're exposing an API for app `myapp`, your route should begin with `/api/myapp/` - these routes must require 
+* If you're exposing an API for app `myapp`, your route should begin with `/api/myapp/` - these routes must require
   authentication.
 * If you're exposing a web application with its own HTML interface for app `myapp`, your route should begin with
   `/app/myapp/` - these routes must require authentication.
 * If you're exposing a route and really need it to require no authentication at all:
-  * You probably should be exposing the route through 3scale. The Turnpike gateway is really for internal associates 
+  * You probably should be exposing the route through 3scale. The Turnpike gateway is really for internal associates
     only.
   * But if you really, really have a good reason to still need it, your route must begin with `/public/`
 
@@ -162,7 +162,7 @@ the user would perceive them.
 
 If your origin route is to the root path of your service, your `route` and `origin` values must contain a trailing
 slash. The forwarding mechanism uses Nginx's [proxy_pass][proxy_pass] directive, so an `origin` of a URL without a path
-at the end will reuse the request path in the same form. 
+at the end will reuse the request path in the same form.
 
 For security purposes, it's advisable to have a different service serving Turnpike routed views than the one serving
 3scale routed views. If you choose that the service exposed via Turnpike be the same service you expose via 3scale, you

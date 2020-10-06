@@ -185,7 +185,7 @@ into a `ConfigMap`. To create or modify a route for the RHCSP Turnpike installat
 have to modify it and create a Merge Request.
 
 1. Start with stage. In the app-interface tree, edit the file at:
-   `/data/services/insights/turnpike/namespaces/deploy.yml`
+   `/data/services/insights/turnpike/deploy.yml`
    and add your route to the `BACKEND_ROUTES` parameter in the staging namespace.
 
 2. Make sure you allow Turnpike access to your service's namespace. Modify your namespace file, which if your app's

@@ -66,6 +66,8 @@ objects:
                   secretKeyRef:
                     key: gateway-secret
                     name: gateway-secret
+              - name: AUTH_DEBUG
+                value: "${AUTH_DEBUG}"
             image: quay.io/cloudservices/turnpike-web:${IMAGE_TAG}
             imagePullPolicy: Always
             name: web
@@ -209,3 +211,6 @@ parameters:
 - description: Backend route map
   name: BACKEND_ROUTES
   required: true
+- description: Debug authentication backends
+  name: AUTH_DEBUG
+  value: ""

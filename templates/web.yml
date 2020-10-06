@@ -191,7 +191,7 @@ parameters:
   required: true
 - description: Header that Akamai sends with the PSK
   name: HEADER_CERTAUTH_PSK
-  value: "x-rh-insights-certauth-secret"
+  value: "x-rh-insights-gateway-secret"
 - description: Effective hostname for this service
   name: FLASK_SERVER_NAME
   required: true

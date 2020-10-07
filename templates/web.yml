@@ -149,6 +149,8 @@ objects:
     labels:
       app: turnpike
     name: turnpike-routes
+    annotations:
+      qontract.recycle: "true"
   data:
     backends.yml: |
       ${BACKEND_ROUTES}

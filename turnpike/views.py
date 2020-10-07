@@ -3,6 +3,7 @@ import json
 
 from flask import current_app, request, make_response
 
+from .metrics import Metrics
 from .plugin import PolicyContext
 
 
@@ -16,8 +17,10 @@ def policy_view():
         # This condition shouldn't be hit - it would mean that there was a
         # bug, a mismatch between the routes configured in nginx and the
         # routes configured here.
+        status_code = 403
         current_app.logger.warning(f"Policy inquiry about unconfigured route! {original_url}")
-        return make_response("", 403)
+        Metrics.request_count.labels(original_url, status_code).inc()
+        return make_response("", status_code)
     context.backend = max(matches, key=lambda match: len(match["route"]))
     current_app.logger.debug(f"Matched backend: {context.backend['name']}")
 
@@ -26,7 +29,9 @@ def policy_view():
         context = plugin.process(context)
         if context.status_code:
             current_app.logger.debug(f"Plugin set status code {context.status_code}.")
+            Metrics.request_count.labels(context.backend["name"], context.status_code).inc()
             return make_response("", context.status_code, context.headers)
+    Metrics.request_count.labels(context.backend["name"], current_app.config["DEFAULT_RESPONSE_CODE"]).inc()
     return make_response("", current_app.config["DEFAULT_RESPONSE_CODE"], context.headers)
 
 

@@ -5,6 +5,8 @@ from flask import Flask
 from healthcheck import HealthCheck
 from flask_session import Session
 from werkzeug.middleware.proxy_fix import ProxyFix
+from werkzeug.middleware.dispatcher import DispatcherMiddleware
+from prometheus_client import make_wsgi_app
 
 from . import plugin, views
 
@@ -41,6 +43,7 @@ def create_app(test_config=None):
     health = HealthCheck()
     app.add_url_rule("/_healthcheck/", view_func=health.run)
     app.add_url_rule("/_nginx_config/", view_func=views.nginx_config_data)
+    app.wsgi_app = DispatcherMiddleware(app.wsgi_app, {"/metrics": make_wsgi_app()})
 
     chain_objs = []
     for plugin_name in app.config["PLUGIN_CHAIN"]:

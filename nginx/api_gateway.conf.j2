@@ -12,6 +12,7 @@ server {
     }
 
     location /_nginx/ {
+        access_log off;
         return 200 "OK";
     }
 

@@ -12,6 +12,9 @@ RUN dnf install -y dnf-plugins-core && \
     pipenv lock --requirements > requirements.txt && \
     pip install --no-cache-dir -r requirements.txt && \
     dnf remove -y gcc python3-devel && \
-    rm -rf /var/lib/dnf /var/cache/dnf
+    rm -rf /var/lib/dnf /var/cache/dnf && \
+    curl -L -o /usr/bin/haberdasher https://github.com/RedHatInsights/haberdasher/releases/latest/download/haberdasher_linux_amd64 && \
+    chmod 755 /usr/bin/haberdasher
 COPY . /usr/src/app/
+ENTRYPOINT ["/usr/bin/haberdasher"]
 CMD ["./run-server.sh"]

@@ -1,3 +1,8 @@
+import ipaddress
+
+from flask import current_app, request
+
+
 class PolicyContext:
     """
     PolicyContext represents the policy evaluation context for a particular
@@ -30,6 +35,16 @@ class PolicyContext:
     * `data` is an arbitrary dictionary. If two plugins need to share data in a
       way that does not get returned to the client, putting that data in this
       dictionary is the proper way to go.
+
+    * `log_data` is a dictionary containing Elasic Common Schema compatible fields.
+      It should not be necessary to write to this structure.
+
+    * `result` is a string containing the result of the policy request for user
+      consumption. This may be set by plugins to contain information about a failure.
+
+    * `client_ip` is the calculated client IP address, taking into account CDN
+      configuration. It is an ipaddress.IPV4Address or ipaddress.IPV6Address as
+      appropriate.
     """
 
     backend = None
@@ -37,6 +52,31 @@ class PolicyContext:
     headers = {}
     status_code = None
     data = {}
+    log_data = {}
+    result = ""
+    client_ip = None
+
+    def __init__(self):
+        try:
+            self.log_data = current_app.config["LOG_DATA"].copy()
+            # We count on the existence of an X-Forwarded-For header, given the policy service is proxied to at least by
+            # the nginx server and possibly by more. If there were more proxies, we need to have been configured with the
+            # number of forwards to the edge proxy so we can establish the true client IP.
+            try:
+                hops = request.headers["X-Forwarded-For"].split(", ")
+                hops_to_edge = current_app.config.get("HOPS_TO_EDGE", 0)
+                self.client_ip = ipaddress.ip_address(hops[-1 * (hops_to_edge + 1)])
+            except (ValueError, IndexError):
+                current_app.logger.warning(
+                    f'Malformed or missing X-Forwarded-For header: {request.headers.get("X-Forwarded-For")}'
+                )
+            self.log_data.update(
+                {"client.ip": str(self.client_ip), "url.original": request.headers.get("X-Original-Uri", "")}
+            )
+
+        except RuntimeError:
+            # We are outside of the request/app context, so skip this data
+            pass
 
     def __str__(self):
         return f"PolicyContext: backend={self.backend} auth={self.auth}, headers={self.headers}, status_code={self.status_code}"

@@ -1,3 +1,4 @@
+import json
 import os
 import redis
 import yaml
@@ -33,9 +34,10 @@ PLUGIN_CHAIN = [
 ]
 
 AUTH_PLUGIN_CHAIN = ["turnpike.plugins.x509.X509AuthPlugin", "turnpike.plugins.saml.SAMLAuthPlugin"]
-AUTH_DEBUG = os.environ.get("AUTH_DEBUG", False)
 
 DEFAULT_RESPONSE_CODE = 200
+
+LOG_DATA = json.loads(os.environ.get("LOG_DATA", '{"service.name": "turnpike-policy"}'))
 
 with open(os.environ["BACKENDS_CONFIG_MAP"]) as ifs:
     BACKENDS = yaml.safe_load(ifs)

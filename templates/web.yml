@@ -66,8 +66,8 @@ objects:
                   secretKeyRef:
                     key: gateway-secret
                     name: gateway-secret
-              - name: AUTH_DEBUG
-                value: "${AUTH_DEBUG}"
+              - name: LOG_DATA
+                value: "${LOG_DATA}"
             image: quay.io/cloudservices/turnpike-web:${IMAGE_TAG}
             imagePullPolicy: Always
             name: web
@@ -213,6 +213,6 @@ parameters:
 - description: Backend route map
   name: BACKEND_ROUTES
   required: true
-- description: Debug authentication backends
-  name: AUTH_DEBUG
-  value: ""
+- description: A JSON object with ECS-compatible log data to include in every message
+  name: LOG_DATA
+  value: '{"service.name": "turnpike-policy"}'

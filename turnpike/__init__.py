@@ -1,5 +1,7 @@
 import importlib
+from logging import StreamHandler, DEBUG
 from logging.config import dictConfig
+import os
 
 from flask import Flask
 from healthcheck import HealthCheck
@@ -9,22 +11,35 @@ from werkzeug.middleware.proxy_fix import ProxyFix
 from . import plugin, views
 
 
+class DebugOnlyStreamHandler(StreamHandler):
+    def emit(self, record):
+        if not record.levelno == DEBUG:
+            return
+        super().emit(record)
+
+
 def create_app(test_config=None):
     dictConfig(
         {
             "version": 1,
-            "formatters": {
-                "default": {"format": "{levelname} {asctime} {module} {process:d} {thread:d} {message}", "style": "{"}
-            },
+            "disable_existing_loggers": True,
+            "formatters": {"default": {"()": "ecs_logging.StdlibFormatter"}},
             "handlers": {
+                "debug": {"class": "turnpike.DebugOnlyStreamHandler", "level": "DEBUG", "stream": "ext://sys.stdout"},
                 "wsgi": {
                     "class": "logging.StreamHandler",
                     "formatter": "default",
                     "level": "DEBUG",
                     "stream": "ext://flask.logging.wsgi_errors_stream",
+                },
+            },
+            "loggers": {
+                "turnpike": {
+                    "level": "DEBUG" if os.environ.get("FLASK_DEBUG") else "INFO",
+                    "handlers": ["wsgi", "debug"],
                 }
             },
-            "root": {"level": "DEBUG", "handlers": ["wsgi"]},
+            "root": {"level": "ERROR", "handlers": ["wsgi"]},
         }
     )
     app = Flask(__name__)
@@ -49,7 +64,7 @@ def create_app(test_config=None):
         cls = getattr(mod, cls_name)
         if not issubclass(cls, plugin.TurnpikePlugin):
             raise ValueError(f"Plugin {plugin_name} does not resolve to a TurnpikePlugin.")
-        app.logger.info(f"Registering plugin: {plugin_name}")
+        app.logger.debug(f"Registering plugin: {plugin_name}")
         instance = cls(app)
         instance.register_blueprint()
         chain_objs.append(instance)

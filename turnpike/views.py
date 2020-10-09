@@ -1,12 +1,36 @@
 import base64
 import json
+import datetime
 
 from flask import current_app, request, make_response
+from pytz import utc
 
 from .plugin import PolicyContext
 
 
+STATUS_CODE_OUTCOMES = {200: "success", 401: "unknown", 403: "failure"}
+
+
+def log_and_respond(context, content, start_time, status_code=None):
+    extra = context.log_data
+    status_code = status_code or context.status_code or current_app.config["DEFAULT_RESPONSE_CODE"]
+    end_time = datetime.datetime.utcnow().replace(tzinfo=utc)
+    extra.update(
+        {
+            "event.action": "policy-check",
+            "event.outcome": STATUS_CODE_OUTCOMES[status_code],
+            "event.start": start_time.isoformat(),
+            "event.end": end_time.isoformat(),
+            "event.duration": int((end_time - start_time).total_seconds() / 1e-9),
+            "event.reason": context.result.strip(),
+        }
+    )
+    current_app.logger.info(content, extra=extra)
+    return make_response(content, status_code, context.headers)
+
+
 def policy_view():
+    start_time = datetime.datetime.utcnow().replace(tzinfo=utc)
     context = PolicyContext()
 
     # Start by identifying which route is being asked about
@@ -16,18 +40,16 @@ def policy_view():
         # This condition shouldn't be hit - it would mean that there was a
         # bug, a mismatch between the routes configured in nginx and the
         # routes configured here.
-        current_app.logger.warning(f"Policy inquiry about unconfigured route! {original_url}")
-        return make_response("", 403)
+        return log_and_respond(context, f"Policy inquiry about unconfigured route! {original_url}", start_time, 403)
     context.backend = max(matches, key=lambda match: len(match["route"]))
-    current_app.logger.debug(f"Matched backend: {context.backend['name']}")
+    context.log_data["rule.ruleset"] = context.backend["name"]
 
     for plugin in current_app.config.get("PLUGIN_CHAIN_OBJS", []):
         current_app.logger.debug(f"Processing request with plugin {plugin}.")
         context = plugin.process(context)
         if context.status_code:
-            current_app.logger.debug(f"Plugin set status code {context.status_code}.")
-            return make_response("", context.status_code, context.headers)
-    return make_response("", current_app.config["DEFAULT_RESPONSE_CODE"], context.headers)
+            break
+    return log_and_respond(context, "", start_time)
 
 
 def identity():

@@ -31,16 +31,19 @@ class AuthPlugin(TurnpikePlugin):
         # If the route does not require authentication, then we defer to other
         # plugins.
         if not backend_auth:
-            current_app.logger.debug("No auth required for backend")
+            context.result += "Authentication not required. "
             return context
         for auth_plugin in self.auth_plugins:
             context = auth_plugin.process(context, backend_auth)
             if context.auth or context.status_code:
                 # The auth plugin authenticated the user or wants to return immediately
+                if context.auth:
+                    context.result += f"Authentication successful using {auth_plugin.name}. "
                 current_app.logger.debug(f"Auth complete: {context}")
                 return context
 
         # If we get here, no plugin reported successful authentication.
+        context.result += "Authentication unsuccessful. "
         context.status_code = 401
         context.headers["login_url"] = next(
             url for url in [plugin.login_url() for plugin in self.auth_plugins] if url is not None

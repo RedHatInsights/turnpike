@@ -1,1 +1,2 @@
-HOPS_TO_EDGE = 1
+HOPS_TO_EDGE = 0
+TESTING = True

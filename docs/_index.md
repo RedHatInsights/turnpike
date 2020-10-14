@@ -205,6 +205,13 @@ have to modify it and create a Merge Request.
 
 If the merge request works, you should be able to see your route in action at `internal.cloud.redhat.com`.
 
+Accessing
+---------
+
+You can access your service via 
+* https://internal.cloud.redhat.com/api/service... for prod
+* https://internal.cloud.stage.redhat.com/api/service... for staging. For this to work you need to use the proxy at squid.corp.redhat.com:3128
+
 Reporting issues
 ----------------
 

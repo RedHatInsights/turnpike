@@ -197,7 +197,7 @@ have to modify it and create a Merge Request.
 4. If the merge request works, you should be able to see your route in action at `internal.cloud.stage.redhat.com`
 
 5. If everything looks good, we can move to production. In the app-interface tree, edit the files as before at
-   `/data/services/insights/turnpike/deploy.yml` and
+   `/data/services/insights/turnpike/deploy.yml` (this time use the prod namespace at the bottom of the file) and
    `/data/services/insights/myapp/namespaces/prod-myapp-prod.yml` (but don't forget to allow the `prod-turnpike-prod`
    namespace instead of the `stage-turnpike-stage` one.)
 

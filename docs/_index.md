@@ -1,6 +1,6 @@
 ---
 title: Turnpike Web Gateway
-date: 2020-09-14T18:20:00-04:00
+date: 2020-10-14T18:20:00-04:00
 ---
 
 The Turnpike Web Gateway offers protected access to hosted web applications and API services using SAML authentication
@@ -205,6 +205,13 @@ have to modify it and create a Merge Request.
 6. Open a Merge Request. Again, a Turnpike service owner will `/lgtm` your request.
 
 If the merge request works, you should be able to see your route in action at `internal.cloud.redhat.com`.
+
+Accessing
+---------
+
+You can access your service via 
+* https://internal.cloud.redhat.com/api/service... for prod
+* https://internal.cloud.stage.redhat.com/api/service... for staging. For this to work you need to use the proxy at squid.corp.redhat.com:3128. For proxy autoconfiguration, you can use the config file at https://hdn.corp.redhat.com/proxy.pac.
 
 Reporting issues
 ----------------

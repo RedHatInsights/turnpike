@@ -68,7 +68,8 @@ had multiple `AttributeValue`s for a single `Attribute`, then those values are r
 
 > Note: The Red Hat SSO SAML assertion will return LDAP roles which Turnpike makes available to your predicates via:
 `user['Role']`. Production SSO will return your production LDAP groups, configured at https://rover.redhat.com/groups/ while
-Stage and other non-prod environments will return groups configured at: https://rover.stage.redhat.com/groups/
+Stage and other non-prod environments will return groups configured at: https://rover.stage.redhat.com/groups/. 
+If you create a new role for cloud.dot purposes, it is a good idea to prefix it with ' crc-'.
 
 So for example, if you wanted to limit access to a route to users who had the role `admin`, `auditor`, or `manager`,
 your Python expression could be:

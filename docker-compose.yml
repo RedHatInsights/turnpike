@@ -1,6 +1,16 @@
 version: '3.7'
 
 services:
+  prometheus-nginx:
+    image: nginx/nginx-prometheus-exporter
+    depends_on:
+      - nginx
+    ports:
+    - 9113:9113
+    entrypoint:
+    - /usr/bin/exporter
+    - -nginx.scrape-uri
+    - http://172.17.0.1:8888/stub_status
   web:
     build: .
     ports:
@@ -24,6 +34,7 @@ services:
     build: ./nginx
     ports:
       - 443:8443
+      - 8888:8888
     depends_on:
       - web
     hostname: nginx

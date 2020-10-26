@@ -1,0 +1,51 @@
+apiVersion: v1
+kind: Template
+labels:
+  app: turnpike
+  template: turnpike-prometheus-nginx
+metadata:
+  annotations:
+    description: Turnpike API gateway - prometheus nginx exporter setup
+  openshift.io/display-name: Turnpike Prometheus Nginx Exporter
+  name: turnpike
+objects:
+- apiVersion: v1
+  kind: Service
+  metadata:
+    name: prometheus-nginx
+  spec:
+    ports:
+    - name: "9113"
+      port: 9113
+      targetPort: 9113
+    selector:
+      name: prometheus-nginx
+- apiVersion: apps/v1
+  kind: Deployment
+  metadata:
+    name: prometheus-nginx
+  spec:
+    replicas: 1
+    selector:
+      matchLabels:
+        name: prometheus-nginx
+    template:
+      metadata:
+        labels:
+          name: prometheus-nginx
+        name: prometheus-nginx
+      spec:
+        containers:
+        - command:
+          - /usr/bin/exporter
+          - -nginx.scrape-uri
+          - http://nginx.svc.cluster.local:8888/stub_status
+          image: nginx/nginx-prometheus-exporter
+          imagePullPolicy: ""
+          name: prometheus-nginx
+          ports:
+          - containerPort: 9113
+          resources: {}
+        restartPolicy: Always
+        serviceAccountName: ""
+        volumes: null

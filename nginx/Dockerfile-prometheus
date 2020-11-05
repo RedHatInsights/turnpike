@@ -1,0 +1,12 @@
+FROM registry.access.redhat.com/ubi8/ubi
+
+USER root
+
+ARG scrapeuri
+ENV SCRAPE_URI $scrapeuri
+
+RUN dnf install -y git make go
+RUN git clone git://github.com/nginxinc/nginx-prometheus-exporter
+RUN cd nginx-prometheus-exporter && make && chmod +x ./nginx-prometheus-exporter
+
+CMD ./nginx-prometheus-exporter/nginx-prometheus-exporter -nginx.scrape-uri ${SCRAPE_URI}

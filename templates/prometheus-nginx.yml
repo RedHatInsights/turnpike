@@ -39,8 +39,8 @@ objects:
         - command:
           - /usr/bin/exporter
           - -nginx.scrape-uri
-          - http://nginx.svc.cluster.local:8888/stub_status
-          image: nginx/nginx-prometheus-exporter
+          - http://nginx:8888/stub_status
+          image: quay.io/cloudservices/turnpike-nginx-prometheus:${IMAGE_TAG}
           imagePullPolicy: ""
           name: prometheus-nginx
           ports:
@@ -49,3 +49,7 @@ objects:
         restartPolicy: Always
         serviceAccountName: ""
         volumes: null
+parameters:
+- description: Image tag
+  name: IMAGE_TAG
+  required: true

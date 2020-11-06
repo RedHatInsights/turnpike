@@ -36,11 +36,7 @@ objects:
         name: prometheus-nginx
       spec:
         containers:
-        - command:
-          - /usr/bin/exporter
-          - -nginx.scrape-uri
-          - http://nginx:8888/stub_status
-          image: quay.io/cloudservices/turnpike-nginx-prometheus:${IMAGE_TAG}
+        - image: quay.io/cloudservices/turnpike-nginx-prometheus:${IMAGE_TAG}
           imagePullPolicy: ""
           name: prometheus-nginx
           ports:
@@ -49,6 +45,9 @@ objects:
         restartPolicy: Always
         serviceAccountName: ""
         volumes: null
+        imagePullSecrets:
+        - name: quay-cloudservices-pull
+        - name: rh-registry-pull
 parameters:
 - description: Image tag
   name: IMAGE_TAG

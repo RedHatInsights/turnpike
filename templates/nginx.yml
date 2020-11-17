@@ -19,10 +19,6 @@ objects:
       port: 443
       protocol: TCP
       targetPort: ${{NGINX_PORT}}
-    - name: 8888-tcp
-      port: 8888
-      protocol: TCP
-      targetPort: 8888
     selector:
       name: nginx
 - apiVersion: apps/v1

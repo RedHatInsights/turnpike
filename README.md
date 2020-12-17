@@ -203,3 +203,4 @@ You can also run it manually with `pre-commit run -a`.
 [python3-saml]: https://github.com/onelogin/python3-saml
 [settings-example]: https://github.com/onelogin/python3-saml/blob/master/demo-flask/saml/settings.json
 [adv-settings-example]: https://github.com/onelogin/python3-saml/blob/master/demo-flask/saml/advanced_settings.json
+

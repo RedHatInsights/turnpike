@@ -58,9 +58,10 @@ which represents a URL prefix substring to match for this route, and an `origin`
 The substring matching of `route` and the rewriting to `origin` are the same as the Nginx location matching and rewrite
 rules.
 
-If a route has a key `auth`, then it will require authentication. The `auth` key's value should be a set of key/value
-pairs representing supported authentication schemes and corresponding authorization rules. At this time, the only
-supported authentication schemes are `saml`, `x509`.
+If a route has a key `auth`, then it will require authentication. *If the `auth` key is missing, the default is to forbid
+access unless the route resides under `/public/`* [(see best practices)](#best-practices-when-creating-routes). The `auth`
+key's value should be a set of key/value pairs representing supported authentication schemes and corresponding
+authorization rules. At this time, the only supported authentication schemes are `saml`, `x509`.
 
 The value associated with `saml` should be a Python expression that evaluates to `True` or `False`. The only variable
 in the expression is a dictionary `user` which contains the SAML assertion for the requesting user. If the assertion
@@ -68,7 +69,7 @@ had multiple `AttributeValue`s for a single `Attribute`, then those values are r
 
 > Note: The Red Hat SSO SAML assertion will return LDAP roles which Turnpike makes available to your predicates via:
 `user['Role']`. Production SSO will return your production LDAP groups, configured at https://rover.redhat.com/groups/ while
-Stage and other non-prod environments will return groups configured at: https://rover.stage.redhat.com/groups/. 
+Stage and other non-prod environments will return groups configured at: https://rover.stage.redhat.com/groups/.
 If you create a new role for cloud.dot purposes, it is a good idea to prefix it with ' crc-'.
 
 So for example, if you wanted to limit access to a route to users who had the role `admin`, `auditor`, or `manager`,
@@ -209,7 +210,7 @@ If the merge request works, you should be able to see your route in action at `i
 Accessing
 ---------
 
-You can access your service via 
+You can access your service via
 * https://internal.cloud.redhat.com/api/service... for prod
 * https://internal.cloud.stage.redhat.com/api/service... for staging. For this to work you need to use the proxy at squid.corp.redhat.com:3128. For proxy autoconfiguration, you can use the config file at https://hdn.corp.redhat.com/proxy.pac.
 

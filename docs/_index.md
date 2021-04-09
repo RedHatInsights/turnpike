@@ -80,9 +80,6 @@ your Python expression could be:
 The evaluation would use set-logic to look for overlaps. If there were any overlaps, the predicate would evaluate to
 `True`. If not, `False`.
 
-> Note: Presently the RHCSP Turnpike installation does terminate mTLS and thus does not report the necessary HTTP
-  headers to enforce x.509 authn/authz requests. This is forthcoming.
-
 `x509` also takes a Python expression which evaluates to `True` or `False`. It is passed a dictionary `x509` which
 contains two attributes: `subject_dn` and `issuer_dn` which can be used to further restrict which certs can be used
 (nginx already verifies the trust chain based on the configured CA file).
@@ -210,9 +207,13 @@ If the merge request works, you should be able to see your route in action at `i
 Accessing
 ---------
 
-You can access your service via
-* https://internal.cloud.redhat.com/api/service... for prod
-* https://internal.cloud.stage.redhat.com/api/service... for staging. For this to work you need to use the proxy at squid.corp.redhat.com:3128. For proxy autoconfiguration, you can use the config file at https://hdn.corp.redhat.com/proxy.pac.
+You can access your service via the following:
+|Environment|Auth Type|URL|Notes|
+|----|----|----|----|
+|STAGE|SAML/Internal SSO|https://internal.cloud.stage.redhat.com/api/{service}| - [requires proxy](https://redhat.service-now.com/help?id=kb_article_view&sysparm_article=KB0006375)|
+|STAGE|mTLS/x509|https://mtls.internal.cloud.stage.redhat.com/api/{service}| - [requires proxy](https://redhat.service-now.com/help?id=kb_article_view&sysparm_article=KB0006375)<br />- [requires a cert](https://core-platform-apps.pages.redhat.com/docs/dev/using-the-platform/x509-certificate.html)|
+|PROD|SAML/Internal SSO|https://internal.cloud.redhat.com/api/{service}||
+|PROD|mTLS/x509|https://mtls.internal.cloud.redhat.com/api/{service}|- [requires a cert](https://core-platform-apps.pages.redhat.com/docs/dev/using-the-platform/x509-certificate.html)|
 
 Reporting issues
 ----------------

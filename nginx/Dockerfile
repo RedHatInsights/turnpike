@@ -1,4 +1,4 @@
-FROM quay.io/centos/centos:8
+FROM quay.io/centos/centos:stream8
 
 # support running as an arbitrary user which belogs to the root group
 RUN dnf install -y nginx python3-jinja2 python3-yaml python36 && \

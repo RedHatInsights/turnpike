@@ -193,6 +193,18 @@ subsequent requests to use the stored session.
 
 This endpoint returns a 404 if `TESTING` is not enabled.
 
+## Retrieving your SAML session
+For SAML requests to your API outside of your browser via CURL for instance, you'll
+need to supply the `session` cookie like so:
+
+```
+curl https://internal.cloud.redhat.com/api/turnpike/identity/ -b 'session=<SESSION_COOKIE_STRING>'
+```
+
+You can either retrieve this from the browser developer tools by looking for the
+`session` cookie value, or by accessing `https://internal.cloud.redhat.com/api/turnpike/session/`
+in the browser, and getting the value from the `session` key.
+
 ## Linting/pre-commit
 Linting will run automatically with `black` in a pre-commit hook, but you'll need to run `pre-commit install` first.
 You can also run it manually with `pre-commit run -a`.
@@ -203,4 +215,3 @@ You can also run it manually with `pre-commit run -a`.
 [python3-saml]: https://github.com/onelogin/python3-saml
 [settings-example]: https://github.com/onelogin/python3-saml/blob/master/demo-flask/saml/settings.json
 [adv-settings-example]: https://github.com/onelogin/python3-saml/blob/master/demo-flask/saml/advanced_settings.json
-

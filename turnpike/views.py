@@ -58,3 +58,12 @@ def nginx_config_data():
         blueprints=[bp.url_prefix for bp in current_app.blueprints.values()],
     )
     return make_response(json.dumps(response_dict), 200, {"Content-Type": "application/json"})
+
+
+def session():
+    session_id = request.cookies.get("session")
+    if session_id:
+        response = {"session": session_id}
+    else:
+        response = {"error": "No session cookie found in the request."}
+    return make_response(response, 200)

@@ -60,4 +60,5 @@ def create_app(test_config=None):
 
     app.add_url_rule("/auth/", view_func=views.policy_view)
     app.add_url_rule("/api/turnpike/identity/", view_func=views.identity)
+    app.add_url_rule("/api/turnpike/session/", view_func=views.session)
     return app

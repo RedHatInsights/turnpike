@@ -17,6 +17,7 @@ test -f nginx/certs/cert.pem || openssl x509 -req -days 720 -in nginx/certs/cert
 
 # install certs to auth service
 echo "Ensuring auth service is configured"
+test -d saml || mkdir saml
 test -f saml/settings.json || cat << EOF > saml/settings.json
 {
     "strict": true,

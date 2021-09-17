@@ -26,6 +26,11 @@ HEADER_CERTAUTH_SUBJECT = os.environ.get("HEADER_CERTAUTH_SUBJECT", "x-rh-certau
 HEADER_CERTAUTH_ISSUER = os.environ.get("HEADER_CERTAUTH_ISSUER", "x-rh-certauth-issuer")
 HEADER_CERTAUTH_PSK = os.environ.get("HEADER_CERTAUTH_PSK", None)
 
+# URI to the JWT certificates used for validating
+# i.e. https://sso.redhat.com/auth/realms/redhat-external/protocol/openid-connect/certs
+JWT_OIDC_JWKS_URI = os.environ.get("JWT_OIDC_JWKS_URI", "")
+JWT_OIDC_SUPPORTED_ALGORITHMS = os.environ.get("JWT_OIDC_SUPPORTED_ALGORITHMS", "").split(",")
+
 PLUGIN_CHAIN = [
     "turnpike.plugins.auth.AuthPlugin",
     "turnpike.plugins.source_ip.SourceIPPlugin",

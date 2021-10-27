@@ -16,7 +16,7 @@ import yaml.error
 PROTECTED_ROUTES = ["saml", "auth", "_nginx"]
 ALLOWED_ROUTES = json.loads(os.environ.get("TURNPIKE_ALLOWED_ROUTES", '["public", "api", "app"]'))
 ALLOWED_NO_AUTH_ROUTES = json.loads(os.environ.get("TURNPIKE_NO_AUTH_ROUTES", '["public"]'))
-ALLOWED_ORIGIN_DOMAINS = json.loads(os.environ.get("TURNPIKE_ALLOWED_ORIGIN_DOMAINS", '[".svc.cluster.local"]'))
+ALLOWED_ORIGIN_DOMAINS = json.loads(os.environ.get("TURNPIKE_ALLOWED_ORIGIN_DOMAINS", '[".svc.cluster.local", "foo"]'))
 
 
 def validate_route(backend):
@@ -90,7 +90,7 @@ def main(args):
         print(f"Processing backend configuration for {name}")
         if validate_route(backend):
             with open(f"/etc/nginx/api_conf.d/{name}.conf", "w") as ofs:
-                ofs.write(template.render(headers=headers_to_upstream, **backend))
+                ofs.write(template.render(headers=headers_to_upstream, backend=backend))
     print("Done.")
 
 

@@ -1,4 +1,4 @@
-    location {{ backend.route }} {
+    location ~ {{ backend.route }}(.*)$ {
         {% if 'resolver' in backend %}
         resolver {{ backend.resolver }};
         {% endif %}
@@ -8,7 +8,7 @@
         {% for header in headers %}
         auth_request_set $turnpike_{{ header.lower().replace("-", "_") }} $upstream_http_{{ header.lower().replace("-", "_") }};
         {% endfor %}
-        proxy_pass              $target_ori;
+        proxy_pass              $target_ori$1;
         proxy_set_header        X-Original-URI $request_uri;
         proxy_set_header        X-Real-IP $remote_addr;
         proxy_set_header        X-Forwarded-Host $proxy_host;

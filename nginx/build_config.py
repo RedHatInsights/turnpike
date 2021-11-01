@@ -16,7 +16,7 @@ import yaml.error
 PROTECTED_ROUTES = ["saml", "auth", "_nginx"]
 ALLOWED_ROUTES = json.loads(os.environ.get("TURNPIKE_ALLOWED_ROUTES", '["public", "api", "app"]'))
 ALLOWED_NO_AUTH_ROUTES = json.loads(os.environ.get("TURNPIKE_NO_AUTH_ROUTES", '["public"]'))
-ALLOWED_ORIGIN_DOMAINS = json.loads(os.environ.get("TURNPIKE_ALLOWED_ORIGIN_DOMAINS", '[".svc.cluster.local", "foo"]'))
+ALLOWED_ORIGIN_DOMAINS = json.loads(os.environ.get("TURNPIKE_ALLOWED_ORIGIN_DOMAINS", '[".svc.cluster.local"]'))
 
 
 def validate_route(backend):

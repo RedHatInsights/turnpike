@@ -1,11 +1,11 @@
-FROM registry.access.redhat.com/ubi8/ubi
+FROM registry.access.redhat.com/ubi8-minimal
 
 USER root
 
 ARG scrapeuri
 ENV SCRAPE_URI $scrapeuri
 
-RUN dnf install -y git make go
+RUN microdnf install -y git make go
 RUN git clone git://github.com/nginxinc/nginx-prometheus-exporter --branch v0.8.0
 RUN cd nginx-prometheus-exporter && make && chmod +x ./nginx-prometheus-exporter
 

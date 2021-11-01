@@ -2,7 +2,9 @@ version: '3.7'
 
 services:
   web:
-    build: .
+    build:
+      context: .
+      dockerfile: Dockerfile-env
     ports:
       - 5000:5000
     env_file:
@@ -21,7 +23,9 @@ services:
     environment:
       TURNPIKE_CONFIG: /etc/turnpike/dev-config.py
   nginx:
-    build: ./nginx
+    build:
+      context: ./nginx
+      dockerfile: Dockerfile-env
     ports:
       - 443:8443
     depends_on:

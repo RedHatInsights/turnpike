@@ -27,6 +27,3 @@
   resolver: 127.0.0.11 valid=30s
   route: /public/echo/
   origin: http://echo-server.svc.cluster.local:8080/
-- name: broke
-  route: /public/this/shouldnt/work/
-  origin: http://foo:8888/

@@ -12,18 +12,20 @@ if [[ -z "$QUAY_USER" || -z "$QUAY_TOKEN" ]]; then
     exit 1
 fi
 
-DOCKER_CONF="$PWD/.docker"
-mkdir -p "$DOCKER_CONF"
-docker --config="$DOCKER_CONF" login -u="$QUAY_USER" -p="$QUAY_TOKEN" quay.io
+AUTH_CONF_DIR="$(pwd)/.podman"
+mkdir -p $AUTH_CONF_DIR
+export REGISTRY_AUTH_FILE="$AUTH_CONF_DIR/auth.json"
 
-docker --config="$DOCKER_CONF" build -t "${NGINX_IMAGE}:${IMAGE_TAG}" nginx
-docker --config="$DOCKER_CONF" push "${NGINX_IMAGE}:${IMAGE_TAG}"
+podman login -u="$QUAY_USER" -p="$QUAY_TOKEN" quay.io
 
-docker --config="$DOCKER_CONF" build -t "${WEB_IMAGE}:${IMAGE_TAG}" .
-docker --config="$DOCKER_CONF" push "${WEB_IMAGE}:${IMAGE_TAG}"
+podman build -t "${NGINX_IMAGE}:${IMAGE_TAG}" nginx
+podman push "${NGINX_IMAGE}:${IMAGE_TAG}"
 
-docker --config="$DOCKER_CONF" build \
+podman build -t "${WEB_IMAGE}:${IMAGE_TAG}" .
+podman push "${WEB_IMAGE}:${IMAGE_TAG}"
+
+podman build \
        --build-arg scrapeuri=http://nginx:8888/stub_status \
        -f ./nginx/Dockerfile-prometheus \
        -t "${NGINX_PROMETHEUS_IMAGE}:${IMAGE_TAG}" .
-docker --config="$DOCKER_CONF" push "${NGINX_PROMETHEUS_IMAGE}:${IMAGE_TAG}"
+podman push "${NGINX_PROMETHEUS_IMAGE}:${IMAGE_TAG}"

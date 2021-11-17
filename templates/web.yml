@@ -55,12 +55,10 @@ objects:
               - name: FLASK_ENV
                 value: "${FLASK_ENV}"
               - name: REDIS_HOST
-                value: "${REDIS_SERVICE_NAME}"
-              - name: REDIS_PASSWORD
                 valueFrom:
                   secretKeyRef:
-                    key: redis-password
-                    name: redis-password
+                    key: db.endpoint
+                    name: in-memory-db
               - name: HEADER_CERTAUTH_PSK
                 value: ${HEADER_CERTAUTH_PSK}
               - name: CDN_PRESHARED_KEY

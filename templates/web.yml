@@ -32,7 +32,7 @@ objects:
       service: web
     name: web
   spec:
-    replicas: 1
+    replicas: ${{REPLICAS}}
     selector:
       matchLabels:
         name: web
@@ -216,3 +216,6 @@ parameters:
 - description: Debug authentication backends
   name: AUTH_DEBUG
   value: ""
+- description: Replica count for turnpike-web
+  name: REPLICAS
+  value: "1"

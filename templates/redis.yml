@@ -17,7 +17,7 @@ objects:
       template: turnpike-redis
     name: redis
   spec:
-    replicas: 1
+    replicas: ${{REPLICAS}}
     selector:
       matchLabels:
         name: redis
@@ -135,3 +135,6 @@ parameters:
 - description: Image tag
   name: IMAGE_TAG
   required: true
+- description: Replica count for turnpike-redis
+  name: REPLICAS
+  value: "1"

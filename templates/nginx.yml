@@ -26,7 +26,7 @@ objects:
   metadata:
     name: nginx
   spec:
-    replicas: 1
+    replicas: ${{REPLICAS}}
     selector:
       matchLabels:
         name: nginx
@@ -158,3 +158,6 @@ parameters:
 - description: Nginx default server name
   name: NGINX_SERVER_NAME
   required: true
+- description: Replica count for turnpike-nginx
+  name: REPLICAS
+  value: "1"

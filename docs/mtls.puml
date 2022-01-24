@@ -1,7 +1,7 @@
 @startuml turnpike-mtls
 
 participant "Service Account w/ x509 client cert" as service_account
-box "cloud.redhat.com"
+box "console.redhat.com"
 participant "mTLS Gateway" as gateway
 participant Nginx
 participant "Policy Service" as policy_service

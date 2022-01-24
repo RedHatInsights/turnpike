@@ -6,7 +6,7 @@ LAYOUT_LEFT_RIGHT
 Person(associate, "Red Hat Associate")
 System(service_account, "Service Account")
 
-System_Boundary(c_rh_c, "cloud.redhat.com"){
+System_Boundary(c_rh_c, "console.redhat.com"){
 
     Container(nginx, "Nginx", "proxy_pass / auth_request", "Proxies requests, including Policy Service as needed")
 

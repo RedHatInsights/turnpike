@@ -1,7 +1,7 @@
 @startuml turnpike-userflow
 
 participant "Red Hat Associate" as rh_associate
-box "cloud.redhat.com"
+box "console.redhat.com"
 participant Nginx
 participant "Policy Service" as policy_service
 participant Origin

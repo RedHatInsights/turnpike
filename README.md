@@ -198,11 +198,11 @@ For SAML requests to your API outside of your browser via CURL for instance, you
 need to supply the `session` cookie like so:
 
 ```
-curl https://internal.cloud.redhat.com/api/turnpike/identity/ -b 'session=<SESSION_COOKIE_STRING>'
+curl https://internal.console.redhat.com/api/turnpike/identity/ -b 'session=<SESSION_COOKIE_STRING>'
 ```
 
 You can either retrieve this from the browser developer tools by looking for the
-`session` cookie value, or by accessing `https://internal.cloud.redhat.com/api/turnpike/session/`
+`session` cookie value, or by accessing `https://internal.console.redhat.com/api/turnpike/session/`
 in the browser, and getting the value from the `session` key.
 
 ## Linting/pre-commit

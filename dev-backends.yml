@@ -4,6 +4,7 @@
   auth:
     saml: "True"
     x509: "True"
+    jwt: "True"
 - name: healthcheck
   route: /public/healthcheck/
   origin: http://web.svc.cluster.local:5000/_healthcheck/

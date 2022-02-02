@@ -30,7 +30,6 @@ HEADER_CERTAUTH_PSK = os.environ.get("HEADER_CERTAUTH_PSK", None)
 # i.e. https://sso.redhat.com/auth/realms/redhat-external/protocol/openid-connect/certs
 JWT_OIDC_JWKS_URI = os.environ.get("JWT_OIDC_JWKS_URI", "")
 JWT_OIDC_SUPPORTED_ALGORITHMS = os.environ.get("JWT_OIDC_SUPPORTED_ALGORITHMS", "").split(",")
-JWT_OIDC_AUDIENCE = os.environ.get('JWT_OIDC_AUDIENCE', "")
 
 PLUGIN_CHAIN = [
     "turnpike.plugins.auth.AuthPlugin",

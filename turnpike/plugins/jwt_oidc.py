@@ -21,10 +21,8 @@ class JWTODICAuthPlugin(TurnpikeAuthPlugin):
         super().__init__(app)
         self.app.logger.info(f"JWT supported algorithms: {self.app.config['JWT_OIDC_SUPPORTED_ALGORITHMS']}")
         self.app.logger.info(f"JWT JWKS URI: {self.app.config['JWT_OIDC_JWKS_URI']}")
-        self.app.logger.info(f"JWT Audience: {self.app.config['JWT_OIDC_AUDIENCE']}")
         self.jwks_client = PyJWKClient(self.app.config["JWT_OIDC_JWKS_URI"])
         self.supported_algorithms = self.app.config["JWT_OIDC_SUPPORTED_ALGORITHMS"]
-        self.audience = self.app.config['JWT_OIDC_AUDIENCE']
 
     def process(self, context, backend_auth):
         self.app.logger.debug("Begin JWT_OIDC plugin processing")
@@ -46,7 +44,14 @@ class JWTODICAuthPlugin(TurnpikeAuthPlugin):
                 authorized = False
                 try:
                     signing_key = self.jwks_client.get_signing_key_from_jwt(token)
-                    verified_jwt = decode(token, signing_key.key, self.supported_algorithms, audience=self.audience)
+                    verified_jwt = decode(
+                        token,
+                        signing_key.key,
+                        self.supported_algorithms,
+                        options={
+                            "verify_aud": False
+                        }
+                    )
                     self.app.logger.debug(f"JWT verified jwt content: {verified_jwt}")
                     context.auth = dict(auth_data=verified_jwt, auth_plugin=self)
                     authorized = True

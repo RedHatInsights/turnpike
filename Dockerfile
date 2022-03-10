@@ -1,3 +1,4 @@
+# Manual Build: 2022-03-10
 FROM registry.access.redhat.com/ubi8-minimal
 
 WORKDIR /usr/src/app

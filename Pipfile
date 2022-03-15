@@ -18,6 +18,7 @@ py-healthcheck = "==1.10.1"
 flask-session = "==0.3.2"
 redis = "*"
 gunicorn = "*"
+lxml = "==4.6.5"
 
 [requires]
 python_version = "3.6"

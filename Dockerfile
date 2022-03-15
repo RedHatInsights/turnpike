@@ -9,7 +9,7 @@ RUN microdnf install -y dnf && \
     dnf install -y dnf-plugins-core && \
     # Enabling RH "CodeReady Builder" to provide the same libraries and developer tools to the UBI image as "Powertools" does for CentOS.
     dnf config-manager --set-enable codeready-builder-for-rhel-8-x86_64-rpms && \
-    dnf install -y gcc xmlsec1 xmlsec1-devel python3-pip python36 python3-devel libtool-ltdl-devel xmlsec1-openssl xmlsec1-openssl-devel openssl && \
+    dnf install -y gcc xmlsec1 xmlsec1-devel python3-pip python36 python3-devel libxml2-devel libtool-ltdl-devel xmlsec1-openssl xmlsec1-openssl-devel openssl && \
     pip3 install --no-cache-dir --upgrade pip pipenv && \
     pipenv lock --requirements > requirements.txt && \
     pip install --no-cache-dir -r requirements.txt && \

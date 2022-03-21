@@ -1,3 +1,5 @@
+# Manual Build: YYYY-MM-DD
+
 FROM registry.access.redhat.com/ubi8-minimal
 
 WORKDIR /usr/src/app

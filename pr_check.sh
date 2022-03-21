@@ -5,6 +5,8 @@ set -exv
 export LC_ALL=en_US.utf8
 export LANG=en_US.utf8
 
+dnf list installed
+
 python3 -m venv .
 source bin/activate
 bin/pip3 install --upgrade pip pipenv

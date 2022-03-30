@@ -2,6 +2,7 @@
 .vscode/
 saml/
 nginx/
+!nginx/build_config.py
 docs/
 templates/
 scripts/

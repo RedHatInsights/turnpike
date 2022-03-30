@@ -15,4 +15,4 @@ RUN dnf install -y dnf-plugins-core && \
 
 COPY . /usr/src/app/
 
-CMD [".pr_tests/pr_tests.sh"]
+CMD ["./pr_tests/pr_tests.sh"]

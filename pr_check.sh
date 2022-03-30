@@ -14,7 +14,7 @@ trap "teardown_podman" EXIT SIGINT SIGTERM
 set -ex
 
 # Setup environment for pre-commit check
-pip install black pre-commit
+pip3 install black pre-commit
 
 # Run pre-commit
 if ! (pre-commit run -a); then

@@ -6,7 +6,7 @@ ARG scrapeuri
 ENV SCRAPE_URI $scrapeuri
 
 RUN microdnf install -y git make go
-RUN git clone git://github.com/nginxinc/nginx-prometheus-exporter --branch v0.8.0
+RUN git clone https://github.com/nginxinc/nginx-prometheus-exporter
 RUN cd nginx-prometheus-exporter && make && chmod +x ./nginx-prometheus-exporter
 
 CMD ./nginx-prometheus-exporter/nginx-prometheus-exporter -nginx.scrape-uri ${SCRAPE_URI}

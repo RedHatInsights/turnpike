@@ -11,7 +11,7 @@ pytest-mock = "*"
 
 [packages]
 prometheus_client = "*"
-flask = "*"
+flask = "==1.1.2"
 python3-saml = "*"
 pyyaml = "*"
 py-healthcheck = "==1.10.1"
@@ -20,7 +20,7 @@ redis = "*"
 gunicorn = "*"
 
 [requires]
-python_version = "3.6"
+python_version = "3.8"
 
 [pipenv]
 allow_prereleases = true

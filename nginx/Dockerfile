@@ -1,7 +1,7 @@
 FROM registry.access.redhat.com/ubi8-minimal
 
 # support running as an arbitrary user which belogs to the root group
-RUN microdnf install -y nginx python3-jinja2 python3-yaml python36 && \
+RUN microdnf install -y nginx python3-jinja2 python3-yaml python38 && \
     chmod g+rwx /var/log/nginx && \
     rm -rf /var/lib/dnf /var/cache/dnf
 

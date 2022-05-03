@@ -11,7 +11,8 @@ pytest-mock = "*"
 
 [packages]
 prometheus_client = "*"
-flask = "==1.1.2"
+flask = "==1.1.4"
+markupsafe = "==2.0.1"
 jinja2 = "==2.11.2"
 python3-saml = "*"
 pyyaml = "*"

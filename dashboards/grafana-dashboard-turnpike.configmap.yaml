@@ -1438,6 +1438,8 @@ data:
   "version": 82,
   "weekStart": ""
   }
+  }
+  }
 kind: ConfigMap
 metadata:
   name: grafana-dashboard-insights-turnpike-requests

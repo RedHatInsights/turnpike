@@ -1,10 +1,8 @@
 import importlib
-import time
 
 from flask import request, current_app, g
 
 from ..plugin import TurnpikePlugin, TurnpikeAuthPlugin
-from ..metrics import AuthMetrics
 
 
 class AuthPlugin(TurnpikePlugin):
@@ -21,18 +19,6 @@ class AuthPlugin(TurnpikePlugin):
             self.auth_plugins.append(plugin_instance)
             self.headers_to_forward = self.headers_to_forward.union(plugin_instance.headers_to_forward)
             self.headers_needed = self.headers_needed.union(plugin_instance.headers_needed)
-
-        @app.before_request
-        def before_request():
-            g.start = time.time()
-
-        @app.after_request
-        def after_request(response):
-            diff = (time.time() - g.start) * 1000
-            current_app.logger.debug(f"Response {response.__dict__} in time: {diff}ms")
-            AuthMetrics.auth_request_latency.observe(diff)
-            return response
-
 
     def register_blueprint(self):
         for plugin_instance in self.auth_plugins:

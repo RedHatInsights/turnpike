@@ -6,4 +6,4 @@ class Metrics:
 
 
 class AuthMetrics:
-    auth_request_latency = Histogram(name="request_latency_ms", documentation="Response time for requests")
+    auth_request_latency = Histogram(name="request_latency_ms", documentation="Response time for requests", labelnames=["auth_type"])

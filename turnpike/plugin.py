@@ -1,3 +1,7 @@
+import time
+from flask import request, current_app, g
+from .metrics import AuthMetrics
+
 class PolicyContext:
     """
     PolicyContext represents the policy evaluation context for a particular
@@ -75,6 +79,19 @@ class TurnpikePlugin:
 
     def __init__(self, app):
         self.app = app
+
+        @app.before_request
+        def before_request():
+            g.start = time.time()
+
+        @app.after_request
+        def after_request(response):
+            diff = (time.time() - g.start) * 1000
+            current_app.logger.debug(f"Response {response.__dict__} in time: {diff}ms")
+            current_app.logger.debug(f"Plugin {type(self).__name__}")
+            auth_type = type(self).__name__
+            AuthMetrics.auth_request_latency.labels(auth_type).observe(diff)
+            return response
 
     def register_blueprint(self):
         pass

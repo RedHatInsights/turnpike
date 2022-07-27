@@ -44,7 +44,6 @@ objects:
           resources: {}
         restartPolicy: Always
         serviceAccountName: ""
-        volumes: null
         imagePullSecrets:
         - name: quay-cloudservices-pull
         - name: rh-registry-pull

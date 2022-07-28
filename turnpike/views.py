@@ -1,6 +1,5 @@
 import base64
 import json
-import time
 
 from flask import current_app, request, make_response
 
@@ -9,7 +8,6 @@ from .plugin import PolicyContext
 
 
 def policy_view():
-    start_time = time.time()
     context = PolicyContext()
 
     # Start by identifying which route is being asked about
@@ -35,8 +33,6 @@ def policy_view():
             Metrics.request_count.labels(service, context.status_code).inc()
             return make_response("", context.status_code, context.headers)
     Metrics.request_count.labels(service, current_app.config["DEFAULT_RESPONSE_CODE"]).inc()
-    diff = (time.time() - start_time) * 1000
-    Metrics.request_latency.labels(service).observe(diff)
     return make_response("", current_app.config["DEFAULT_RESPONSE_CODE"], context.headers)
 
 

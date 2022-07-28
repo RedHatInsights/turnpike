@@ -87,10 +87,9 @@ class TurnpikePlugin:
         @app.after_request
         def after_request(response):
             diff = (time.time() - g.start) * 1000
-            current_app.logger.debug(f"Response {response.__dict__} in time: {diff}ms")
-            current_app.logger.debug(f"Plugin {type(self).__name__}")
             auth_type = type(self).__name__
             AuthMetrics.auth_request_latency.labels(auth_type).observe(diff)
+            AuthMetrics.auth_request_status.labels(auth_type, response.status_code).inc()
             return response
 
     def register_blueprint(self):

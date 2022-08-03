@@ -1,6 +1,16 @@
 version: '3.7'
 
 services:
+  prometheus-nginx:
+    build:
+      context: ./nginx
+      dockerfile: Dockerfile-prometheus
+      args:
+        scrapeuri: http://172.17.0.1:8888/stub_status
+    depends_on:
+      - nginx
+    ports:
+      - 9113:9113
   web:
     build:
       context: .
@@ -28,6 +38,7 @@ services:
       dockerfile: Dockerfile
     ports:
       - 443:8443
+      - 8888:8888
     depends_on:
       - web
     hostname: nginx

@@ -1,16 +1,6 @@
 version: '3.7'
 
 services:
-  prometheus-nginx:
-    build:
-      context: ./nginx
-      dockerfile: Dockerfile-prometheus
-      args:
-        scrapeuri: http://172.17.0.1:8888/stub_status
-    depends_on:
-      - nginx
-    ports:
-      - 9113:9113
   web:
     build:
       context: .
@@ -82,5 +72,12 @@ services:
           - echo-server.svc.cluster.local
     environment:
       PORT: 8080
+  fluentd:
+    build: ./fluentd
+    volumes:
+      - ./fluentd/conf:/fluentd/etc
+    ports:
+      - "24224:24224"
+      - "24224:24224/udp"
 networks:
   mynet:

@@ -73,11 +73,14 @@ services:
     environment:
       PORT: 8080
   fluentd:
-    build: ./fluentd
+    build:
+      context: ./fluentd
+      dockerfile: Dockerfile
     volumes:
       - ./fluentd/conf:/fluentd/etc
     ports:
       - "24224:24224"
       - "24224:24224/udp"
+      - 24321:24321
 networks:
   mynet:

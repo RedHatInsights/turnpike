@@ -11,7 +11,7 @@ RUN microdnf install -y dnf && \
     dnf config-manager --set-enable codeready-builder-for-rhel-8-x86_64-rpms && \
     dnf install -y gcc xmlsec1 xmlsec1-devel python38-pip python38 libtool-ltdl-devel xmlsec1-openssl xmlsec1-openssl-devel openssl python38-devel && \
     pip3 install --no-cache-dir --upgrade pip pipenv && \
-    pipenv lock --requirements > requirements.txt && \
+    pipenv requirements > requirements.txt && \
     pip install --no-cache-dir -r requirements.txt && \
     dnf remove -y gcc python3-devel && \
     rm -rf /var/lib/dnf /var/cache/dnf

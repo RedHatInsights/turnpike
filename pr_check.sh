@@ -32,7 +32,6 @@ podman build --no-cache -f Dockerfile-pr-check --tag $IMAGE_TAG
 
 # Build PR_Check Container
 podman create --name $CONTAINER_NAME $IMAGE_TAG
-podman push "${IMAGE_TAG}:${IMAGE_TAG}"
 
 # Build a PR image to deploy
 podman login -u="$QUAY_USER" -p="$QUAY_TOKEN" quay.io

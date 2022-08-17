@@ -4,7 +4,7 @@ export CONTAINER_NAME="turnpike-pr-check"
 export IMAGE_TAG="turnpike:pr-check"
 export NGINX_IMAGE="quay.io/cloudservices/turnpike-nginx"
 export WEB_IMAGE="quay.io/cloudservices/turnpike-web"
-export PR_IMAGE_TAG=PR-$(git rev-parse --short=7 HEAD)
+export PR_IMAGE_TAG=$(git rev-parse --short=7 HEAD)
 
 function teardown_podman() {
     podman rm -f $CONTAINER_NAME || true

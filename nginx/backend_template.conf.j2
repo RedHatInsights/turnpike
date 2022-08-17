@@ -1,5 +1,5 @@
     location ~ {{ route }}(.*)$ {
-        resolver 127.0.0.11 valid=30s;
+        resolver 10.120.0.10 valid=30s;
         set $upstream  {{ origin }};
         auth_request     /auth/;
         auth_request_set $login_url $upstream_http_login_url;

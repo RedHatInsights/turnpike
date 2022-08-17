@@ -2,6 +2,9 @@
 
 export CONTAINER_NAME="turnpike-pr-check"
 export IMAGE_TAG="turnpike:pr-check"
+export NGINX_IMAGE="quay.io/cloudservices/turnpike-nginx"
+export WEB_IMAGE="quay.io/cloudservices/turnpike-web"
+export PR_IMAGE_TAG=PR-$(git rev-parse --short=7 HEAD)
 
 function teardown_podman() {
     podman rm -f $CONTAINER_NAME || true
@@ -29,6 +32,16 @@ podman build --no-cache -f Dockerfile-pr-check --tag $IMAGE_TAG
 
 # Build PR_Check Container
 podman create --name $CONTAINER_NAME $IMAGE_TAG
+podman push "${IMAGE_TAG}:${IMAGE_TAG}"
+
+# Build a PR image to deploy
+podman login -u="$QUAY_USER" -p="$QUAY_TOKEN" quay.io
+
+podman build -t "${NGINX_IMAGE}:${PR_IMAGE_TAG}" nginx
+podman push "${NGINX_IMAGE}:${PR_IMAGE_TAG}"
+
+podman build -t "${WEB_IMAGE}:${PR_IMAGE_TAG}" .
+podman push "${WEB_IMAGE}:${PR_IMAGE_TAG}"
 
 # Run PR_CHECK Container (attached with standard output)
 # and reports if the Containerized PR_Check fails

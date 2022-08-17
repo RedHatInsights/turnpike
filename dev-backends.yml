@@ -4,6 +4,12 @@
   auth:
     saml: "True"
     x509: "True"
+- name: rbac
+  route: /api/rbac
+  origin: http://host.docker.internal:8000/_private/api
+  auth:
+    saml: "True"
+    x509: "True"
 - name: healthcheck
   route: /public/healthcheck/
   origin: http://web.svc.cluster.local:5000/_healthcheck/
@@ -19,3 +25,6 @@
   origin: http://echo-server.svc.cluster.local:8080/
   source_ip:
     - 240.0.0.0/4
+- name: nginx_regression_test
+  route: /api/does_not_exist/
+  origin: http://foo:5000/does_not_exist/

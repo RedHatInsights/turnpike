@@ -3,6 +3,7 @@
 import argparse
 import json
 import os
+import re
 import time
 from urllib import parse, request, error
 import warnings
@@ -47,6 +48,16 @@ def validate_route(backend):
     return True
 
 
+def get_resolver():
+    file = open("/etc/resolv.conf", "r")
+    match = re.search("(?<=nameserver )(.*)(?=\\n)", file.read())
+    if match:
+        resolver = match.group()
+    else:
+        resolver = "127.0.0.11"
+    print(f"Using resolver: {resolver}")
+
+
 def main(args):
     try:
         with open(args.config_map_path) as ifs:
@@ -77,6 +88,7 @@ def main(args):
     headers_to_upstream = nginx_config["to_upstream"]
     headers_to_policy_service = nginx_config["to_policy_service"]
     blueprints = nginx_config["blueprints"]
+    resolver = get_resolver()
 
     with open("/etc/nginx/api_gateway.conf.j2") as ifs:
         template = jinja2.Template(ifs.read())
@@ -90,7 +102,7 @@ def main(args):
         print(f"Processing backend configuration for {name}")
         if validate_route(backend):
             with open(f"/etc/nginx/api_conf.d/{name}.conf", "w") as ofs:
-                ofs.write(template.render(headers=headers_to_upstream, **backend))
+                ofs.write(template.render(headers=headers_to_upstream, resolver=resolver, **backend))
     print("Done.")
 
 

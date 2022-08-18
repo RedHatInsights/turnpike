@@ -56,6 +56,7 @@ def get_resolver():
     else:
         resolver = "127.0.0.11"
     print(f"Using resolver: {resolver}")
+    return resolver
 
 
 def main(args):

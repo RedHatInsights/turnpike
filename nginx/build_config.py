@@ -49,12 +49,13 @@ def validate_route(backend):
 
 
 def get_resolver():
-    file = open("/etc/resolv.conf", "r")
+    resolver_file_name = "/etc/resolv.conf"
+    file = open(resolver_file_name, "r")
     match = re.search("(?<=nameserver )(.*)(?=\\n)", file.read())
-    if match:
-        resolver = match.group()
-    else:
-        resolver = "127.0.0.11"
+    if not match:
+        raise Exception(f"Error getting resolver from {resolver_file_name}")
+
+    resolver = match.group()
     print(f"Using resolver: {resolver}")
     return resolver
 

@@ -6,7 +6,7 @@
         {% for header in headers %}
         auth_request_set $turnpike_{{ header.lower().replace("-", "_") }} $upstream_http_{{ header.lower().replace("-", "_") }};
         {% endfor %}
-        proxy_pass              $upstream$1;
+        proxy_pass              $upstream$1$is_args$args;
         proxy_set_header        X-Original-URI $request_uri;
         proxy_set_header        X-Real-IP $remote_addr;
         proxy_set_header        X-Forwarded-Host $proxy_host;

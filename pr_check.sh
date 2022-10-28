@@ -16,6 +16,7 @@ set -ex
 # Setup environment for pre-commit check
 python3 -m venv .
 source bin/activate
+bin/pip3 install pipenv
 bin/pip3 install black pre-commit
 
 # Run pre-commit

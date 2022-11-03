@@ -14,6 +14,7 @@ trap "teardown_podman" EXIT SIGINT SIGTERM
 set -ex
 
 # Setup environment for pre-commit check
+dnf list installed
 python3 -m venv .
 source bin/activate
 bin/pip3 install pipenv

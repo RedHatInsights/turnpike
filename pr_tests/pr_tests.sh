@@ -3,6 +3,7 @@
 set -ex
 
 pip install --upgrade pip pipenv
+pipenv lock --clear
 pipenv install -d
 pipenv run pytest --disable-pytest-warnings tests/
 result=$?

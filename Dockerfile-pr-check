@@ -11,7 +11,7 @@ RUN dnf install -y dnf-plugins-core && \
     dnf install -y gcc xmlsec1 xmlsec1-devel python3-pip python38 python3-devel libxml2-devel libtool-ltdl-devel xmlsec1-openssl xmlsec1-openssl-devel openssl python38-devel && \
     pip3 install --no-cache-dir --upgrade pip pipenv && \
     pipenv requirements > requirements.txt && \
-    pip3 install --no-cache-dir -r requirements.txt
+    pip install --no-cache-dir -r requirements.txt
 
 COPY . /usr/src/app/
 

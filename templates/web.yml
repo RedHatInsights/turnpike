@@ -31,6 +31,8 @@ objects:
     labels:
       service: web
     name: web
+    annotations:
+      ignore-check.kube-linter.io/minimum-three-replicas: "for turnpike-web we dont need 3 replicas"
   spec:
     replicas: ${{REPLICAS}}
     selector:

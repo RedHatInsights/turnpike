@@ -87,7 +87,7 @@ class TurnpikeAuthPlugin:
     """
     TurnpikeAuthPlugin is used by the `turnpike.plugins.auth.AuthPlugin` to
     enable custom authentication schemes. by including a subclass of TurnpikeAuthPlugin
-    in your configuration's `AUTH_PLUGIN_CHAIN` list, it will have the opporunity
+    in your configuration's `AUTH_PLUGIN_CHAIN` list, it will have the opportunity
     to authenticate and authorize incoming requests.
 
     Attributes:
@@ -112,11 +112,11 @@ class TurnpikeAuthPlugin:
       policy configured for this route. Each key is an authentication type, and the value
       is a string evaluatable as a Python expression. The plugin should look for
       supported authentication types, and if it establishes that the user is
-      authenticated, it should evaluate the expression in the context of the a
-      uthentication data to determine if the principal is authorized.
+      authenticated, it should evaluate the expression in the context of the
+      authentication data to determine if the principal is authorized.
 
       Successfully authentication should result in the `auth` attribute of the returned
-      `PolicyContext` to be set. Unsuccessful authorization should retult in the
+      `PolicyContext` to be set. Unsuccessful authorization should result in the
       `status_code` attribute of the returned `PolicyContext` to be set to 403.
 
     * `register_blueprint(self)` - This is optional. If your plugin also has

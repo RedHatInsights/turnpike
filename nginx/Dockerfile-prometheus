@@ -2,11 +2,10 @@ FROM registry.access.redhat.com/ubi8-minimal
 
 USER root
 
-ARG scrapeuri
-ENV SCRAPE_URI $scrapeuri
+ENV SCRAPE_URI=http://localhost:8080/stub_status
 
 RUN microdnf install -y git make go
 RUN git clone --branch v0.10.0 https://github.com/nginxinc/nginx-prometheus-exporter
 RUN cd nginx-prometheus-exporter && make && chmod +x ./nginx-prometheus-exporter
 
-CMD ./nginx-prometheus-exporter/nginx-prometheus-exporter -nginx.scrape-uri ${SCRAPE_URI}
+CMD ./nginx-prometheus-exporter/nginx-prometheus-exporter -nginx.scrape-uri $SCRAPE_URI

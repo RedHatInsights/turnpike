@@ -36,8 +36,11 @@ objects:
         name: prometheus-nginx
       spec:
         containers:
+        - env:
+          - name: SCRAPE_URI
+            value: ${NGINX_SCRAPE_URI}
         - image: quay.io/cloudservices/turnpike-nginx-prometheus:${IMAGE_TAG}
-          imagePullPolicy: ""
+          imagePullPolicy: "IfNotPresent"
           name: prometheus-nginx
           ports:
           - containerPort: 9113
@@ -54,3 +57,6 @@ parameters:
 - description: Replica count for prometheus-nginx
   name: REPLICAS
   value: "1"
+- description: URI nginx is running on so prometheus knows where to scrape metrics
+  name: NGINX_SCRAPE_URI
+  required: true

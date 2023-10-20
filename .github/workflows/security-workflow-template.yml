@@ -25,3 +25,7 @@ on:
 jobs:
   PlatSec-Security-Workflow:
     uses: RedHatInsights/platform-security-gh-workflow/.github/workflows/platsec-security-scan-reusable-workflow.yml@master
+    with:
+      dockerfile_path: './nginx'
+      dockerfile_name: 'Dockerfile'
+      dockerbuild_path: './nginx'

@@ -23,5 +23,15 @@ on:
     branches: [ "main", "master", "security-compliance" ]
 
 jobs:
-  PlatSec-Security-Workflow:
+  PlatSec-Security-Workflow-nginx:
     uses: RedHatInsights/platform-security-gh-workflow/.github/workflows/platsec-security-scan-reusable-workflow.yml@master
+    with:
+      dockerfile_path: './nginx'
+      dockerfile_name: 'Dockerfile'
+      dockerbuild_path: './nginx'
+  PlatSec-Security-Workflow-nginx-prometheus:
+    uses: RedHatInsights/platform-security-gh-workflow/.github/workflows/platsec-security-scan-reusable-workflow.yml@master
+    with:
+      dockerfile_path: './nginx'
+      dockerfile_name: 'Dockerfile-prometheus'
+      dockerbuild_path: './nginx'

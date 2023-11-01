@@ -36,9 +36,9 @@ objects:
         name: prometheus-nginx
       spec:
         containers:
-          - env:
-            - name: SCRAPE_URI
-              value: ${NGINX_SCRAPE_URI}
+        - env:
+          - name: SCRAPE_URI
+            value: ${NGINX_SCRAPE_URI}
           image: quay.io/cloudservices/turnpike-nginx-prometheus:${IMAGE_TAG}
           imagePullPolicy: "IfNotPresent"
           name: prometheus-nginx

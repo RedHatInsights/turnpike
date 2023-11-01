@@ -39,12 +39,11 @@ objects:
         - env:
           - name: SCRAPE_URI
             value: ${NGINX_SCRAPE_URI}
-        - image: quay.io/cloudservices/turnpike-nginx-prometheus:${IMAGE_TAG}
-          imagePullPolicy: "IfNotPresent"
-          name: prometheus-nginx
-          ports:
-          - containerPort: 9113
-          resources: {}
+        image: quay.io/cloudservices/turnpike-nginx-prometheus:${IMAGE_TAG}
+        imagePullPolicy: "IfNotPresent"
+        name: prometheus-nginx
+        ports:
+        - containerPort: 9113
         restartPolicy: Always
         serviceAccountName: ""
         imagePullSecrets:

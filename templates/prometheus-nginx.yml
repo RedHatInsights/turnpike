@@ -45,10 +45,6 @@ objects:
           ports:
             - containerPort: 9113
           restartPolicy: Always
-          serviceAccountName: ""
-          imagePullSecrets:
-            - name: quay-cloudservices-pull
-            - name: rh-registry-pull
           resources:
             limits:
               cpu: ${CPU_LIMIT}
@@ -56,6 +52,9 @@ objects:
             requests:
               cpu: ${CPU_REQUEST}
               memory: ${MEMORY_REQUEST}
+        imagePullSecrets:
+          - name: quay-cloudservices-pull
+          - name: rh-registry-pull
 parameters:
 - description: Image tag
   name: IMAGE_TAG

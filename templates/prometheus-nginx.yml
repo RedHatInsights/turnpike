@@ -36,8 +36,11 @@ objects:
         name: prometheus-nginx
       spec:
         containers:
+        - env:
+          - name: SCRAPE_URI
+            value: ${NGINX_SCRAPE_URI}
         - image: quay.io/cloudservices/turnpike-nginx-prometheus:${IMAGE_TAG}
-          imagePullPolicy: ""
+          imagePullPolicy: "IfNotPresent"
           name: prometheus-nginx
           ports:
           - containerPort: 9113
@@ -47,6 +50,13 @@ objects:
         imagePullSecrets:
         - name: quay-cloudservices-pull
         - name: rh-registry-pull
+        resources:
+          limits:
+            cpu: ${CPU_LIMIT}
+            memory: ${MEMORY_LIMIT}
+          requests:
+            cpu: ${CPU_REQUEST}
+            memory: ${MEMORY_REQUEST}
 parameters:
 - description: Image tag
   name: IMAGE_TAG
@@ -54,3 +64,26 @@ parameters:
 - description: Replica count for prometheus-nginx
   name: REPLICAS
   value: "1"
+- description: URI nginx is running on so prometheus knows where to scrape metrics
+  name: NGINX_SCRAPE_URI
+  required: true
+- description: Initial amount of memory the prometheus-nginx container will request.
+  displayName: Memory Request
+  name: MEMORY_REQUEST
+  required: true
+  value: 256Mi
+- description: Maximum amount of memory the prometheus-nginx container can use.
+  displayName: Memory Limit
+  name: MEMORY_LIMIT
+  required: true
+  value: 512Mi
+- description: Initial amount of cpu the prometheus-nginx container will request.
+  displayName: CPU Request
+  name: CPU_REQUEST
+  required: true
+  value: 50m
+- description: Maximum amount of cpu the prometheus-nginx container can use.
+  displayName: CPU Limit
+  name: CPU_LIMIT
+  required: true
+  value: 200m

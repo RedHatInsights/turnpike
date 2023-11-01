@@ -16,6 +16,10 @@ server {
         return 200 "OK";
     }
 
+    location = /stub_status {
+        stub_status;
+    }
+
     location = /auth/ {
         internal;
 

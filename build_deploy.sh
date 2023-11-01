@@ -24,7 +24,6 @@ podman build -t "${WEB_IMAGE}:${IMAGE_TAG}" .
 podman push "${WEB_IMAGE}:${IMAGE_TAG}"
 
 podman build \
-       --build-arg scrapeuri=http://nginx:8888/stub_status \
        -f ./nginx/Dockerfile-prometheus \
        -t "${NGINX_PROMETHEUS_IMAGE}:${IMAGE_TAG}" .
 podman push "${NGINX_PROMETHEUS_IMAGE}:${IMAGE_TAG}"

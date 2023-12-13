@@ -4,25 +4,23 @@ url = "https://pypi.org/simple"
 verify_ssl = true
 
 [dev-packages]
-pre-commit = "*"
-flake8 = "*"
-black = "*"
-pytest-mock = "*"
+pre-commit = "==3.5.0"
+black = "==23.10.1"
+pytest = "==7.4.3"
 
 [packages]
-prometheus_client = "*"
-flask = "==1.1.4"
-markupsafe = "==2.0.1"
-jinja2 = "==2.11.3"
-python3-saml = "*"
-pyyaml = "*"
+flask = "3.0.0"
+redis = "==5.0.0"
+gunicorn = "==21.2.0"
+flask-session = "==0.5.0"
 py-healthcheck = "==1.10.1"
-flask-session = "==0.3.2"
-redis = "*"
-gunicorn = "*"
+prometheus-client = "==0.17.1"
+pyyaml = "==6.0.1"
+python3-saml = "==1.16.0"
+async-timeout = "==4.0.2"
 
 [requires]
-python_version = "3.8"
+python_version = "3.9"
 
 [pipenv]
 allow_prereleases = true

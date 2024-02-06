@@ -1,4 +1,4 @@
-FROM registry.access.redhat.com/ubi8/ubi-minimal:8.8-1072.1697626218
+FROM registry.access.redhat.com/ubi8/ubi-minimal:8.9-1108.1706795067
 
 # support running as an arbitrary user which belongs to the root group
 RUN microdnf module enable nginx:1.22 && \

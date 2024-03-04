@@ -103,7 +103,7 @@ IdP's SAML assertion.
 ### Route Map and Attribute Based Access Control
 
 Turnpike expects that in the Flask container it will be able to find its route map and access control list at
-`/etc/turnpike/backends.yml`. For Docker Compose, the file in your copy of Turnpike `dev-backends.yml` is mounted into
+`/etc/turnpike/backends.yml`. You can override it in app-interface. For Docker Compose, the file in your copy of Turnpike `dev-backends.yml` is mounted into
 the Flask container at this path:
 
     - name: turnpike

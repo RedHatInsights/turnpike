@@ -64,17 +64,33 @@ class LoginView(SAMLView):
 
 class ACSView(SAMLView):
     def post(self):
+        # TODO: remove temp logging
+        current_app.logger.debug(f"Starting acs view")
         with self.saml_context() as ctx:
+            # TODO: remove temp logging
+            current_app.logger.debug(f"Within saml context")
             request_id = None
             if "AuthNRequestID" in session:
+                # TODO: remove temp logging
+                current_app.logger.debug(f"Within AuthNRequestID block")
                 request_id = session["AuthNRequestID"]
             ctx.auth.process_response(request_id=request_id)
             errors = ctx.auth.get_errors()
+            # TODO: remove temp logging
+            current_app.logger.debug(f"After processing response")
             if len(errors) == 0:
+                # TODO: remove temp logging
+                current_app.logger.debug(f"After processing response")
                 if "AuthNRequestID" in session:
+                    # TODO: remove temp logging
+                    current_app.logger.debug(f"Delete AuthNRequestID from session")
                     del session["AuthNRequestID"]
+                # TODO: remove temp logging
+                current_app.logger.debug(f"Before setting samlUserdata and samlSessionIndex")
                 session["samlUserdata"] = ctx.auth.get_attributes()
                 session["samlSessionIndex"] = ctx.auth.get_session_index()
+                # TODO: remove temp logging
+                current_app.logger.debug(f"After setting samlUserdata and samlSessionIndex")
                 self_url = OneLogin_Saml2_Utils.get_self_url(ctx.req)
                 if "RelayState" in request.form and self_url != request.form["RelayState"]:
                     relay_state = ctx.auth.redirect_to(request.form["RelayState"])
@@ -84,6 +100,8 @@ class ACSView(SAMLView):
                     current_app.logger.debug("Redirecting to index")
                     return redirect("/")
             else:
+                # TODO: remove temp logging
+                current_app.logger.debug(f"None zero errors in response processing")
                 if ctx.auth.get_settings().is_debug_active():
                     error_reason = ctx.auth.get_last_error_reason()
                 else:

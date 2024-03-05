@@ -74,7 +74,11 @@ class ACSView(SAMLView):
                 # TODO: remove temp logging
                 current_app.logger.debug(f"Within AuthNRequestID block")
                 request_id = session["AuthNRequestID"]
+            # TODO: remove temp logging
+            current_app.logger.debug(f"Before processing response, request_id: {request_id}")
             ctx.auth.process_response(request_id=request_id)
+            # TODO: remove temp logging
+            current_app.logger.debug(f"Before get errors")
             errors = ctx.auth.get_errors()
             # TODO: remove temp logging
             current_app.logger.debug(f"After processing response")

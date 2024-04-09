@@ -166,7 +166,8 @@ See the docstrings on those classes for more details.
 
 ## Further reading
 
-You can check out the service documentation in the `docs/` folder.
+You can check out the [service documentation][docs] in the `docs/` folder for more info.
+Such as how to access turnpike, acquire certs, etc.
 
 
 ## Testing
@@ -215,3 +216,4 @@ You can also run it manually with `pre-commit run -a`.
 [python3-saml]: https://github.com/onelogin/python3-saml
 [settings-example]: https://github.com/onelogin/python3-saml/blob/master/demo-flask/saml/settings.json
 [adv-settings-example]: https://github.com/onelogin/python3-saml/blob/master/demo-flask/saml/advanced_settings.json
+[docs]: https://github.com/RedHatInsights/turnpike/blob/master/docs/_index.md

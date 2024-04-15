@@ -120,13 +120,19 @@ which represents a URL prefix substring to match for this route, and an `origin`
 The substring matching of `route` and the rewriting to `origin` are the same as the Nginx location matching and rewrite
 rules.
 
-If a route has a key `auth`, then it will require authentication. The `auth` key's value should be a set of key/value
+If a route has a key `auth`, then it will require authentication. *If the `auth` key is missing, the default is to forbid
+access unless the route resides under `/public/`* [(see best practices)][route-best-practice]. The `auth` key's value should be a set of key/value
 pairs representing supported authentication schemes and corresponding authorization rules. At this time, the only
 supported authentication schemes are `saml`, `x509`.
 
 The value associated with `saml` should be a Python expression that evaluates to `True` or `False`. The only variable
 in the expression is a dictionary `user` which contains the SAML assertion for the requesting user. If the assertion
 had multiple `AttributeValue`s for a single `Attribute`, then those values are represented as a list of values.
+
+> Note: The Red Hat SSO SAML assertion will return LDAP roles which Turnpike makes available to your predicates via:
+`user['Role']`. Production SSO will return your production LDAP groups, configured at https://rover.redhat.com/groups/ while
+Stage and other non-prod environments will return groups configured at: https://rover.stage.redhat.com/groups/.
+If you create a new role for cloud.dot purposes, it is a good idea to prefix it with ' crc-'.
 
 So for example, if you wanted to limit access to a route to users who had the role `admin`, `auditor`, or `manager`,
 your Python expression could be:
@@ -143,6 +149,8 @@ contains two attributes: `subject_dn` and `issuer_dn` which can be used to furth
 For example to restrict the endpoint to a certificate with the DN of `/CN=test`, you could use:
 
     x509['subject_dn'] == '/CN=test'
+
+> Note: To check your certificate's subject and issuer, you can use `openssl x509 -in <cert> -noout -subject` and join the content with slash, e.g. 'O=rhds, OU=serviceaccounts, UID=nonprod-hcc-rbac' to '/O=rhds/OU=serviceaccounts/UID=nonprod-hcc-rbac'
 
 If using TLS terminated at Nginx, note that CRL and/or OCSP support should be configured in `NGINX_SSL_CONFIG` as
 needed.
@@ -217,3 +225,4 @@ You can also run it manually with `pre-commit run -a`.
 [settings-example]: https://github.com/onelogin/python3-saml/blob/master/demo-flask/saml/settings.json
 [adv-settings-example]: https://github.com/onelogin/python3-saml/blob/master/demo-flask/saml/advanced_settings.json
 [docs]: https://github.com/RedHatInsights/turnpike/blob/master/docs/_index.md
+[route-best-practice]: https://github.com/RedHatInsights/turnpike/blob/master/docs/_index.md#best-practices-when-creating-routes

@@ -9,7 +9,7 @@ black = "==24.3.0"
 pytest = "==7.4.3"
 
 [packages]
-flask = "3.0.0"
+flask = "==3.0.3"
 redis = "==5.0.0"
 gunicorn = "==22.0.0"
 flask-session = "==0.5.0"

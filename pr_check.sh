@@ -24,6 +24,12 @@ if ! (pre-commit run -a); then
     echo "pre-commit ecountered an issue"
     exit 1
 fi
+# Build turnpike-web image (TEST)
+echo "------------------------------"
+echo "Build turnpike-web image START"
+podman build --no-cache -t turnpike-web:test .
+echo "Build turpike-web image END"
+echo "------------------------------"
 
 # Build PR_CHECK Image
 podman build --no-cache -f Dockerfile-pr-check --tag $IMAGE_TAG

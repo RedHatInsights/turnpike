@@ -8,7 +8,7 @@ COPY ./Pipfile ./Pipfile.lock /usr/src/app/
 RUN dnf install -y dnf-plugins-core && \
     # Enabling "Powertools" to provide the same libraries and developer tools to CentOS image as RH "CodeReady Builder" does for RHEL
     dnf config-manager --set-enabled powertools && \
-    dnf install -y gcc xmlsec1 xmlsec1-devel python3-pip python39 python3-devel libxml2-devel libtool-ltdl-devel xmlsec1-openssl xmlsec1-openssl-devel openssl python39-devel && \
+    dnf install -y gcc xmlsec1 xmlsec1-devel python39 python3-devel libxml2-devel libtool-ltdl-devel xmlsec1-openssl xmlsec1-openssl-devel openssl python39-devel && \
     pip3 install --no-cache-dir --upgrade pip pipenv && \
     pipenv install --dev
 

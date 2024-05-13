@@ -1,11 +1,11 @@
-FROM quay.io/centos/centos:stream8
+FROM registry.access.redhat.com/ubi8/ubi-minimal
 
 WORKDIR /usr/src/app
 
 
 COPY . /usr/src/app/
 
-RUN dnf install -y python39 && \
+RUN microdnf install -y python39 && \
     pip3 install --no-cache-dir -r requirements.txt
 
 CMD ["./pr_tests/pr_tests.sh"]

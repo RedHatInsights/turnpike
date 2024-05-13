@@ -3,15 +3,10 @@ FROM quay.io/centos/centos:stream8
 WORKDIR /usr/src/app
 
 
-COPY ./Pipfile ./Pipfile.lock /usr/src/app/
+COPY . /usr/src/app/
 
-RUN dnf install -y dnf-plugins-core && \
-    # Enabling "Powertools" to provide the same libraries and developer tools to CentOS image as RH "CodeReady Builder" does for RHEL
-    dnf config-manager --set-enabled powertools && \
-    dnf install -y gcc xmlsec1 xmlsec1-devel python39 python3-devel libxml2-devel libtool-ltdl-devel xmlsec1-openssl xmlsec1-openssl-devel openssl python39-devel && \
+RUN dnf install -y gcc xmlsec1 python39 libxml2-devel xmlsec1-openssl openssl python39-devel && \
     pip3 install --no-cache-dir --upgrade pip pipenv && \
     pipenv install --dev
-
-COPY . /usr/src/app/
 
 CMD ["./pr_tests/pr_tests.sh"]

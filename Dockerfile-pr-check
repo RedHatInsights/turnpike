@@ -5,8 +5,7 @@ WORKDIR /usr/src/app
 
 COPY . /usr/src/app/
 
-RUN dnf install -y gcc xmlsec1 python39 libxml2-devel xmlsec1-openssl openssl python39-devel && \
-    pip3 install --no-cache-dir --upgrade pip pipenv && \
-    pipenv install --dev
+RUN dnf install -y python39 && \
+    pip3 install --no-cache-dir -r requirements.txt
 
 CMD ["./pr_tests/pr_tests.sh"]

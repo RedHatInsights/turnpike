@@ -16,11 +16,11 @@ set -ex
 # Setup environment for pre-commit check
 python3 -m venv .
 source bin/activate
-bin/pip3 install pipenv
-bin/pip3 install black pre-commit
+pip install pipenv
+pip install pre-commit
 
 # Run pre-commit
-if ! (pre-commit run -a); then
+if ! (pre-commit run -av); then
     echo "pre-commit ecountered an issue"
     exit 1
 fi

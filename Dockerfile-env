@@ -7,11 +7,13 @@ ENV FLASK_RUN_HOST 0.0.0.0
 ENV BACKENDS_CONFIG_MAP=/etc/turnpike/backends.yml
 
 COPY ./pip.conf /etc
-COPY . /usr/src/app/
+COPY ./requirements.txt /usr/src/app/
 
 RUN dnf install --enablerepo=powertools -y python39-pip python39-devel gcc xmlsec1 xmlsec1-devel xmlsec1-openssl xmlsec1-openssl-devel openssl libtool-ltdl-devel && \
     pip3.9 install --no-cache-dir -r requirements.txt && \
     dnf remove -y python3.9-devel gcc xmlsec1-devel xmlsec1-openssl-devel libtool-ltdl-devel && \
     rm -rf /var/lib/dnf /var/cache/dnf
+
+COPY . /usr/src/app/
 
 CMD ["./run-server.sh"]

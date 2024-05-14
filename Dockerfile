@@ -6,7 +6,7 @@ ENV FLASK_RUN_HOST 0.0.0.0
 
 ENV BACKENDS_CONFIG_MAP=/etc/turnpike/backends.yml
 
-COPY . /usr/src/app/
+COPY ./Pipfile ./Pipfile.lock /usr/src/app/
 
 RUN microdnf install -y dnf && \
     dnf install -y dnf-plugins-core && \
@@ -18,5 +18,7 @@ RUN microdnf install -y dnf && \
     pip install --no-cache-dir -r requirements.txt && \
     dnf remove -y gcc python39-devel && \
     rm -rf /var/lib/dnf /var/cache/dnf
+
+COPY . /usr/src/app/
 
 CMD ["./run-server.sh"]

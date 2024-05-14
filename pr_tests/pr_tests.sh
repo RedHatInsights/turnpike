@@ -2,10 +2,9 @@
 
 set -ex
 
-pip install --upgrade pip pipenv
-pipenv lock --clear
-pipenv install -d
-pipenv run pytest --disable-pytest-warnings tests/
+pip3 install --upgrade pip
+pip3 install pytest
+pytest --disable-pytest-warnings tests/
 result=$?
 
 if [ $result -ne 0 ]; then

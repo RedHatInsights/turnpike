@@ -16,7 +16,7 @@ RUN microdnf install -y dnf && \
     pip3 install --no-cache-dir --upgrade pip pipenv && \
     pipenv requirements > requirements.txt && \
     pip install --no-cache-dir -r requirements.txt && \
-    dnf remove -y gcc python39-devel && \
+    dnf remove -y gcc python39-devel xmlsec1-devel libtool-ltdl-devel xmlsec1-openssl-devel && \
     rm -rf /var/lib/dnf /var/cache/dnf
 
 COPY . /usr/src/app/

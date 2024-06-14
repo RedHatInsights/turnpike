@@ -44,7 +44,6 @@ objects:
           name: prometheus-nginx
           ports:
             - containerPort: 9113
-          restartPolicy: Always
           resources:
             limits:
               cpu: ${CPU_LIMIT}

@@ -130,7 +130,6 @@ objects:
                 name: turnpike-routes
                 readOnly: true
             hostname: web
-            restartPolicy: Always
             terminationGracePeriodSeconds: 30
         imagePullSecrets:
         - name: quay-cloudservices-pull

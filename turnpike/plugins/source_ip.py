@@ -23,6 +23,9 @@ class SourceIPPlugin(TurnpikePlugin):
             context.status_code = 403
             return context
         allowed_ip_networks = [ipaddress.ip_network(cidr) for cidr in context.backend["source_ip"]]
+        current_app.logger.debug(
+            f"hops {hops}, hops_to_edge {hops_to_edge}, allowed_ip_networks {allowed_ip_networks}"
+        )
         if not any(
             [client_ip in net for net in filter(lambda net: net.version == client_ip.version, allowed_ip_networks)]
         ):

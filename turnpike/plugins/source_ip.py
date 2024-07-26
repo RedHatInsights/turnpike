@@ -8,8 +8,9 @@ from ..plugin import TurnpikePlugin
 class SourceIPPlugin(TurnpikePlugin):
     def process(self, context):
         # Temporary log for debugging
-        if context.backend["name"] in ("rhel-ai", "pulp-rubygems-cache"):
-            current_app.logger.debug(context.backend)
+        current_app.logger.info("souce ip plugin")
+        current_app.logger.info(context.backend)
+        current_app.logger.debug(context.backend)
         if "source_ip" not in context.backend:
             return context
 

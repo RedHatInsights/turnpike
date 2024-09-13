@@ -8,7 +8,8 @@ ENV BACKENDS_CONFIG_MAP=/etc/turnpike/backends.yml
 
 COPY ./requirements.txt /usr/src/app/
 
-RUN microdnf install -y dnf && \
+RUN microdnf  install -y --disablerepo=* --enablerepo=ubi-8-baseos-rpms shadow-utils && \
+    microdnf install -y dnf && \
     dnf install -y dnf-plugins-core && \
     # Enabling RH "CodeReady Builder" to provide the same libraries and developer tools to the UBI image as "Powertools" does for CentOS.
     dnf config-manager --set-enable codeready-builder-for-rhel-8-x86_64-rpms && \

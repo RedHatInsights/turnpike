@@ -8,10 +8,7 @@ ENV BACKENDS_CONFIG_MAP=/etc/turnpike/backends.yml
 
 COPY ./requirements.txt /usr/src/app/
 
-RUN microdnf  install -y --disablerepo=* --enablerepo=ubi-8-baseos-rpms shadow-utils && \ 
-    microdnf clean all && \ 
-    useradd kserve -m -u 1000
-RUN microdnf remove -y shadow-utils
+RUN microdnf  install -y --disablerepo=* --enablerepo=ubi-8-baseos-rpms shadow-utils 
 
 RUN microdnf install -y dnf && \
     dnf install -y dnf-plugins-core && \

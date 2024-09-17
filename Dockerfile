@@ -1,5 +1,5 @@
-FROM registry.access.redhat.com/ubi8/ubi-minimal
-
+#FROM registry.access.redhat.com/ubi8/ubi-minimal
+FROM registry.access.redhat.com/ubi8/ubi
 WORKDIR /usr/src/app
 
 ENV FLASK_RUN_HOST 0.0.0.0
@@ -8,9 +8,9 @@ ENV BACKENDS_CONFIG_MAP=/etc/turnpike/backends.yml
 
 COPY ./requirements.txt /usr/src/app/
 
-RUN microdnf  install -y --disablerepo=* --enablerepo=ubi-8-baseos-rpms shadow-utils 
+RUN dnf  install -y --disablerepo=* --enablerepo=ubi-8-baseos-rpms shadow-utils 
 
-RUN microdnf install -y dnf && \
+RUN dnf install -y dnf && \
     dnf install -y dnf-plugins-core && \
     # Enabling RH "CodeReady Builder" to provide the same libraries and developer tools to the UBI image as "Powertools" does for CentOS.
     dnf config-manager --set-enable codeready-builder-for-rhel-8-x86_64-rpms && \

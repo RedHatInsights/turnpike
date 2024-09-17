@@ -8,7 +8,7 @@ ENV BACKENDS_CONFIG_MAP=/etc/turnpike/backends.yml
 
 COPY ./requirements.txt /usr/src/app/
 
-RUN dnf  install -y --disablerepo=* --enablerepo=ubi-8-baseos-rpms shadow-utils 
+RUN dnf  install -y --disablerepo=* --enablerepo=ubi-8-baseos-rpms shadow-utils
 
 RUN dnf install -y dnf && \
     dnf install -y dnf-plugins-core && \

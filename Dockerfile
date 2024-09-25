@@ -10,7 +10,7 @@ COPY ./requirements.txt /usr/src/app/
 
 RUN microdnf install -y dnf && \
     dnf install -y dnf-plugins-core && \
-    dnf install -y librhsm-0.0.3-5.el8.x86_64 && \
+    dnf install -y librhsm-0.0.3-5.el8.x86_64 python3-subscription-manager-rhsm-1.28.42-1.el8.x86_64 subscription-manager-rhsm-certificates-20220623-1.el8.noarch && \
     dnf  install -y --disablerepo=* --enablerepo=ubi-8-baseos-rpms shadow-utils && \
     # Enabling RH "CodeReady Builder" to provide the same libraries and developer tools to the UBI image as "Powertools" does for CentOS.
     dnf config-manager --set-enable codeready-builder-for-rhel-8-x86_64-rpms && \

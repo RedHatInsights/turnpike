@@ -1,4 +1,4 @@
-FROM registry.access.redhat.com/ubi8/ubi-minimal:latest
+FROM registry.access.redhat.com/ubi8/ubi-minimal
 
 WORKDIR /usr/src/app
 
@@ -10,6 +10,7 @@ COPY ./requirements.txt /usr/src/app/
 
 RUN microdnf install -y dnf && \
     dnf install -y dnf-plugins-core && \
+    dnf  install -y --disablerepo=* --enablerepo=ubi-8-baseos-rpms shadow-utils && \
     # Enabling RH "CodeReady Builder" to provide the same libraries and developer tools to the UBI image as "Powertools" does for CentOS.
     dnf config-manager --set-enable ubi-8-codeready-builder-rpms && \
     dnf install -y gcc xmlsec1 xmlsec1-devel python39 libtool-ltdl-devel xmlsec1-openssl xmlsec1-openssl-devel openssl python39-devel && \

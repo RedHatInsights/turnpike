@@ -186,7 +186,7 @@ spec:
       # use the git-auth workspace for credentials
       - name: basic-auth
         workspace: git-auth
-  
+
     - name: run-unit-tests
       description: Running Insights RBAC unit tests
       # make sure the task runs after the artifact is created
@@ -232,8 +232,8 @@ spec:
               #!/bin/bash
               set -ex
               echo "INSTALL DEPENDENCIES"
-              microdnf install -y python39 
-              pip3 install --no-cache-dir -r requirements.txt 
+              microdnf install -y python39
+              pip3 install --no-cache-dir -r requirements.txt
               pip3 install --upgrade pip
               pip3 install pytest
               echo "RUN THE UNIT TESTS"

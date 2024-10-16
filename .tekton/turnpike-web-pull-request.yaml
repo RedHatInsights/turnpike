@@ -220,7 +220,6 @@ spec:
               #!/bin/bash
               set -ex
               microdnf install -y python39
-              pip3 install --no-cache-dir -r requirements.txt
               python3 -m venv venv
               source venv/bin/activate
               pip install pipenv

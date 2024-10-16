@@ -18,7 +18,6 @@ python3 -m venv venv
 source venv/bin/activate
 pip3 install pipenv
 pip3 install pre-commit
-
 # Run pre-commit
 if ! (pre-commit run -av); then
     echo "pre-commit ecountered an issue"

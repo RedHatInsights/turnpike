@@ -222,8 +222,8 @@ spec:
               microdnf install -y python39
               python3 -m venv venv
               source venv/bin/activate
-              pip install pipenv
-              pip install pre-commit
+              pip3 install pipenv
+              pip3 install pre-commit
               echo "RUN pre-commit"
               if ! (pre-commit run -av); then
                 echo "pre-commit ecountered an issue"

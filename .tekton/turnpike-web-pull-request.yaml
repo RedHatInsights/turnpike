@@ -213,6 +213,23 @@ spec:
             - mountPath: /var/workdir
               name: workdir
               readyOnly: false
+        sidecars:
+          - image: registry.access.redhat.com/ubi8/ubi-minimal
+            name: run-precommit
+            script: |
+              #!/bin/bash
+              set -ex
+              microdnf install -y python39
+              pip3 install --no-cache-dir -r requirements.txt
+              python3 -m venv venv
+              source venv/bin/activate
+              pip install pipenv
+              pip install pre-commit
+              echo "RUN pre-commit"
+              if ! (pre-commit run -av); then
+                echo "pre-commit ecountered an issue"
+                exit 1
+              fi
         steps:
           # Add the trusted artifact to the task volume
           - name: use-trusted-artifact
@@ -236,13 +253,6 @@ spec:
               pip3 install --no-cache-dir -r requirements.txt
               pip3 install --upgrade pip
               pip3 install pytest
-              echo "RUN PRE-COMMIT"
-              pip install pre-commit
-              # Run pre-commit
-              if ! (pre-commit run -av); then
-                  echo "pre-commit ecountered an issue"
-                  exit 1
-              fi
               echo "RUN THE UNIT TESTS"
               pytest --disable-pytest-warnings tests/
               result=$?

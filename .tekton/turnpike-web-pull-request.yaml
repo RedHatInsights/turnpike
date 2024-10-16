@@ -236,6 +236,13 @@ spec:
               pip3 install --no-cache-dir -r requirements.txt
               pip3 install --upgrade pip
               pip3 install pytest
+              echo "RUN PRE-COMMIT"
+              pip install pre-commit
+              # Run pre-commit
+              if ! (pre-commit run -av); then
+                  echo "pre-commit ecountered an issue"
+                  exit 1
+              fi
               echo "RUN THE UNIT TESTS"
               pytest --disable-pytest-warnings tests/
               result=$?

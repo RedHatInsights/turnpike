@@ -3,8 +3,8 @@ set -ex
 
 echo "INSTALL DEPENDENCIES"
 microdnf install -y python39
-pip3 install --no-cache-dir -r requirements.txt
 pip3 install --upgrade pip
+pip3 install --no-cache-dir -r requirements.txt
 
 # #Run black/lint command
 pip3 install black

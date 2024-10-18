@@ -39,7 +39,7 @@ objects:
         - env:
           - name: SCRAPE_URI
             value: ${NGINX_SCRAPE_URI}
-          image: quay.io/cloudservices/turnpike-nginx-prometheus:${IMAGE_TAG}
+          image: ${IMAGE}:${IMAGE_TAG}
           imagePullPolicy: "IfNotPresent"
           name: prometheus-nginx
           ports:
@@ -55,6 +55,9 @@ objects:
           - name: quay-cloudservices-pull
           - name: rh-registry-pull
 parameters:
+- description: Image url
+  name: IMAGE
+  value: quay.io/cloudservices/turnpike-nginx-prometheus
 - description: Image tag
   name: IMAGE_TAG
   required: true

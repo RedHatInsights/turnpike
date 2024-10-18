@@ -70,7 +70,7 @@ objects:
                     name: gateway-secret
               - name: AUTH_DEBUG
                 value: "${AUTH_DEBUG}"
-            image: quay.io/cloudservices/turnpike-web:${IMAGE_TAG}
+            image: ${IMAGE}:${IMAGE_TAG}
             imagePullPolicy: Always
             name: web
             ports:
@@ -192,6 +192,9 @@ parameters:
 - description: Image tag
   name: IMAGE_TAG
   required: true
+- description: Image url
+  name: IMAGE
+  value: quay.io/cloudservices/turnpike-web
 - description: Header that Akamai sends with the PSK
   name: HEADER_CERTAUTH_PSK
   value: "x-rh-insights-gateway-secret"

@@ -1,4 +1,4 @@
-FROM quay.io/centos/centos:stream8
+FROM registry.access.redhat.com/ubi8/ubi-minimal
 
 WORKDIR /usr/src/app
 
@@ -9,9 +9,14 @@ ENV BACKENDS_CONFIG_MAP=/etc/turnpike/backends.yml
 COPY ./pip.conf /etc
 COPY ./requirements.txt /usr/src/app/
 
-RUN dnf install --enablerepo=powertools -y python39-pip python39-devel gcc xmlsec1 xmlsec1-devel xmlsec1-openssl xmlsec1-openssl-devel openssl libtool-ltdl-devel && \
-    pip3.9 install --no-cache-dir -r requirements.txt && \
-    dnf remove -y python3.9-devel gcc xmlsec1-devel xmlsec1-openssl-devel libtool-ltdl-devel && \
+RUN microdnf install -y dnf && \
+    dnf install -y dnf-plugins-core && \
+    # Enabling RH "CodeReady Builder" to provide the same libraries and developer tools to the UBI image as "Powertools" does for CentOS.
+    dnf config-manager --set-enable ubi-8-codeready-builder-rpms && \
+    dnf install -y gcc xmlsec1 python39 xmlsec1-openssl openssl python39-devel && \
+    pip3 install --no-cache-dir --upgrade pip && \
+    pip3 install --no-cache-dir -r requirements.txt && \
+    dnf remove -y gcc python39-devel && \
     rm -rf /var/lib/dnf /var/cache/dnf
 
 COPY . /usr/src/app/

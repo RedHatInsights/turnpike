@@ -11,9 +11,9 @@ metadata:
   creationTimestamp: null
   labels:
     appstudio.openshift.io/application: turnpike
-    appstudio.openshift.io/component: turnpike-nginx
+    appstudio.openshift.io/component: turnpike-nginx-prometheus
     pipelines.appstudio.openshift.io/type: build
-  name: turnpike-nginx-on-push
+  name: turnpike-nginx-prometheus-on-push
   namespace: hcc-accessmanagement-tenant
 spec:
   params:
@@ -22,11 +22,9 @@ spec:
   - name: revision
     value: '{{revision}}'
   - name: output-image
-    value: quay.io/redhat-user-workloads/hcc-accessmanagement-tenant/turnpike/turnpike-nginx:{{revision}}
+    value: quay.io/redhat-user-workloads/hcc-accessmanagement-tenant/turnpike-nginx-prometheus:{{revision}}
   - name: dockerfile
-    value: Dockerfile
-  - name: path-context
-    value: nginx
+    value: /nginx/Dockerfile-prometheus
   pipelineSpec:
     description: |
       This pipeline is ideal for building container images from a Containerfile while maintaining trust after pipeline customization.
@@ -88,7 +86,7 @@ spec:
       description: Image tag expiration time, time values could be something like
         1h, 2d, 3w for hours, days, and weeks, respectively.
       name: image-expires-after
-    - default: "true"
+    - default: "false"
       description: Build a source image.
       name: build-source-image
       type: string
@@ -222,7 +220,7 @@ spec:
         - name: name
           value: buildah-oci-ta
         - name: bundle
-          value: quay.io/konflux-ci/tekton-catalog/task-buildah-oci-ta:0.2@sha256:2a0c67ea7d5d82b4ec47930c12397f94b3af0b3855d8e5ad9f6e088c93e42bf0
+          value: quay.io/konflux-ci/tekton-catalog/task-buildah-oci-ta:0.2@sha256:43aecf28e07b3cdf74f85524354b665ea584f2282a1f40ec32f64c6a9b036cd3
         - name: kind
           value: task
         resolver: bundles
@@ -369,7 +367,7 @@ spec:
         - name: name
           value: sast-snyk-check-oci-ta
         - name: bundle
-          value: quay.io/konflux-ci/tekton-catalog/task-sast-snyk-check-oci-ta:0.2@sha256:7e99a122bc9e84fd9fb29062e825d3345177337d2448dcb50324f86ec5560c7a
+          value: quay.io/konflux-ci/tekton-catalog/task-sast-snyk-check-oci-ta:0.3@sha256:92af5ba1bb9d6bf442c8d3b317ada71d44a9c1ab59959a37bbb5d163205a104f
         - name: kind
           value: task
         resolver: bundles

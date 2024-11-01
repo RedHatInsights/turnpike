@@ -12,9 +12,9 @@ metadata:
   creationTimestamp: null
   labels:
     appstudio.openshift.io/application: turnpike
-    appstudio.openshift.io/component: turnpike-web
+    appstudio.openshift.io/component: turnpike-nginx-prometheus
     pipelines.appstudio.openshift.io/type: build
-  name: turnpike-web-on-pull-request
+  name: turnpike-nginx-prometheus-on-pull-request
   namespace: hcc-accessmanagement-tenant
 spec:
   params:
@@ -23,11 +23,11 @@ spec:
   - name: revision
     value: '{{revision}}'
   - name: output-image
-    value: quay.io/redhat-user-workloads/hcc-accessmanagement-tenant/turnpike/turnpike-web:on-pr-{{revision}}
+    value: quay.io/redhat-user-workloads/hcc-accessmanagement-tenant/turnpike-nginx-prometheus:on-pr-{{revision}}
   - name: image-expires-after
     value: 5d
   - name: dockerfile
-    value: Dockerfile
+    value: /nginx/Dockerfile-prometheus
   pipelineSpec:
     description: |
       This pipeline is ideal for building container images from a Containerfile while maintaining trust after pipeline customization.
@@ -165,80 +165,6 @@ spec:
       workspaces:
       - name: basic-auth
         workspace: git-auth
-
-      # unit tests
-    - name: clone-repository-oci-ta
-      params:
-      - name: url
-        value: $(params.git-url)
-      - name: revision
-        value: $(params.revision)
-      - name: ociStorage
-        # needs to be unique storage name
-        value: $(params.output-image).git
-      runAfter:
-      - init
-      taskRef:
-        params:
-        - name: name
-          value: git-clone-oci-ta
-        - name: bundle
-          value: quay.io/konflux-ci/tekton-catalog/task-git-clone-oci-ta@sha256:0f4360ce144d46171ebd2e8f4d4575539a0600e02208ba5fc9beeb2c27ddfd4c
-        - name: kind
-          value: task
-        resolver: bundles
-      workspaces:
-      # use the git-auth workspace for credentials
-      - name: basic-auth
-        workspace: git-auth
-
-    - name: run-unit-tests
-      description: Running Insights RBAC unit tests
-      # make sure the task runs after the artifact is created
-      runAfter:
-        - clone-repository-oci-ta
-      params:
-        # store the trusted artifact
-        - name: SOURCE_ARTIFACT
-          value: $(tasks.clone-repository-oci-ta.results.SOURCE_ARTIFACT)
-      workspaces:
-      - name: basic-auth
-        workspace: git-auth
-      taskSpec:
-        params:
-          - description: The Trusted Artifact URI pointing to the artifact with the application source code.
-            name: SOURCE_ARTIFACT
-            type: string
-        volumes:
-          # New volume to store a copy of the source code accessible only to this Task.
-          - name: workdir
-            emptyDir: {}
-        stepTemplate:
-          volumeMounts:
-            - mountPath: /var/workdir
-              name: workdir
-              readyOnly: false
-        steps:
-          # Add the trusted artifact to the task volume
-          - name: use-trusted-artifact
-            image: quay.io/redhat-appstudio/build-trusted-artifacts:latest@sha256:e0e457b6af10e44ff6b90208a9e69adc863a865e1c062c4cb84bf3846037d74d
-            args:
-              - use
-              - $(params.SOURCE_ARTIFACT)=/var/workdir
-          - name: unit-tests
-            # set the working directory to value from previous step
-            workingDir: /var/workdir
-            # Use image that suites your use case
-            image: registry.access.redhat.com/ubi8/ubi-minimal
-            securityContext:
-            # If the task step needs write access to the volume, set the runAsUser to 0 (root).
-              runAsUser: 0
-            script: |
-              #!/bin/bash
-              set -ex
-              bash konflux-pr-check.sh
-
-
     - name: prefetch-dependencies
       params:
       - name: input
@@ -297,7 +223,7 @@ spec:
         - name: name
           value: buildah-oci-ta
         - name: bundle
-          value: quay.io/konflux-ci/tekton-catalog/task-buildah-oci-ta:0.2@sha256:2a0c67ea7d5d82b4ec47930c12397f94b3af0b3855d8e5ad9f6e088c93e42bf0
+          value: quay.io/konflux-ci/tekton-catalog/task-buildah-oci-ta:0.2@sha256:43aecf28e07b3cdf74f85524354b665ea584f2282a1f40ec32f64c6a9b036cd3
         - name: kind
           value: task
         resolver: bundles
@@ -444,7 +370,7 @@ spec:
         - name: name
           value: sast-snyk-check-oci-ta
         - name: bundle
-          value: quay.io/konflux-ci/tekton-catalog/task-sast-snyk-check-oci-ta:0.2@sha256:7e99a122bc9e84fd9fb29062e825d3345177337d2448dcb50324f86ec5560c7a
+          value: quay.io/konflux-ci/tekton-catalog/task-sast-snyk-check-oci-ta:0.3@sha256:92af5ba1bb9d6bf442c8d3b317ada71d44a9c1ab59959a37bbb5d163205a104f
         - name: kind
           value: task
         resolver: bundles

@@ -4,16 +4,17 @@ metadata:
   annotations:
     build.appstudio.openshift.io/repo: https://github.com/RedHatInsights/turnpike?rev={{revision}}
     build.appstudio.redhat.com/commit_sha: '{{revision}}'
+    build.appstudio.redhat.com/pull_request_number: '{{pull_request_number}}'
     build.appstudio.redhat.com/target_branch: '{{target_branch}}'
     pipelinesascode.tekton.dev/max-keep-runs: "3"
-    pipelinesascode.tekton.dev/on-cel-expression: event == "push" && target_branch
+    pipelinesascode.tekton.dev/on-cel-expression: event == "pull_request" && target_branch
       == "master"
   creationTimestamp: null
   labels:
     appstudio.openshift.io/application: turnpike
-    appstudio.openshift.io/component: turnpike-nginx
+    appstudio.openshift.io/component: turnpike-nginx-prometheus
     pipelines.appstudio.openshift.io/type: build
-  name: turnpike-nginx-on-push
+  name: turnpike-nginx-prometheus-on-pull-request
   namespace: hcc-accessmanagement-tenant
 spec:
   params:
@@ -22,11 +23,11 @@ spec:
   - name: revision
     value: '{{revision}}'
   - name: output-image
-    value: quay.io/redhat-user-workloads/hcc-accessmanagement-tenant/turnpike/turnpike-nginx:{{revision}}
+    value: quay.io/redhat-user-workloads/hcc-accessmanagement-tenant/turnpike-nginx-prometheus:on-pr-{{revision}}
+  - name: image-expires-after
+    value: 5d
   - name: dockerfile
-    value: Dockerfile
-  - name: path-context
-    value: nginx
+    value: /nginx/Dockerfile-prometheus
   pipelineSpec:
     description: |
       This pipeline is ideal for building container images from a Containerfile while maintaining trust after pipeline customization.
@@ -88,7 +89,7 @@ spec:
       description: Image tag expiration time, time values could be something like
         1h, 2d, 3w for hours, days, and weeks, respectively.
       name: image-expires-after
-    - default: "true"
+    - default: "false"
       description: Build a source image.
       name: build-source-image
       type: string

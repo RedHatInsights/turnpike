@@ -11,9 +11,9 @@ metadata:
   creationTimestamp: null
   labels:
     appstudio.openshift.io/application: turnpike
-    appstudio.openshift.io/component: turnpike-nginx
+    appstudio.openshift.io/component: turnpike-nginx-prometheus
     pipelines.appstudio.openshift.io/type: build
-  name: turnpike-nginx-on-push
+  name: turnpike-nginx-prometheus-on-push
   namespace: hcc-accessmanagement-tenant
 spec:
   params:
@@ -22,11 +22,9 @@ spec:
   - name: revision
     value: '{{revision}}'
   - name: output-image
-    value: quay.io/redhat-user-workloads/hcc-accessmanagement-tenant/turnpike/turnpike-nginx:{{revision}}
+    value: quay.io/redhat-user-workloads/hcc-accessmanagement-tenant/turnpike-nginx-prometheus:{{revision}}
   - name: dockerfile
-    value: Dockerfile
-  - name: path-context
-    value: nginx
+    value: /nginx/Dockerfile-prometheus
   pipelineSpec:
     description: |
       This pipeline is ideal for building container images from a Containerfile while maintaining trust after pipeline customization.
@@ -88,7 +86,7 @@ spec:
       description: Image tag expiration time, time values could be something like
         1h, 2d, 3w for hours, days, and weeks, respectively.
       name: image-expires-after
-    - default: "true"
+    - default: "false"
       description: Build a source image.
       name: build-source-image
       type: string

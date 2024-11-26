@@ -4,7 +4,7 @@ WORKDIR /usr/src/app
 
 COPY ./requirements.txt /usr/src/app/
 
-RUN microdnf install -y python39 && \
+RUN microdnf install -y python39 git && \
     pip3 install --no-cache-dir -r requirements.txt
 
 COPY . /usr/src/app/

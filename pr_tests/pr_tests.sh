@@ -13,3 +13,11 @@ if [ $result -ne 0 ]; then
     echo '====================================='
     exit 1
 fi
+
+# Setup environment for pre-commit check
+pip3 install pre-commit
+# Run pre-commit
+if ! (pre-commit run -av); then
+    echo "pre-commit ecountered an issue"
+    exit 1
+fi

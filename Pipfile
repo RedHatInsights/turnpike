@@ -9,7 +9,7 @@ pytest = "==8.3.3"
 pre-commit = "==4.0.1"
 
 [packages]
-gunicorn = "==22.0.0"
+gunicorn = "==23.0.0"
 py-healthcheck = "==1.10.1"
 python3-saml = "==1.16.0"
 flask = "==3.1.0"

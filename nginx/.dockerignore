@@ -1,3 +1,6 @@
-Dockerfile
+Dockerfile*
 .dockerignore
 certs/
+.podman
+.docker
+.kube

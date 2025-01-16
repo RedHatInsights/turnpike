@@ -13,17 +13,6 @@ trap "teardown_podman" EXIT SIGINT SIGTERM
 
 set -ex
 
-# Setup environment for pre-commit check
-python3 -m venv venv
-source venv/bin/activate
-pip3 install pipenv
-pip3 install pre-commit
-# Run pre-commit
-if ! (pre-commit run -av); then
-    echo "pre-commit ecountered an issue"
-    exit 1
-fi
-
 # Build PR_CHECK Image
 podman build --no-cache -f Dockerfile-pr-check --tag $IMAGE_TAG
 

@@ -7,7 +7,7 @@ pip3 install --upgrade pip
 pip3 install --no-cache-dir -r requirements.txt
 
 # #Run black/lint command
-pip3 install black
+pip3 install black==25.1.0
 if ! (black --check -l 119 -t py39 /var/workdir --diff); then
     echo "black formatter encountered an issue"
     exit 1

@@ -2,7 +2,6 @@
 
 set -ex
 
-pip3 install --upgrade pip
 pip3 install pytest
 pytest --disable-pytest-warnings tests/
 result=$?

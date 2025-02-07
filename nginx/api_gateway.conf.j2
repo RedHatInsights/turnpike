@@ -24,6 +24,9 @@ server {
         internal;
 
         proxy_pass              {{ FLASK_SERVICE_URL }};
+        proxy_buffer_size 16k;
+        proxy_busy_buffers_size 24k;
+        proxy_buffers 64 4k;
         proxy_pass_request_body off;
         proxy_set_header        Content-Length "";
         proxy_set_header        referer $http_referer;

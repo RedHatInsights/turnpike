@@ -2,10 +2,10 @@ FROM registry.access.redhat.com/ubi8/ubi-minimal:8.10-1179
 
 WORKDIR /usr/src/app
 
-COPY ./requirements.txt /usr/src/app/
+COPY Pipfile.lock /usr/src/app/
 
-RUN microdnf install -y python39 && \
-    pip3 install --no-cache-dir -r requirements.txt
+RUN microdnf install --nodocs -y python39
+RUN pip3 install --upgrade pip && pip3 install micropipenv && micropipenv install
 
 COPY . /usr/src/app/
 

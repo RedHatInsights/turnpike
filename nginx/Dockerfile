@@ -2,8 +2,7 @@ FROM registry.access.redhat.com/ubi9/ubi-minimal:9.5-1739420147
 
 # support running as an arbitrary user which belongs to the root group
 RUN microdnf module enable -y nginx:1.22 && \
-    microdnf install -y nginx python3.11 python3.11-pip && \
-    microdnf install --nodocs -y python39 tar gzip pip && \
+    microdnf install -y nginx python3.11 pip && \
     pip3 install --no-cache-dir jinja2 pyyaml && \
     chmod g+rwx /var/log/nginx && \
     rm -rf /var/lib/dnf /var/cache/dnf

@@ -1,10 +1,10 @@
-FROM registry.access.redhat.com/ubi8/ubi-minimal:8.10-1179
+FROM registry.access.redhat.com/ubi9/ubi-minimal:9.5-1739420147
 
 WORKDIR /usr/src/app
 
 COPY Pipfile.lock /usr/src/app/
 
-RUN microdnf install --nodocs -y python39
+RUN microdnf install --nodocs -y python39 pip
 RUN pip3 install --upgrade pip && pip3 install micropipenv && micropipenv install
 
 COPY . /usr/src/app/

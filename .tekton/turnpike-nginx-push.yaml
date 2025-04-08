@@ -12,9 +12,9 @@ metadata:
   creationTimestamp: null
   labels:
     appstudio.openshift.io/application: turnpike
-    appstudio.openshift.io/component: turnpike-web
+    appstudio.openshift.io/component: turnpike-nginx
     pipelines.appstudio.openshift.io/type: build
-  name: turnpike-web-on-push
+  name: turnpike-nginx-on-push
   namespace: hcc-accessmanagement-tenant
 spec:
   params:
@@ -23,9 +23,11 @@ spec:
   - name: revision
     value: '{{revision}}'
   - name: output-image
-    value: quay.io/redhat-user-workloads/hcc-accessmanagement-tenant/turnpike/turnpike-web:{{revision}}
+    value: quay.io/redhat-user-workloads/hcc-accessmanagement-tenant/turnpike/turnpike-nginx:{{revision}}
   - name: dockerfile
     value: Dockerfile
+  - name: path-context
+    value: nginx
   pipelineSpec:
     description: |
       This pipeline is ideal for building container images from a Containerfile while maintaining trust after pipeline customization.
@@ -287,33 +289,6 @@ spec:
         operator: in
         values:
         - "true"
-    - name: sast-shell-check
-      params:
-        - name: image-digest
-          value: $(tasks.build-image-index.results.IMAGE_DIGEST)
-        - name: image-url
-          value: $(tasks.build-image-index.results.IMAGE_URL)
-        - name: SOURCE_ARTIFACT
-          value: $(tasks.prefetch-dependencies.results.SOURCE_ARTIFACT)
-        - name: CACHI2_ARTIFACT
-          value: $(tasks.prefetch-dependencies.results.CACHI2_ARTIFACT)
-      runAfter:
-        - build-image-index
-      taskRef:
-        params:
-          - name: name
-            value: sast-shell-check-oci-ta
-          - name: bundle
-            value: quay.io/konflux-ci/tekton-catalog/task-sast-shell-check-oci-ta:0.1@sha256:a591675c72f06fb9c5b1a3d60e6e4c58e4df5f7da180c7a4691a692a6e7e6496
-          - name: kind
-            value: task
-        resolver: bundles
-      when:
-        - input: $(params.skip-checks)
-          operator: in
-          values:
-            - "false"
-      workspaces: []
     - name: sast-unicode-check
       params:
         - name: image-url
@@ -451,7 +426,7 @@ spec:
         operator: in
         values:
         - "false"
-    - name: sast-coverity-check
+    - name: sast-coverity-check-oci-ta
       params:
       - name: image-url
         value: $(tasks.build-image-index.results.IMAGE_URL)
@@ -599,7 +574,7 @@ spec:
         - name: name
           value: push-dockerfile-oci-ta
         - name: bundle
-          value: quay.io/konflux-ci/tekton-catalog/task-push-dockerfile-oci-ta:0.1@sha256:c3f8fd807121fec3b895f327cec7f0d89a94c454945f143268763cf6327503cder
+          value: quay.io/konflux-ci/tekton-catalog/task-push-dockerfile-oci-ta:0.1@sha256:c3f8fd807121fec3b895f327cec7f0d89a94c454945f143268763cf6327503cd
         - name: kind
           value: task
         resolver: bundles

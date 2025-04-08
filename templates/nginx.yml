@@ -56,7 +56,7 @@ objects:
               value: "${ALLOWED_NO_AUTH_ROUTES}"
             - name: TURNPIKE_ALLOWED_ORIGIN_DOMAINS
               value: "${ALLOWED_ORIGIN_DOMAINS}"
-          image: quay.io/cloudservices/turnpike-nginx:${IMAGE_TAG}
+          image: ${IMAGE}:${IMAGE_TAG}
           imagePullPolicy: Always
           livenessProbe:
             failureThreshold: 3
@@ -124,6 +124,9 @@ parameters:
 - description: Image tag
   name: IMAGE_TAG
   required: true
+- description: Image url
+  name: IMAGE
+  value: quay.io/cloudservices/turnpike-nginx
 - description: Port nginx listens on
   name: NGINX_PORT
   value: "8080"

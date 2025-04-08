@@ -1,4 +1,7 @@
 .git/
+.github/
+.pytest_cache/
+.tekton/
 .vscode/
 saml/
 nginx/
@@ -6,6 +9,10 @@ nginx/
 docs/
 templates/
 scripts/
-Dockerfile
+docker-compose.yml
+Dockerfile*
 .dockerignore
 .env
+.podman
+.docker
+.kube

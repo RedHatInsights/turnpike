@@ -2,12 +2,13 @@
 set -ex
 
 echo "INSTALL DEPENDENCIES"
-microdnf install -y python39
+microdnf install --nodocs -y python39
 pip3 install --upgrade pip
-pip3 install --no-cache-dir -r requirements.txt
+pip3 install micropipenv
+micropipenv install
 
 # #Run black/lint command
-pip3 install black
+pip3 install black==25.1.0
 if ! (black --check -l 119 -t py39 /var/workdir --diff); then
     echo "black formatter encountered an issue"
     exit 1

@@ -2,7 +2,7 @@ default_language_version:
   python: python3
 repos:
 - repo: https://github.com/psf/black
-  rev: 24.8.0
+  rev: 25.1.0
   hooks:
   - id: black
     args: ["-l", "119", "-t", "py39"]
@@ -13,7 +13,3 @@ repos:
   - id: trailing-whitespace
   - id: end-of-file-fixer
   - id: debug-statements
-- repo: https://github.com/casey-williams-rh/pipenv-pre-commit
-  rev: v1.1.0
-  hooks:
-  - id: pipenv-generate-requirements

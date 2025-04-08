@@ -291,7 +291,7 @@ spec:
         operator: in
         values:
         - "true"
-    - name: sast-unicode-check
+    - name: sast-unicode-check-oci-ta
       params:
         - name: image-url
           value: $(tasks.build-image-index.results.IMAGE_URL)

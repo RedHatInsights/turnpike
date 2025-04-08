@@ -23,15 +23,24 @@ on:
     branches: [ "main", "master", "security-compliance" ]
 
 jobs:
-  PlatSec-Security-Workflow-nginx:
+  turnpike-web-security-check:
+    uses: RedHatInsights/platform-security-gh-workflow/.github/workflows/platsec-security-scan-reusable-workflow.yml@master
+    with:
+      dockerfile_path: '.'
+      dockerfile_name: 'Dockerfile'
+      dockerbuild_path: '.'
+      app_name: 'turnpike-web'
+  turnpike-nginx-security-check:
     uses: RedHatInsights/platform-security-gh-workflow/.github/workflows/platsec-security-scan-reusable-workflow.yml@master
     with:
       dockerfile_path: './nginx'
       dockerfile_name: 'Dockerfile'
       dockerbuild_path: './nginx'
-  PlatSec-Security-Workflow-nginx-prometheus:
+      app_name: 'turnpike-nginx'
+  turnpike-nginx-prometheus-security-check:
     uses: RedHatInsights/platform-security-gh-workflow/.github/workflows/platsec-security-scan-reusable-workflow.yml@master
     with:
       dockerfile_path: './nginx'
       dockerfile_name: 'Dockerfile-prometheus'
       dockerbuild_path: './nginx'
+      app_name: 'turnpike-nginx-prometheus'

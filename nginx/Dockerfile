@@ -11,7 +11,7 @@ COPY . /etc/nginx
 RUN chgrp -R root /etc/nginx && chmod -R g+rwX /etc/nginx
 RUN pwd
 RUN echo "$(pwd)/turnpike-entrypoint.sh"
-COPY ./nginx/turnpike-entrypoint.sh /turnpike-entrypoint.sh
+COPY /nginx/turnpike-entrypoint.sh /turnpike-entrypoint.sh
 ENV BACKENDS_CONFIG_MAP=/etc/turnpike/backends.yml
 ENTRYPOINT ["/turnpike-entrypoint.sh"]
 CMD ["nginx", "-g", "daemon off;"]

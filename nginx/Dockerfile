@@ -10,6 +10,7 @@ RUN microdnf module enable -y nginx:1.24 && \
 COPY . /etc/nginx
 RUN chgrp -R root /etc/nginx && chmod -R g+rwX /etc/nginx
 RUN ls -la /etc/nginx
+RUN ls -la /etc/nginx/nginx
 RUN ls -la /etc/nginx/turnpike
 COPY /etc/nginx/nginx/turnpike-entrypoint.sh /turnpike-entrypoint.sh
 ENV BACKENDS_CONFIG_MAP=/etc/turnpike/backends.yml

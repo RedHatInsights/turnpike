@@ -226,3 +226,14 @@ You can also run it manually with `pre-commit run -a`.
 [adv-settings-example]: https://github.com/onelogin/python3-saml/blob/master/demo-flask/saml/advanced_settings.json
 [docs]: https://github.com/RedHatInsights/turnpike/blob/master/docs/_index.md
 [route-best-practice]: https://github.com/RedHatInsights/turnpike/blob/master/docs/_index.md#best-practices-when-creating-routes
+
+
+## Konflux pipelines
+We have three build pipelines that should run when a PR is being created or being pushed.
+They are the turnpike-web, turnpike-nginx, and the turnpike-nginx-prometheus.
+
+The turnpike-web-on-pull-request pipeline will have the unit tests included.
+
+The turnpike web will also have a bonfire-tekton integration test included with it because turnpike-web tests our web application and our nginx is not necessary to test the ephemeral env.
+
+We also have enterprise-contract pipelines that must pass as well.

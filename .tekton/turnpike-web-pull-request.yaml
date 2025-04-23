@@ -199,7 +199,7 @@ spec:
         workspace: git-auth
 
     - name: run-unit-tests
-      description: Running Insights RBAC unit tests
+      description: Running Insights Turnpike unit tests
       # make sure the task runs after the artifact is created
       runAfter:
         - clone-repository-oci-ta

@@ -3,6 +3,7 @@ set -ex
 
 echo "INSTALL DEPENDENCIES"
 microdnf install --nodocs -y python39
+microdnf install python3.9-disutils
 pip install --upgrade pip
 pip install micropipenv
 micropipenv install

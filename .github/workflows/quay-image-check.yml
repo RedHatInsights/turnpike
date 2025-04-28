@@ -1,0 +1,39 @@
+name: Check Quay Image
+
+on:
+  pull_request:
+    branches:
+      - master
+    types:
+      - closed
+
+jobs:
+  check-image-turnpike-web:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Wait for Quay image
+        uses: petracihalova/check-quay-image@v1
+        with:
+          quay_repo: redhat-services-prod/hcc-accessmanagement-tenant/turnpike/turnpike-web
+          commit_sha: ${{ github.sha }}
+          slack_webhook_url: ${{ secrets.SLACK_WEBHOOK_URL }}
+
+  check-image-turnpike-nginx:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Wait for Quay image
+        uses: petracihalova/check-quay-image@v1
+        with:
+          quay_repo: redhat-services-prod/hcc-accessmanagement-tenant/turnpike/turnpike-nginx
+          commit_sha: ${{ github.sha }}
+          slack_webhook_url: ${{ secrets.SLACK_WEBHOOK_URL }}
+
+  check-image-turnpike-nginx-prometheus:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Wait for Quay image
+        uses: petracihalova/check-quay-image@v1
+        with:
+          quay_repo: redhat-services-prod/hcc-accessmanagement-tenant/turnpike/turnpike-nginx-prometheus
+          commit_sha: ${{ github.sha }}
+          slack_webhook_url: ${{ secrets.SLACK_WEBHOOK_URL }}

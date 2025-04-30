@@ -171,6 +171,8 @@ spec:
       workspaces:
       - name: basic-auth
         workspace: git-auth
+    # unit tests
+    # clone repository for the unit tests
     - name: clone-repository-oci-ta
       params:
       - name: url
@@ -193,7 +195,7 @@ spec:
       workspaces:
       - name: basic-auth
         workspace: git-auth
-    #run the unit tests
+    # run the unit tests
     - description: Running Insights Turnpike unit tests
       name: run-unit-tests
       params:

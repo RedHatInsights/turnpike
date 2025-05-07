@@ -26,12 +26,14 @@ services:
       dockerfile: Dockerfile
     ports:
       - 443:8443
+      - 8888:8888
     depends_on:
       - web
     hostname: nginx
     volumes:
       - "./dev-backends.yml:/etc/turnpike/backends.yml"
       - "./nginx/certs:/etc/nginx/certs"
+      - shared-volume:/usr/src/logs
     networks:
       mynet:
         aliases:
@@ -69,5 +71,18 @@ services:
           - echo-server.svc.cluster.local
     environment:
       PORT: 8080
+  fluentd:
+    build:
+      context: ./fluentd
+      dockerfile: Dockerfile
+    volumes:
+      - ./fluentd/conf:/fluentd/etc
+      - shared-volume:/usr/src/logs
+    ports:
+      - "24224:24224"
+      - "24224:24224/udp"
+      - 24321:24321
 networks:
   mynet:
+volumes:
+  shared-volume:

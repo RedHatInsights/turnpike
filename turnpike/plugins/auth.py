@@ -1,6 +1,6 @@
 import importlib
 
-from flask import request, current_app
+from flask import request, current_app, g
 
 from ..plugin import TurnpikePlugin, TurnpikeAuthPlugin
 

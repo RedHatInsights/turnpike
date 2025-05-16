@@ -1,6 +1,7 @@
     location ~ {{ route }}(.*)$ {
         resolver {{ resolver }} valid=60s;
         set $upstream  {{ origin }};
+        set $matched_backend {{ name }};
         auth_request     /auth/;
         auth_request_set $login_url $upstream_http_login_url;
         {% for header in headers %}

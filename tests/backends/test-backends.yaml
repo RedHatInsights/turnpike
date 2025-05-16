@@ -1,0 +1,9 @@
+- name: rbac-general
+  route: /api/rbac
+  auth:
+    saml: "True"
+- name: rbac-health-check
+  route: /api/rbac/v1/health-check
+  origin: http://web.svc.cluster.local:12345/api/rbac/v1
+  auth:
+    x509: "True"

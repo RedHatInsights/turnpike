@@ -12,8 +12,17 @@ def policy_view():
 
     # Start by identifying which route is being asked about
     original_url = request.headers.get("X-Original-Uri", "/")
-    matches = [backend for backend in current_app.config["BACKENDS"] if original_url.startswith(backend["route"])]
-    if not matches:
+    nginx_matched_backend = request.headers.get("X-Matched-Backend")
+
+    current_app.logger.debug(f"Received original URI: {original_url}")
+    current_app.logger.debug(f"Matched back end in NGINX: {nginx_matched_backend}")
+
+    if nginx_matched_backend:
+        context.backend = match_by_backend_name(nginx_matched_backend)
+    else:
+        context.backend = match_by_route(original_url)
+
+    if not context.backend:
         # This condition shouldn't be hit - it would mean that there was a
         # bug, a mismatch between the routes configured in nginx and the
         # routes configured here.
@@ -21,8 +30,8 @@ def policy_view():
         current_app.logger.warning(f"Policy inquiry about unconfigured route! {original_url}")
         Metrics.request_count.labels(original_url, status_code).inc()
         return make_response("", status_code)
-    context.backend = max(matches, key=lambda match: len(match["route"]))
-    current_app.logger.debug(f"Matched backend: {context.backend['name']}")
+
+    current_app.logger.debug(f"Matched back end in Turnpike: {context.backend['name']}")
 
     for plugin in current_app.config.get("PLUGIN_CHAIN_OBJS", []):
         current_app.logger.debug(f"Processing request with plugin {plugin}.")
@@ -67,3 +76,24 @@ def session():
     else:
         response = {"error": "No session cookie found in the request."}
     return make_response(response, 200)
+
+
+def match_by_backend_name(nginx_matched_backend):
+    """Returns the back end that matches the given name."""
+
+    for backend in current_app.config["BACKENDS"]:
+        if backend["name"] == nginx_matched_backend:
+            return backend
+
+    return None
+
+
+def match_by_route(original_url):
+    """Returns the back end that matches the backend whose route matches the closest to the given one."""
+
+    matches = [backend for backend in current_app.config["BACKENDS"] if original_url.startswith(backend["route"])]
+
+    if matches:
+        return max(matches, key=lambda match: len(match["route"]))
+    else:
+        return None

@@ -35,10 +35,10 @@ def create_app(test_config=None):
         app.config.from_mapping(test_config)
     else:
         app.config.from_object("turnpike.config")
-    app.config.from_envvar("TURNPIKE_CONFIG", silent=True)
+        session_obj = Session()
+        session_obj.init_app(app)
 
-    session_obj = Session()
-    session_obj.init_app(app)
+    app.config.from_envvar("TURNPIKE_CONFIG", silent=True)
 
     health = HealthCheck()
     app.add_url_rule("/_healthcheck/", view_func=health.run)

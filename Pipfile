@@ -10,6 +10,7 @@ black = "==25.1.0"
 mock = "*"
 mypy = "==1.16.0"
 types-pyyaml = "==6.0.12.20250516"
+types-requests = "==2.32.0.20250602"
 
 [packages]
 py-healthcheck = "==1.10.1"
@@ -25,6 +26,9 @@ flask-session = "==0.8.0"
 prometheus-client = "==0.22.1"
 gunicorn = "==23.0.0"
 redis = "==6.2.0"
+joserfc = "*"
+requests = "*"
+flask-caching = "*"
 
 [requires]
 python_version = "3.9"

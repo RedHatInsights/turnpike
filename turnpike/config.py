@@ -18,6 +18,11 @@ SESSION_REDIS = redis.Redis(
     username=os.environ.get("REDIS_USERNAME"),
     password=os.environ.get("REDIS_PASSWORD"),
 )
+
+# Cache configuration for Flask-Caching.
+CACHE_TYPE = "RedisCache"
+CACHE_REDIS_URL = f'redis://{os.environ.get("REDIS_USERNAME")}:{os.environ.get("REDIS_PASSWORD")}@{os.environ.get("REDIS_HOST", "redis")}'
+
 PERMANENT_SESSION_LIFETIME = 60 * 60 * 4
 SESSION_COOKIE_SECURE = True
 MULTI_VALUE_SAML_ATTRS = os.environ.get("MULTI_VALUE_SAML_ATTRS", "").split(",")
@@ -26,13 +31,34 @@ HEADER_CERTAUTH_SUBJECT = os.environ.get("HEADER_CERTAUTH_SUBJECT", "x-rh-certau
 HEADER_CERTAUTH_ISSUER = os.environ.get("HEADER_CERTAUTH_ISSUER", "x-rh-certauth-issuer")
 HEADER_CERTAUTH_PSK = os.environ.get("HEADER_CERTAUTH_PSK", None)
 
+SSO_OIDC_HOST = os.environ.get("SSO_OIDC_HOST")
+if not SSO_OIDC_HOST:
+    raise ValueError("No SSO_OIDC_HOST set.")
+
+SSO_OIDC_PORT = os.environ.get("SSO_OIDC_PORT")
+if not SSO_OIDC_PORT:
+    raise ValueError("No SSO_OIDC_PORT set.")
+
+SSO_OIDC_PROTOCOL_SCHEME = os.environ.get("SSO_OIDC_PROTOCOL_SCHEME")
+if not SSO_OIDC_PROTOCOL_SCHEME:
+    raise ValueError("No SSO_OIDC_PROTOCOL_SCHEME set.")
+
+SSO_OIDC_REALM = os.environ.get("SSO_OIDC_REALM")
+if not SSO_OIDC_REALM:
+    raise ValueError("No SSO_OIDC_REALM set.")
+
 PLUGIN_CHAIN = [
     "turnpike.plugins.auth.AuthPlugin",
     "turnpike.plugins.source_ip.SourceIPPlugin",
     "turnpike.plugins.rh_identity.RHIdentityPlugin",
 ]
 
-AUTH_PLUGIN_CHAIN = ["turnpike.plugins.x509.X509AuthPlugin", "turnpike.plugins.saml.SAMLAuthPlugin"]
+AUTH_PLUGIN_CHAIN = [
+    "turnpike.plugins.oidc.oidc.OIDCAuthPlugin",
+    "turnpike.plugins.saml.SAMLAuthPlugin",
+    "turnpike.plugins.x509.X509AuthPlugin",
+]
+
 AUTH_DEBUG = os.environ.get("AUTH_DEBUG", False)
 
 DEFAULT_RESPONSE_CODE = 200

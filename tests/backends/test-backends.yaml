@@ -7,3 +7,15 @@
   origin: http://web.svc.cluster.local:12345/api/rbac/v1
   auth:
     x509: "True"
+- name: notifications-general
+  route: /api/notifications/v1
+  origin: http://web.svc.cluster.local:12345/api/notifications/v1
+  auth:
+    oidc:
+      serviceAccounts:
+        - clientId: 349675ae-3625-11f0-a5d0-083a885cd988
+        - clientId: 721d25ca-3614-11f0-9fb6-083a885cd988
+          scopes:
+            - scope_a
+            - scope_b
+        - clientId: 7881197c-3651-11f0-8354-083a885cd988

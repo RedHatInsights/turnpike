@@ -22,6 +22,7 @@ class TestMatchingBackends(unittest.TestCase):
                 "AUTH_DEBUG": True,
                 "AUTH_PLUGIN_CHAIN": ["turnpike.plugins.x509.X509AuthPlugin", "turnpike.plugins.saml.SAMLAuthPlugin"],
                 "BACKENDS": yaml.safe_load(test_backends_file),
+                "CACHE_TYPE": "SimpleCache",
                 "DEFAULT_RESPONSE_CODE": http.HTTPStatus.INTERNAL_SERVER_ERROR,
                 "HEADER_CERTAUTH_SUBJECT": "subject",
                 "HEADER_CERTAUTH_ISSUER": "issuer",

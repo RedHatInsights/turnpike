@@ -70,6 +70,12 @@ objects:
                     name: gateway-secret
               - name: AUTH_DEBUG
                 value: "${AUTH_DEBUG}"
+              - name: IT_SERVICE_HOST
+                value: ${IT_SERVICE_HOST}
+              - name: IT_SERVICE_PORT
+                value: ${IT_SERVICE_PORT}
+              - name: IT_SERVICE_PROTOCOL_SCHEME
+                value: ${IT_SERVICE_PROTOCOL_SCHEME}
             image: ${IMAGE}:${IMAGE_TAG}
             imagePullPolicy: Always
             name: web
@@ -223,3 +229,12 @@ parameters:
 - description: Replica count for turnpike-web
   name: REPLICAS
   value: "1"
+- description: The host of the IT service without the protocol.
+  name: IT_SERVICE_HOST
+  value: localhost
+- description: The port of the IT service.
+  name: IT_SERVICE_PORT
+  value: "80"
+- description: The protocol scheme for the IT service.
+  name: IT_SERVICE_PROTOCOL_SCHEME
+  value: http

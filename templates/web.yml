@@ -70,6 +70,14 @@ objects:
                     name: gateway-secret
               - name: AUTH_DEBUG
                 value: "${AUTH_DEBUG}"
+              - name: SSO_OIDC_HOST
+                value: ${SSO_OIDC_HOST}
+              - name: SSO_OIDC_PORT
+                value: ${SSO_OIDC_PORT}
+              - name: SSO_OIDC_PROTOCOL_SCHEME
+                value: ${SSO_OIDC_PROTOCOL_SCHEME}
+              - name: SSO_OIDC_REALM
+                value: ${SSO_OIDC_REALM}
             image: ${IMAGE}:${IMAGE_TAG}
             imagePullPolicy: Always
             name: web
@@ -223,3 +231,15 @@ parameters:
 - description: Replica count for turnpike-web
   name: REPLICAS
   value: "1"
+- description: The host of the Single Sign On service that supports OIDC authentication and authorization.
+  name: SSO_OIDC_HOST
+  value: localhost
+- description: The port of the SSO OIDC service.
+  name: SSO_OIDC_PORT
+  value: "443"
+- description: The protocol scheme for the SSO OIDC service.
+  name: SSO_OIDC_PROTOCOL_SCHEME
+  value: https
+- description: The realm Turnpike wants to validate the tokens against.
+  name: SSO_OIDC_REALM
+  value: realm

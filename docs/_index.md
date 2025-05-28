@@ -26,34 +26,42 @@ X-RH-Identity
 
 Like services that are customer-facing, services routed by Turnpike present information about the authenticated
 principal using the `X-RH-Identity` header, however whereas customer-facing services receive a header with a type of
-`User` or `System`, Turnpike issued headers have a type of `Associate` for SAML authenticated users and of `X509` for
-mTLS authenticated users.
+`User` or `System`, Turnpike issued headers have a type of `Associate` for SAML authenticated users, a type of `X509`
+for mTLS authenticated users, and `Service_Account` for OIDC authenticated users.
 
-These are best shared by example. For SAML authentication:
+If your application needs to vary its functionality based on the requesting user or if your application needs to
+perform more granular access control, it will need to consume this header to do so.
 
-    {
-      "identity": {
-        // The associate section contains the Associate type principal data
-        "associate": {
-          // The Roles correspond to LDAP groups
-          "Role": [
-            "some-ldap-group",
-            "another-ldap-group"
-          ],
-          "email": "jschmoe@redhat.com",
-          "givenName": "Joseph",
-          "rhatUUID": "01234567-89ab-cdef-0123-456789abcdef",
-          "surname": "Schmoe"
-        },
-        // In the future, Associates might be authenticated through other means
-        "auth_type": "saml-auth",
-        // The Associate type asserts that the request comes from an active Red Hat employee
-        "type": "Associate"
-      }
-    }
+Below you can find an example of the `X-RH-Identity` header for every type of authentication.
 
-Or alternatively, for mTLS:
+### SAML authentication
 
+```json
+{
+  "identity": {
+    // The associate section contains the Associate type principal data
+    "associate": {
+      // The Roles correspond to LDAP groups
+      "Role": [
+        "some-ldap-group",
+        "another-ldap-group"
+      ],
+      "email": "jschmoe@redhat.com",
+      "givenName": "Joseph",
+      "rhatUUID": "01234567-89ab-cdef-0123-456789abcdef",
+      "surname": "Schmoe"
+    },
+    // In the future, Associates might be authenticated through other means
+    "auth_type": "saml-auth",
+    // The Associate type asserts that the request comes from an active Red Hat employee
+    "type": "Associate"
+  }
+}
+```
+
+### mTLS
+
+```json
     {
       "identity": {
         "x509": {
@@ -67,9 +75,27 @@ Or alternatively, for mTLS:
         "type": "X509"
       }
     }
+```
 
-If your application needs to vary its functionality based on the requesting user or if your application needs to
-perform more granular access control, it will need to consume this header to do so.
+### OIDC / Service accounts
+
+```json
+{
+    "identity": {
+        "auth_type": "oidc-service-account",
+        "type": "Service_Account",
+        "service_account": {
+            "client_id": "6acfd92a-3b99-11f0-bdfe-083a885cd988",
+            "preferred_username": "service-account-6acfd92a-3b99-11f0-bdfe-083a885cd988",
+            "scopes": [
+                "scope_a",
+                "scope_b",
+                "scope_c"
+            ]
+        }
+    }
+}
+```
 
 Best practices when creating routes
 -----------------------------------

@@ -1,4 +1,4 @@
-    location ~ {{ route }}(.*)$ {
+    location {{ route }} {
         resolver {{ resolver }} valid=60s;
         set $upstream  {{ origin }};
         set $matched_backend {{ name }};

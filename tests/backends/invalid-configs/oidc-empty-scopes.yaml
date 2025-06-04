@@ -1,0 +1,14 @@
+- name: turnpike-general
+  route: /api/turnpike/v1
+  origin: http://web.svc.cluster.local:12345/api/turnpike/v1
+  auth:
+    oidc:
+      serviceAccounts:
+        - clientId: 20382883-363d-11f0-9ee4-083a885cd988
+          scopes:
+            - scope_a
+            - scope_b
+            - scope_c
+        - clientId: 20382b03-363d-11f0-9ee5-083a885cd988
+        - clientId: 20382b44-363d-11f0-9ee6-083a885cd988
+          scopes:

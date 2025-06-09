@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "14e4147a98d0914a56237764bc34f48101f829dadb5c813460a4c766277f3cd5"
+            "sha256": "5426fe8f01b276ca1267d9300fe7ee0367680201ea169d50b88eae5a5c64f8ba"
         },
         "pipfile-spec": 6,
         "requires": {
@@ -388,12 +388,12 @@
         },
         "prometheus-client": {
             "hashes": [
-                "sha256:18da1d2241ac2d10c8d2110f13eedcd5c7c0c8af18c926e8731f04fc10cd575c",
-                "sha256:c8951bbe64e62b96cd8e8f5d917279d1b9b91ab766793f33d4dce6c228558713"
+                "sha256:190f1331e783cf21eb60bca559354e0a4d4378facecf78f5428c39b675d20d28",
+                "sha256:cca895342e308174341b2cbf99a56bef291fbc0ef7b9e5412a0f26d653ba7094"
             ],
             "index": "pypi",
             "markers": "python_version >= '3.9'",
-            "version": "==0.22.0"
+            "version": "==0.22.1"
         },
         "py-healthcheck": {
             "hashes": [
@@ -572,11 +572,11 @@
         },
         "zipp": {
             "hashes": [
-                "sha256:dd2f28c3ce4bc67507bfd3781d21b7bb2be31103b51a4553ad7d90b84e57ace5",
-                "sha256:fe208f65f2aca48b81f9e6fd8cf7b8b32c26375266b009b413d45306b6148343"
+                "sha256:071652d6115ed432f5ce1d34c336c0adfd6a884660d1e9712a256d3d3bd4b14e",
+                "sha256:a07157588a12518c9d4034df3fbbee09c814741a33ff63c05fa29d26a2404166"
             ],
             "markers": "python_version >= '3.9'",
-            "version": "==3.22.0"
+            "version": "==3.23.0"
         }
     },
     "develop": {

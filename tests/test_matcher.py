@@ -26,6 +26,7 @@ class TestMatchingBackends(unittest.TestCase):
                 "HEADER_CERTAUTH_SUBJECT": "subject",
                 "HEADER_CERTAUTH_ISSUER": "issuer",
                 "HEADER_CERTAUTH_PSK": "test-psk",
+                "NGINX_HEADER_BACKEND_MATCHING_ENABLED": True,
                 "PLUGIN_CHAIN": [
                     "tests.mocked_plugins.mocked_plugin.MockPlugin",
                 ],

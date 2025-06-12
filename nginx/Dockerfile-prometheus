@@ -1,11 +1,11 @@
+FROM ghcr.io/nginx/nginx-prometheus-exporter:1.4.2 as build
+
 FROM registry.access.redhat.com/ubi9/ubi-minimal:9.6-1749489516
+
+COPY --from=build . /usr/bin/nginx-prometheus-exporter
 
 USER root
 
 ENV SCRAPE_URI=http://localhost:8080/stub_status
 
-RUN microdnf install -y git-core make go
-RUN git clone --branch v1.4.1 https://github.com/nginxinc/nginx-prometheus-exporter
-RUN cd nginx-prometheus-exporter && make && chmod +x ./nginx-prometheus-exporter
-
-CMD ./nginx-prometheus-exporter/nginx-prometheus-exporter --nginx.scrape-uri $SCRAPE_URI
+CMD nginx-prometheus-exporter -nginx.scrape-uri $SCRAPE_URI

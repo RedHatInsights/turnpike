@@ -1,3 +1,4 @@
+import copy
 import http
 import unittest
 import uuid
@@ -122,23 +123,23 @@ class TestMatchingBackends(TestCase):
 
             return response
 
-    def test_missing_jwt_backend(self):
-        """Test that an internal server error is returned when the passed back end to the JWT plugin is not a 'jwt' back end."""
-        # Set up a mock for the context.
+    def test_missing_oidc_backend_skips_plugin(self):
+        """Test that when the specified backend does not have an "oidc" authorization section, the "oidc" plugin is skipped."""
         context = mock.Mock
 
         # Assert that a log message is produced.
-        with self.assertLogs(self.app.logger.name, level="ERROR") as cm:
+        with self.assertLogs(self.app.logger.name, level="DEBUG") as cm:
             # Call the function under test.
             self.oidc_jwt_plugin.process(context=context, backend_auth={})
 
             # Ensure that the correct log message has been issued.
             self.assertTrue(
-                'A "JWT" back end was matched, but the back end does not have a "JWT" section defined:' in cm.output[0]
+                'The back end does not have an "oidc" authorization key defined. Skipping "oidc" authorization plugin'
+                in cm.output[0]
             )
 
-            # Ensure that the context contains the expected status code.
-            self.assertEqual(http.HTTPStatus.INTERNAL_SERVER_ERROR, context.status_code)
+            # Ensure that the context contains the default status code.
+            self.assertEqual(http.HTTPStatus.UNAUTHORIZED, context.status_code)
 
     def test_missing_bearer_token(self):
         """Test that when the bearer token is not present, an unauthorized status code is set in the context."""

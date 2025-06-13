@@ -17,7 +17,7 @@ def policy_view():
     current_app.logger.debug(f"Received original URI: {original_url}")
     current_app.logger.debug(f"Matched back end in NGINX: {nginx_matched_backend}")
 
-    if current_app.config.get("NGINX_HEADER_BACKEND_MATCHING_ENABLED") and nginx_matched_backend:
+    if nginx_matched_backend:
         context.backend = match_by_backend_name(nginx_matched_backend)
     else:
         context.backend = match_by_route(original_url)

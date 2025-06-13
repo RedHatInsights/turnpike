@@ -88,12 +88,13 @@ class OIDCAuthPlugin(TurnpikeAuthPlugin):
             raise UnableCreateKeysetError(f"Unable to create a keyset from the JWKS certificates: {e}")
 
     def process(self, context, backend_auth: Dict[str, Dict[str, list[Dict[str, Union[str, list[str]]]]]]):
+        # When the given backend does not have an "oidc" section defined, we simply "skip" this plugin by returning
+        # the unmodified context.
         if not "oidc" in backend_auth:
-            self.app.logger.error(
-                f'A "JWT" back end was matched, but the back end does not have a "JWT" section defined: {backend_auth}'
+            self.app.logger.debug(
+                'The back end does not have an "oidc" authorization key defined. Skipping "oidc" authorization plugin'
             )
 
-            context.status_code = HTTPStatus.INTERNAL_SERVER_ERROR
             return context
 
         # Check that the "Authorization" header was sent.

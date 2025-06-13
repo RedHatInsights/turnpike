@@ -167,12 +167,15 @@ Accessing
 ---------
 
 You can access your service via the following:
-|Environment|Auth Type|URL|Notes|
-|----|----|----|----|
-|STAGE|SAML/OIDC — service accounts/Internal SSO|https://internal.cloud.stage.redhat.com/api/{service}| - [requires proxy](https://redhat.service-now.com/help?id=kb_article_view&sysparm_article=KB0006375)|
-|STAGE|mTLS/x509|https://mtls.internal.cloud.stage.redhat.com/api/{service}| - [requires proxy](https://redhat.service-now.com/help?id=kb_article_view&sysparm_article=KB0006375)<br />- [requires a cert](https://core-platform-apps.pages.redhat.com/docs/dev/using-the-platform/x509-certificate.html)|
-|PROD|SAML/OIDC — service accounts/Internal SSO|https://internal.console.redhat.com/api/{service}||
-|PROD|mTLS/x509|https://mtls.internal.console.redhat.com/api/{service}|- [requires a cert](https://core-platform-apps.pages.redhat.com/docs/dev/using-the-platform/x509-certificate.html)|
+
+| Environment | Authentication type     | URL                                                          | What is required to access the services?                                                                              |
+|-------------|-------------------------|--------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------|
+| Stage       | SAML                    | `https://internal.cloud.stage.redhat.com/api/{service}`      | To send the requests through the [proxy][proxy_docs].                                                                 |
+| Stage       | OIDC — service accounts | `https://internal.cloud.stage.redhat.com/api/{service}`      | To send the requests through the [proxy][proxy_docs] and using [a service account][talking_services_internally_docs]. |
+| Stage       | mTLS/x509 certificates  | `https://mtls.internal.cloud.stage.redhat.com/api/{service}` | To send the requests through the [proxy][proxy_docs] and using [a certificate][talking_services_internally_docs].     |
+| Production  | SAML                    | `https://internal.cloud.redhat.com/api/{service}`            | Nothing.                                                                                                              |
+| Production  | OIDC — service accounts | `https://internal.cloud.redhat.com/api/{service}`            | To send the requests using [a service account][talking_services_internally_docs].                                     |
+| Production  | mTLS/x509 certificates  | `https://mtls.internal.cloud.redhat.com/api/{service}`       | To send the requests using [a certificate][talking_services_internally_docs].                                         |
 
 Reporting issues
 ----------------
@@ -183,4 +186,6 @@ for Turnpike: https://github.com/RedHatInsights/turnpike
 
 [auth_request]: https://docs.nginx.com/nginx/admin-guide/security-controls/configuring-subrequest-authentication/
 [flask]: https://flask.palletsprojects.com/en/1.1.x/
+[proxy_docs]: https://redhat.service-now.com/help?id=kb_article_view&sysparm_article=KB0006375
 [proxy_pass]: https://nginx.org/en/docs/http/ngx_http_proxy_module.html#proxy_pass
+[talking_services_internally_docs]: https://core-platform-apps.pages.redhat.com/docs/dev/using-the-platform/talking-to-services-internally.html

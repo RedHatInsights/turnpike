@@ -1,0 +1,43 @@
+location {{ route }} {
+    resolver {{ resolver }} valid=60s;
+
+    # Set the "matched_backend" variable so that the "/auth/" location can
+    # send it to Turnpike.
+    set $matched_backend {{ name }};
+
+    # Set a custom "upstream" variable so that the origin's resolution doesn't
+    # happen at startup. The goal is to delay the resolution of the upstream
+    # services, so that the ones that are offline don't prevent Nginx from
+    # booting for the rest of the services that are online.
+    set $upstream {{ origin }};
+
+    # Delegate authentication to the "/auth/" location as soon as this
+    # location is matched.
+    auth_request /auth/;
+
+    # When receiving a response from Turnpike, if it contains a "login-url" or
+    # a "x-rh-identity" header, set them as variables. These headers must be
+    # sent from Turnpike, so the naming has to match.
+    #
+    # - The "login-url" header will be used in the "error" location of the
+    # "api_gateway" configuration.
+    # - The "x-rh-identity" header will be forwarded to the upstream service
+    # as defined below.
+    auth_request_set $login_url                 $upstream_http_login_url;
+    auth_request_set $turnpike_x_rh_identity    $upstream_http_x_rh_identity;
+
+    # Once authentication has been completed, send the request to the upstream
+    # service with all the defined extra
+    # headers here.
+    proxy_pass          $upstream$1$is_args$args;
+    proxy_set_header    X-Original-URI      $request_uri;
+    proxy_set_header    X-Real-IP           $remote_addr;
+    proxy_set_header    X-Forwarded-Host    $proxy_host;
+    proxy_set_header    X-Forwarded-For     $proxy_add_x_forwarded_for;
+    proxy_set_header    X-Forwarded-Port    443;
+    proxy_set_header    X-Forwarded-Proto   https;
+
+    # Send the "X-RH-Identity" header to the upstream service if Turnpike returned
+    # it after the authentication.
+    proxy_set_header    X-RH-Identity       $turnpike_x_rh_identity;
+}

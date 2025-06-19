@@ -94,36 +94,16 @@ def main(args):
 
     assert isinstance(backends, list), "YAML file does not contain a list of backends."
 
-    response_obj = None
-    request_obj = request.Request(
-        f'{os.environ["FLASK_SERVICE_URL"]}/_nginx_config/',
-        headers={
-            "X-Forwarded-Host": os.environ["FLASK_SERVER_NAME"],
-            "X-Forwarded-Port": "443",
-            "X-Forwarded-Proto": "https",
-        },
-    )
-    while not response_obj:
-        try:
-            response_obj = request.urlopen(request_obj)
-        except error.URLError:
-            print("Could not contact Flask. Assuming it is still starting up. Sleeping 3 seconds.")
-            time.sleep(3)
-    nginx_config = json.load(response_obj)
-    headers_to_upstream = nginx_config["to_upstream"]
-    headers_to_policy_service = nginx_config["to_policy_service"]
-    blueprints = nginx_config["blueprints"]
-
     with open("/etc/nginx/configuration_builder/templates/api_gateway.conf.j2") as ifs:
         template = jinja2.Template(ifs.read())
 
     with open("/etc/nginx/api_gateway.conf", "w") as ofs:
-        ofs.write(template.render(headers=headers_to_policy_service, blueprints=blueprints, **os.environ))
+        ofs.write(template.render(**os.environ))
 
-    write_nginx_locations(backends, headers_to_upstream)
+    write_nginx_locations(backends)
 
 
-def write_nginx_locations(backends, headers_to_upstream) -> None:
+def write_nginx_locations(backends) -> None:
     """Write the locations Nginx will use from the given back ends."""
     # The DNS resolver to use in the Nginx locations.
     resolver = get_resolver()
@@ -140,7 +120,7 @@ def write_nginx_locations(backends, headers_to_upstream) -> None:
 
         location_path = f"/etc/nginx/api_conf.d/{backend_name}.conf"
         with open(location_path, "w") as ofs:
-            ofs.write(template.render(headers=headers_to_upstream, resolver=resolver, **backend))
+            ofs.write(template.render(resolver=resolver, **backend))
 
         logger.info(f"[backend_name: {backend_name}] Nginx location created in {location_path}")
 

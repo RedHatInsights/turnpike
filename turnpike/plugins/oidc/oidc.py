@@ -23,8 +23,6 @@ class OIDCAuthPlugin(TurnpikeAuthPlugin):
     name = "oidc-service-account"
     principal_type = "Service_Account"
 
-    headers_needed = set("Authorization")
-
     def __init__(self, app):
         super().__init__(app)
 

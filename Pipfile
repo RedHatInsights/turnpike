@@ -4,7 +4,7 @@ url = "https://pypi.org/simple"
 verify_ssl = true
 
 [dev-packages]
-pytest = "==8.4.0"
+pytest = "==8.4.1"
 pre-commit = "==4.2.0"
 black = "==25.1.0"
 mock = "*"

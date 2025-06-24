@@ -1,4 +1,15 @@
-    location {{ route }} {
+    # The regex is used so that the capture group then can be appended to the $upstream variable after the
+    # authentication is successful.
+    #
+    # For example, for a back end defined as so:
+    #
+    # - Origin: http://my-service.service.local
+    # - Route: /api/my-service
+    #
+    # If a request gets sent to "/api/my-service/resource/subresource", the "/resource/subresource" part
+    # gets captured by the regex group, and applied to the "proxy_pass" directive after the "$upstream"
+    # variable, which results in the following URL: "http://my-service.service.local/resource/subresource".
+    location ~ {{ route }}(.*)$ {
         resolver {{ resolver }} valid=60s;
         set $upstream  {{ origin }};
         set $matched_backend {{ name }};

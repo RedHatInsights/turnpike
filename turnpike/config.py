@@ -65,8 +65,3 @@ DEFAULT_RESPONSE_CODE = 200
 
 with open(os.environ["BACKENDS_CONFIG_MAP"]) as ifs:
     BACKENDS = yaml.safe_load(ifs)
-
-# To be removed once https://github.com/RedHatInsights/turnpike/pull/385 is merged.
-NGINX_HEADER_BACKEND_MATCHING_ENABLED = (
-    "true" == os.environ.get("NGINX_HEADER_BACKEND_MATCHING_ENABLED", "false").lower()
-)

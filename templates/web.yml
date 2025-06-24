@@ -70,6 +70,8 @@ objects:
                     name: gateway-secret
               - name: AUTH_DEBUG
                 value: "${AUTH_DEBUG}"
+              - name: NGINX_HEADER_BACKEND_MATCHING_ENABLED
+                value: ${NGINX_HEADER_BACKEND_MATCHING_ENABLED}
               - name: SSO_OIDC_HOST
                 value: ${SSO_OIDC_HOST}
               - name: SSO_OIDC_PORT
@@ -231,6 +233,9 @@ parameters:
 - description: Replica count for turnpike-web
   name: REPLICAS
   value: "1"
+- description: Enables matching back ends by the "X-Matched-Backend" header Nginx forwards, instead of relying on parsing the route. Temporary variable.
+  name: NGINX_HEADER_BACKEND_MATCHING_ENABLED
+  value: "false"
 - description: The host of the Single Sign On service that supports OIDC authentication and authorization.
   name: SSO_OIDC_HOST
   value: localhost

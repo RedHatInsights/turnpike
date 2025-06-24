@@ -19,6 +19,8 @@ SESSION_REDIS = redis.Redis(
     password=os.environ.get("REDIS_PASSWORD"),
 )
 
+WEB_ENV = os.environ.get("WEB_ENV")
+
 # Cache configuration for Flask-Caching.
 CACHE_TYPE = "RedisCache"
 CACHE_REDIS_URL = f'redis://{os.environ.get("REDIS_USERNAME")}:{os.environ.get("REDIS_PASSWORD")}@{os.environ.get("REDIS_HOST", "redis")}'
@@ -48,6 +50,7 @@ if not SSO_OIDC_REALM:
     raise ValueError("No SSO_OIDC_REALM set.")
 
 PLUGIN_CHAIN = [
+    "turnpike.plugins.vpn.VPNPlugin",
     "turnpike.plugins.auth.AuthPlugin",
     "turnpike.plugins.source_ip.SourceIPPlugin",
     "turnpike.plugins.rh_identity.RHIdentityPlugin",

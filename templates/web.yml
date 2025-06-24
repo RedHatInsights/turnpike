@@ -56,6 +56,8 @@ objects:
                 value: "${FLASK_SERVER_NAME}"
               - name: FLASK_ENV
                 value: "${FLASK_ENV}"
+              - name: WEB_ENV
+                value: "${WEB_ENV}"
               - name: REDIS_HOST
                 valueFrom:
                   secretKeyRef:
@@ -214,6 +216,9 @@ parameters:
 - description: Value for FLASK_ENV
   name: FLASK_ENV
   value: production
+  required: true
+- description: The environment turnpike web is running in
+  name: WEB_ENV
   required: true
 - description: Service name for Redis
   name: REDIS_SERVICE_NAME

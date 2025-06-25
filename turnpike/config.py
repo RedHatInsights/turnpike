@@ -19,7 +19,7 @@ SESSION_REDIS = redis.Redis(
     password=os.environ.get("REDIS_PASSWORD"),
 )
 
-WEB_ENV = os.environ.get("WEB_ENV")
+WEB_ENV = os.environ.get("WEB_ENV", "dev")
 
 # Cache configuration for Flask-Caching.
 CACHE_TYPE = "RedisCache"

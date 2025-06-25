@@ -220,6 +220,7 @@ parameters:
 - description: The environment turnpike web is running in
   name: WEB_ENV
   required: true
+  value: stage
 - description: Service name for Redis
   name: REDIS_SERVICE_NAME
   required: true

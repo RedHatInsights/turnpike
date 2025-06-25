@@ -161,5 +161,7 @@ class SAMLAuthPlugin(TurnpikeAuthPlugin):
             predicate = backend_auth["saml"]
             authorized = eval(predicate, dict(user=auth_dict))
             if not authorized:
+                if current_app.config["AUTH_DEBUG"]:
+                    current_app.logger.info(f"SAML predicate '{predicate}' failed for user '{auth_tuples}'")
                 context.status_code = 403
         return context

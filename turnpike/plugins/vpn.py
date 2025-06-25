@@ -8,7 +8,7 @@ from ..plugin import TurnpikePlugin
 
 
 class VPNPlugin(TurnpikePlugin):
-    vpn_pattern = r"(mtls\.|)private\.(console|cloud)\.(stage\.|dev\.|)redhat\.com"
+    vpn_pattern = r"(?:mtls\.)?private\.(?:console|cloud)\.(?:(stage|dev)\.)?redhat\.com"
     edge_host_header = "x-rh-edge-host"
     vpn_config_key = "private"
 
@@ -20,7 +20,6 @@ class VPNPlugin(TurnpikePlugin):
         super().__init__(app)
 
     def process(self, context):
-        self.app.logger.info("env: %s", self.env)
         if self.vpn_config_key not in context.backend or context.backend[self.vpn_config_key] != True:
             return context
 
@@ -49,8 +48,8 @@ class VPNPlugin(TurnpikePlugin):
                 edge_host,
             )
 
-        match_env = match.groups()[2]
-        if self.is_production() and match_env != "":
+        match_env = match.groups()[0]
+        if self.is_production() and match_env:
             return self.forbidden(
                 context,
                 logging.INFO,
@@ -59,7 +58,7 @@ class VPNPlugin(TurnpikePlugin):
                 self.edge_host_header,
                 edge_host,
             )
-        elif not self.is_production() and match_env == "":
+        elif not self.is_production() and not match_env:
             return self.forbidden(
                 context,
                 logging.INFO,

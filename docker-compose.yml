@@ -25,13 +25,15 @@ services:
       context: ./nginx
       dockerfile: Dockerfile
     ports:
-      - 443:8443
+      - 8443:8443
+    env_file:
+      - ./.env
     depends_on:
       - web
     hostname: nginx
     volumes:
-      - "./dev-backends.yml:/etc/turnpike/backends.yml"
-      - "./nginx/certs:/etc/nginx/certs"
+      - "./dev-backends.yml:/etc/turnpike/backends.yml:Z"
+      - "./nginx/certs:/etc/nginx/certs:Z"
     networks:
       mynet:
         aliases:

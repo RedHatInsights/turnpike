@@ -8,8 +8,7 @@ import requests
 from flask import request
 from joserfc import jwt
 from joserfc.jwk import KeySet
-from joserfc.jwt import Token
-from joserfc.rfc7519.registry import JWTClaimsRegistry, ClaimsOption
+from joserfc.jwt import Token, JWTClaimsRegistry, ClaimsOption
 from requests import Response
 
 from turnpike import cache

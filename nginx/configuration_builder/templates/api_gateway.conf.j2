@@ -1,15 +1,10 @@
 server {
     listen       {{ NGINX_LISTEN }} default_server;
-    server_name  {{ NGINX_SERVER_NAME }};
+    server_name  {{ NGINX_SERVER_NAME }} {{ NGINX_VPN_SERVER_NAME }};
     port_in_redirect off;
     server_name_in_redirect on;
     {{ NGINX_SSL_CONFIG }}
     include      api_conf.d/*.conf;
-    set          $proxy_host {{ FLASK_SERVER_NAME }};
-
-    if ($proxy_host = "") {
-        set $proxy_host $host;
-    }
 
     location /_nginx/ {
         access_log off;
@@ -32,7 +27,7 @@ server {
         proxy_set_header        referer $http_referer;
         proxy_set_header        X-Original-URI $request_uri;
         proxy_set_header        X-Real-IP $remote_addr;
-        proxy_set_header        X-Forwarded-Host $proxy_host;
+        proxy_set_header        X-Forwarded-Host $host;
         proxy_set_header        X-Forwarded-For $proxy_add_x_forwarded_for;
         proxy_set_header        X-Forwarded-Port 443;
         proxy_set_header        X-Forwarded-Proto https;
@@ -47,7 +42,7 @@ server {
         proxy_pass              {{ FLASK_SERVICE_URL }};
         proxy_set_header        X-Original-URI $request_uri;
         proxy_set_header        X-Real-IP $remote_addr;
-        proxy_set_header        X-Forwarded-Host $proxy_host;
+        proxy_set_header        X-Forwarded-Host $host;
         proxy_set_header        X-Forwarded-For $proxy_add_x_forwarded_for;
         proxy_set_header        X-Forwarded-Port 443;
         proxy_set_header        X-Forwarded-Proto https;
@@ -56,6 +51,11 @@ server {
 
     error_page 401 = @error401;
     location @error401 {
-        return 302 https://$proxy_host$login_url;
+        # Make sure that the incoming requests from the VPN get the "internal" host set up in their redirect.
+        if ($original_request_comes_from_vpn) {
+            return 302 https://{{ NGINX_VPN_SERVER_NAME }}$login_url;
+        }
+
+        return 302 https://{{ NGINX_SERVER_NAME }}$login_url;
     }
 }

@@ -1,15 +1,4 @@
-    # The regex is used so that the capture group then can be appended to the $upstream variable after the
-    # authentication is successful.
-    #
-    # For example, for a back end defined as so:
-    #
-    # - Origin: http://my-service.service.local
-    # - Route: /api/my-service
-    #
-    # If a request gets sent to "/api/my-service/resource/subresource", the "/resource/subresource" part
-    # gets captured by the regex group, and applied to the "proxy_pass" directive after the "$upstream"
-    # variable, which results in the following URL: "http://my-service.service.local/resource/subresource".
-    location ~ {{ route }}(.*)$ {
+    location {{ route }} {
         resolver {{ resolver }} valid=60s;
         set $upstream  {{ origin }};
         set $matched_backend {{ name }};
@@ -18,7 +7,36 @@
         {% for header in headers %}
         auth_request_set $turnpike_{{ header.lower().replace("-", "_") }} $upstream_http_{{ header.lower().replace("-", "_") }};
         {% endfor %}
-        proxy_pass              $upstream$1$is_args$args;
+
+        # Rewrite the URI that we are going to send to the upstream server.
+        #
+        # We strip the route part and we get the rest of the path from the incoming request. For example, for a
+        # back end defined like so...
+        #
+        # - Origin: http://my-service.svc.local:8080/endpoint/
+        # - Route: /api/my-service/endpoint
+        #
+        # ... and a request sent to "/api/my-service/endpoint/resource/subresource", we strip the route prefix from
+        # the request and capture the rest of the path, "/resource/subresource", to append it to the origin when
+        # sending it to the upstream service. Therefore, Nginx, after authenticating the request, would end up
+        # sending a request to "http://my-service.svc.local:8080/endpoint/resource/subresource".
+        #
+        # The reason why this is not done with a regex location instead is because when we have back ends defined
+        # which have overlapping URLs, Nginx just returns on the first matched regex location. Therefore, with the
+        # following defined locations...
+        #
+        # - location ~ /api/base
+        # - location ~ /api/base/path-a/
+        # - location ~ /api/base/path-a/subpath-a
+        #
+        # ... and a request sent to "/api/base/path-a/subpath-a/subsubpath-a", Nginx would match the first regex
+        # location. The only reason we had regex locations in the past was to be able to remove the route prefix
+        # from the requests and append the rest of it to the origin for the "proxy_pass" directive, because no one
+        # was really using regex locations for anything else. And we can achieve the same thing by rewriting the
+        # URI before passing it to "proxy_pass".
+        rewrite {{ route }}(.*)$ $1$is_args$args break;
+
+        proxy_pass              $upstream$uri;
         proxy_set_header        X-Original-URI $request_uri;
         proxy_set_header        X-Real-IP $remote_addr;
         proxy_set_header        X-Forwarded-Host $proxy_host;

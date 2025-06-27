@@ -3,3 +3,4 @@ nginx/certs/
 saml/
 *.pyc
 dev-config.py
+.DS_Store

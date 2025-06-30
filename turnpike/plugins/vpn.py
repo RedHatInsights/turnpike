@@ -4,12 +4,13 @@ import re
 from http import HTTPStatus
 from flask import request
 
-from ..plugin import TurnpikePlugin
+from ..plugin import TurnpikePlugin, PolicyContext
 
 
 class VPNPlugin(TurnpikePlugin):
     vpn_pattern = r"(?:mtls\.)?private\.(?:console|cloud)\.(?:(stage|dev)\.)?redhat\.com"
     edge_host_header = "x-rh-edge-host"
+    nginx_original_request_comes_from_vpn = "X-Rh-Original-Request-Comes-From-Vpn"
     vpn_config_key = "private"
 
     def __init__(self, app):
@@ -19,7 +20,7 @@ class VPNPlugin(TurnpikePlugin):
 
         super().__init__(app)
 
-    def process(self, context):
+    def process(self, context: PolicyContext):
         if self.vpn_config_key not in context.backend or context.backend[self.vpn_config_key] != True:
             return context
 
@@ -67,6 +68,10 @@ class VPNPlugin(TurnpikePlugin):
                 self.edge_host_header,
                 edge_host,
             )
+
+        # Set up a header for Nginx so that it can redirect the requester to
+        # the internal VPN's host whenever it is necessary.
+        context.headers[self.nginx_original_request_comes_from_vpn] = "true"
 
         self.app.logger.debug(
             "request to backend '%s' approved - '%s':'%s' is valid for vpn restricted backend",

@@ -13,7 +13,6 @@ objects:
   kind: Service
   metadata:
     annotations:
-      service.alpha.openshift.io/dependencies: '[{"name": "redis", "kind": "Service"}]'
       prometheus.io/port: '5000'
       prometheus.io/scrape: 'true'
     name: web
@@ -221,9 +220,6 @@ parameters:
   name: WEB_ENV
   required: true
   value: stage
-- description: Service name for Redis
-  name: REDIS_SERVICE_NAME
-  required: true
 - description: OneLogin python3-saml settings.json content
   name: SETTINGS_JSON
   required: true

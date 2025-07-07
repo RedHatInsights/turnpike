@@ -99,9 +99,10 @@ class OIDCAuthPlugin(TurnpikeAuthPlugin):
         # Check that the "Authorization" header was sent.
         bearer_token: Optional[str] = request.headers.get("Authorization")
         if not bearer_token:
-            self.app.logger.debug('Unauthorized the request because the "Authorization" header is missing')
+            self.app.logger.debug(
+                'Skipping OIDC authorization because the request did not have the "Authorization" header'
+            )
 
-            context.status_code = http.HTTPStatus.UNAUTHORIZED
             return context
 
         # Make sure the "Authorization" header conforms to the RFC 6750 § 2.1.

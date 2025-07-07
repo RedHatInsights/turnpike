@@ -161,7 +161,10 @@ class TestMatchingBackends(TestCase):
             self.oidc_jwt_plugin.process(context=context, backend_auth=backend)
 
             # Ensure that the correct log message has been issued.
-            self.assertTrue('Unauthorized the request because the "Authorization" header is missing' in cm.output[0])
+            self.assertTrue(
+                'Skipping OIDC authorization because the request did not have the "Authorization" header'
+                in cm.output[0]
+            )
 
             # Ensure that the context contains the expected status code.
             self.assertEqual(http.HTTPStatus.UNAUTHORIZED, context.status_code)

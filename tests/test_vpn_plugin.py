@@ -79,7 +79,7 @@ class TestVPNPlugin(TestCase):
 
             # Ensure that the correct logs were printed.
             self.assertIn(
-                f'[backend: "{self.default_backend["name"]}"][{HeaderValidator.EDGE_HOST_HEADER}: "{request_mock.headers[HeaderValidator.EDGE_HOST_HEADER]}"] Request comes from a production environment',
+                f'[backend: "{self.default_backend["name"]}"][{HeaderValidator.EDGE_HOST_HEADER}: "{request_mock.headers[HeaderValidator.EDGE_HOST_HEADER]}"] Request denied. Invalid "edge host" header specified: Request comes from a production environment',
                 cm.output[0],
             )
 

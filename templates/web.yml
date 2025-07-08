@@ -131,10 +131,16 @@ objects:
             terminationMessagePath: /dev/termination-log
             terminationMessagePolicy: File
             volumeMounts:
-              - mountPath: /usr/src/app/turnpike/saml/
-                name: turnpike-saml
+              - mountPath: /usr/src/app/turnpike/saml/general
+                name: turnpike-saml-general-settings
                 readOnly: true
-              - mountPath: /usr/src/app/turnpike/saml/certs
+              - mountPath: /usr/src/app/turnpike/saml/private
+                name: turnpike-saml-private-settings
+                readOnly: true
+              - mountPath: /usr/src/app/turnpike/saml/general/certs
+                name: turnpike-saml-signing
+                readOnly: true
+              - mountPath: /usr/src/app/turnpike/saml/private/certs
                 name: turnpike-saml-signing
                 readOnly: true
               - mountPath: /etc/turnpike
@@ -146,9 +152,22 @@ objects:
         - name: quay-cloudservices-pull
         - name: rh-registry-pull
         volumes:
-          - name: turnpike-saml
-            configMap:
-              name: turnpike-saml
+          - name: turnpike-saml-general-settings
+            secret:
+              secretName: saml-settings
+              items:
+                - key: general-settings
+                  path: settings.json
+                - key: general-advanced-settings
+                  path: advanced_settings.json
+          - name: turnpike-saml-private-settings
+            secret:
+              secretName: saml-settings
+              items:
+                - key: private-settings
+                  path: settings.json
+                - key: private-advanced-settings
+                  path: advanced_settings.json
           - configMap:
               name: turnpike-routes
             name: turnpike-routes
@@ -166,19 +185,6 @@ objects:
   data:
     backends.yml: |
       ${BACKEND_ROUTES}
-- apiVersion: v1
-  kind: ConfigMap
-  metadata:
-    labels:
-      app: turnpike
-    name: turnpike-saml
-    annotations:
-      qontract.recycle: "true"
-  data:
-    settings.json: |
-      ${SETTINGS_JSON}
-    advanced_settings.json: |
-      ${ADVANCED_SETTINGS_JSON}
 parameters:
 - description: Initial amount of memory the Flask container will request.
   displayName: Memory Request
@@ -220,12 +226,6 @@ parameters:
   name: WEB_ENV
   required: true
   value: stage
-- description: OneLogin python3-saml settings.json content
-  name: SETTINGS_JSON
-  required: true
-- description: OneLogin python3-saml advanced_settings.json content
-  name: ADVANCED_SETTINGS_JSON
-  required: true
 - description: Backend route map
   name: BACKEND_ROUTES
   required: true

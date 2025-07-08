@@ -1,43 +1,93 @@
 import contextlib
+from typing import Optional
 from urllib.parse import urlparse
 
-from flask import Blueprint, abort, current_app, make_response, redirect, request, session, views, url_for
+from flask import Blueprint, abort, current_app, make_response, redirect, request, session, views, url_for, Request
 from onelogin.saml2.auth import OneLogin_Saml2_Auth
 from onelogin.saml2.utils import OneLogin_Saml2_Utils
+from requests.exceptions import InvalidHeader
 
+from .common.AllowedNetworks import AllowedNetworks
+from .common.header_validator import HeaderValidator
 from ..plugin import TurnpikeAuthPlugin
 
 blueprint = Blueprint("saml", __name__, url_prefix="/saml")
 
 
 class Context:
-    req = None
-    auth = None
+    def __init__(self, request_data: dict, auth: OneLogin_Saml2_Auth):
+        self.request_data = request_data
+        self.auth = auth
 
 
 class SAMLView(views.MethodView):
-    def __init_saml_auth__(self, req):
-        saml_path = current_app.config["SAML_PATH"]
-        auth = OneLogin_Saml2_Auth(req, custom_base_path=saml_path)
-        return auth
+    # A flag variable name to be stored in the session for when the initial request came from the VPN.
+    session_request_vpn: str = "request_came_from_vpn"
 
-    def __prepare_flask_request__(self, request):
-        url_data = urlparse(request.url)
+    def __init__(self):
+        self.header_validator = HeaderValidator(app=current_app)
+
+    def __init_saml_auth__(self, request_data: dict):
+        """Initiate the OneLogin SAML authentication utility.
+
+        Since the SAML authentication works with a bunch of requests and
+        redirects, we use a session to store the state of the authentication
+        process between requests.
+
+        Since we are not sure if the Service Provider will return any custom
+        headers like the "VPN" header, we can use the session to identify if
+        any request was originated from the VPN network. Usually the "login"
+        one is the one that will be setting the session's "came from the VPN
+        key".
+
+        This way, we can use the correct SAML settings to perform the
+        authentication.
+
+        :param request_data: A dictionary containing the required data by the
+        OneLogin utility.
+        """
+        # Validate the "edge host" header if it is present.
+        edge_host_header: Optional[str] = request.headers.get(HeaderValidator.EDGE_HOST_HEADER)
+        if edge_host_header:
+            network: Optional[AllowedNetworks] = None
+            try:
+                network = self.header_validator.validate_edge_host_header(edge_host_header)
+            except InvalidHeader as ih:
+                current_app.logger.warning(
+                    f'[{self.header_validator.EDGE_HOST_HEADER}: "{edge_host_header}"] Invalid "edge host" header specified: {ih}'
+                )
+
+            # Only set up the session flag when the request came from a
+            # private network.
+            if network == AllowedNetworks.PRIVATE:
+                session[self.session_request_vpn] = True
+
+        if session.get(self.session_request_vpn):
+            return OneLogin_Saml2_Auth(
+                request_data=request_data, custom_base_path=current_app.config["PRIVATE_SAML_PATH"]
+            )
+        else:
+            return OneLogin_Saml2_Auth(
+                request_data=request_data, custom_base_path=current_app.config["GENERAL_SAML_PATH"]
+            )
+
+    def __prepare_flask_request__(self, req: Request):
+        url_data = urlparse(req.url)
         return {
-            "https": "on" if request.scheme == "https" else "off",
-            "http_host": request.headers.get("X-Forwarded-Host", request.headers.get("Host", "")),
+            "https": "on" if req.scheme == "https" else "off",
+            "http_host": req.headers.get("X-Forwarded-Host", req.headers.get("Host", "")),
             "server_port": url_data.port,
-            "script_name": request.path,
-            "get_data": request.args.copy(),
-            "post_data": request.form.copy(),
+            "script_name": req.path,
+            "get_data": req.args.copy(),
+            "post_data": req.form.copy(),
         }
 
     @contextlib.contextmanager
     def saml_context(self):
-        ctx = Context()
-        ctx.req = self.__prepare_flask_request__(request)
-        ctx.auth = self.__init_saml_auth__(ctx.req)
-        yield ctx
+        request_data = self.__prepare_flask_request__(request)
+        auth_utility = self.__init_saml_auth__(request_data)
+
+        yield Context(request_data=request_data, auth=auth_utility)
 
 
 class MetadataView(SAMLView):
@@ -75,7 +125,7 @@ class ACSView(SAMLView):
                     del session["AuthNRequestID"]
                 session["samlUserdata"] = ctx.auth.get_attributes()
                 session["samlSessionIndex"] = ctx.auth.get_session_index()
-                self_url = OneLogin_Saml2_Utils.get_self_url(ctx.req)
+                self_url = OneLogin_Saml2_Utils.get_self_url(ctx.request_data)
                 if "RelayState" in request.form and self_url != request.form["RelayState"]:
                     relay_state = ctx.auth.redirect_to(request.form["RelayState"])
                     current_app.logger.debug(f"Redirecting to {relay_state}")

@@ -4,6 +4,7 @@
 .tekton/
 .vscode/
 saml/
+turnpike/saml
 nginx/
 !nginx/build_config.py
 docs/

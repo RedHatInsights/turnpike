@@ -1,7 +1,8 @@
 import logging
 from flask import request
 
-from ..plugin import TurnpikeAuthPlugin
+from ..model.backend import Backend
+from ..plugin import TurnpikeAuthPlugin, PolicyContext
 
 
 class X509AuthPlugin(TurnpikeAuthPlugin):
@@ -35,7 +36,7 @@ class X509AuthPlugin(TurnpikeAuthPlugin):
             and request.headers[self.cdn_psk] == self.app.config.get("CDN_PRESHARED_KEY")
         )
 
-    def process(self, context, backend_auth):
+    def process(self, context: PolicyContext, backend: Backend) -> PolicyContext:
         self.app.logger.debug("Begin X509 plugin processing")
         if self.app.config["AUTH_DEBUG"]:
             self.app.logger.info(
@@ -44,14 +45,13 @@ class X509AuthPlugin(TurnpikeAuthPlugin):
                 f"issuer={request.headers.get(self.issuer_header)} "
                 f"psk_ok={self.psk_check()} "
             )
-        if "x509" in backend_auth and self.subject_header in request.headers and self.psk_check():
+        if backend.authentication_x509 and self.subject_header in request.headers and self.psk_check():
             auth_data = dict(
                 subject_dn=request.headers[self.subject_header], issuer_dn=request.headers.get(self.issuer_header)
             )
             self.app.logger.debug(f"X509 auth_data: {auth_data}")
             context.auth = dict(auth_data=auth_data, auth_plugin=self)
-            predicate = backend_auth["x509"]
-            authorized = eval(predicate, dict(x509=auth_data))
+            authorized = eval(backend.authentication_x509.predicate, dict(x509=auth_data))
             if not authorized:
                 context.status_code = 403
         return context

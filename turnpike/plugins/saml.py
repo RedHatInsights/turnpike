@@ -5,7 +5,8 @@ from flask import Blueprint, abort, current_app, make_response, redirect, reques
 from onelogin.saml2.auth import OneLogin_Saml2_Auth
 from onelogin.saml2.utils import OneLogin_Saml2_Utils
 
-from ..plugin import TurnpikeAuthPlugin
+from ..model.backend import Backend
+from ..plugin import TurnpikeAuthPlugin, PolicyContext
 
 blueprint = Blueprint("saml", __name__, url_prefix="/saml")
 
@@ -146,9 +147,9 @@ class SAMLAuthPlugin(TurnpikeAuthPlugin):
         next_url = request.headers.get("X-Original-Uri")
         return url_for("saml.saml-login", next=next_url)
 
-    def process(self, context, backend_auth):
+    def process(self, context: PolicyContext, backend: Backend) -> PolicyContext:
         current_app.logger.debug("Begin SAML Auth plugin processing")
-        if "saml" in backend_auth and "samlUserdata" in session:
+        if backend.authentication_saml and "samlUserdata" in session:
             auth_dict = session["samlUserdata"]
             auth_tuples = auth_dict.items()
             if current_app.config["AUTH_DEBUG"]:
@@ -158,8 +159,7 @@ class SAMLAuthPlugin(TurnpikeAuthPlugin):
                 auth_data={k: v if (len(v) > 1 or (k in multi_value_attrs)) else v[0] for k, v in auth_tuples},
                 auth_plugin=self,
             )
-            predicate = backend_auth["saml"]
-            authorized = eval(predicate, dict(user=auth_dict))
+            authorized = eval(backend.authentication_saml.predicate, dict(user=auth_dict))
             if not authorized:
                 context.status_code = 403
         return context

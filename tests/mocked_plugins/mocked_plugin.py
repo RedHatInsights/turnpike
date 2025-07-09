@@ -1,4 +1,4 @@
-from turnpike.plugin import TurnpikePlugin
+from turnpike.plugin import TurnpikePlugin, PolicyContext
 
 
 class MockPlugin(TurnpikePlugin):
@@ -8,7 +8,7 @@ class MockPlugin(TurnpikePlugin):
         super().__init__(app)
         self.matched_backend = None
 
-    def process(self, context):
+    def process(self, context: PolicyContext):
         self.matched_backend = context.backend
 
         return context

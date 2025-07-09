@@ -4,7 +4,7 @@ import re
 from http import HTTPStatus
 from flask import request
 
-from ..plugin import TurnpikePlugin
+from ..plugin import TurnpikePlugin, PolicyContext
 
 
 class VPNPlugin(TurnpikePlugin):
@@ -19,12 +19,12 @@ class VPNPlugin(TurnpikePlugin):
 
         super().__init__(app)
 
-    def process(self, context):
-        if self.vpn_config_key not in context.backend or context.backend[self.vpn_config_key] != True:
+    def process(self, context: PolicyContext):
+        if not context.backend.private or context.backend.private != True:
             return context
 
         edge_host = request.headers.get(self.edge_host_header)
-        backend_name = context.backend["name"]
+        backend_name = context.backend.name
 
         if not edge_host:
             # TODO: integrate glitchtip with turnpike and capture this so we get alert if it happens, see https://issues.redhat.com/browse/RHCLOUD-40788

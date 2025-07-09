@@ -11,6 +11,8 @@ from flask import Flask
 from requests import Response
 
 from turnpike import create_app
+from turnpike.model.backend import Backend
+from turnpike.plugin import PolicyContext
 from turnpike.plugins.oidc.oidc import OIDCAuthPlugin
 
 
@@ -22,11 +24,19 @@ class TestMatchingBackends(TestCase):
     def setUp(self):
         """Set up a mocked Turnpike app."""
         with open("./tests/backends/test-backends.yaml") as test_backends_file:
+            backends_raw = yaml.safe_load(test_backends_file)
+
+            backends: dict[str, Backend] = {}
+            for backend_raw in backends_raw:
+                backend = Backend(backend_raw)
+
+                backends[backend.name] = backend
+
             test_config = {
                 "APP_NAME": uuid.uuid4().__str__(),
                 "AUTH_DEBUG": True,
                 "AUTH_PLUGIN_CHAIN": ["turnpike.plugins.x509.X509AuthPlugin", "turnpike.plugins.saml.SAMLAuthPlugin"],
-                "BACKENDS": yaml.safe_load(test_backends_file),
+                "BACKENDS": backends,
                 "CACHE_TYPE": "SimpleCache",
                 "DEFAULT_RESPONSE_CODE": http.HTTPStatus.INTERNAL_SERVER_ERROR,
                 "HEADER_CERTAUTH_SUBJECT": "subject",
@@ -53,11 +63,7 @@ class TestMatchingBackends(TestCase):
 
     def _find_jwt_backend(self):
         """Finds the backend that we are using for the tests."""
-        for backend in self.app.config["BACKENDS"]:
-            if backend["name"] == "notifications-general":
-                return backend
-
-        raise Exception("unable to find the mocked backend")
+        return self.app.config["BACKENDS"]["notifications-general"]
 
     def _requests_get_side_effect_success(self, url: str) -> mock.Mock:
         """Returns a successful mocked response."""
@@ -125,12 +131,23 @@ class TestMatchingBackends(TestCase):
 
     def test_missing_oidc_backend_skips_plugin(self):
         """Test that when the specified backend does not have an "oidc" authorization section, the "oidc" plugin is skipped."""
-        context = mock.Mock
+        context = PolicyContext(
+            Backend(
+                {
+                    "name": "rbac-general",
+                    "route": "/api/rbac",
+                    "origin": "http://web.svc.cluster.local:12345/api/rbac",
+                    "auth": {
+                        "saml": "True",
+                    },
+                },
+            )
+        )
 
         # Assert that a log message is produced.
         with self.assertLogs(self.app.logger.name, level="DEBUG") as cm:
             # Call the function under test.
-            self.oidc_jwt_plugin.process(context=context, backend_auth={})
+            self.oidc_jwt_plugin.process(context=context, backend=context.backend)
 
             # Ensure that the correct log message has been issued.
             self.assertTrue(
@@ -138,15 +155,17 @@ class TestMatchingBackends(TestCase):
                 in cm.output[0]
             )
 
-            # Ensure that the context contains the default status code.
-            self.assertEqual(http.HTTPStatus.UNAUTHORIZED, context.status_code)
+            # Ensure that no status code has been set, since the context
+            # should have been left untouched for the next plugin to pick it
+            # up.
+            self.assertIsNone(context.status_code)
 
     def test_missing_bearer_token(self):
-        """Test that when the bearer token is not present, an unauthorized status code is set in the context."""
+        """Test that when the bearer token is not present, the "oidc" plugin is skipped."""
 
-        # Set up all the required fields for the test.
-        backend = self._find_jwt_backend()["auth"]
-        context = mock.Mock
+        # Set up all the required fields and prerequisites for the test.
+        backend: Backend = self._find_jwt_backend()
+        context = PolicyContext(backend)
 
         # Make a request that does not have the expected "Authorization" header.
         request = mock.Mock
@@ -158,7 +177,7 @@ class TestMatchingBackends(TestCase):
             mock.patch("turnpike.plugins.oidc.oidc.request", request),
         ):
             # Call the function under test.
-            self.oidc_jwt_plugin.process(context=context, backend_auth=backend)
+            self.oidc_jwt_plugin.process(context=context, backend=backend)
 
             # Ensure that the correct log message has been issued.
             self.assertTrue(
@@ -166,14 +185,17 @@ class TestMatchingBackends(TestCase):
                 in cm.output[0]
             )
 
-            # Ensure that the context contains the expected status code.
-            self.assertEqual(http.HTTPStatus.UNAUTHORIZED, context.status_code)
+            # Ensure that no status code has been set, since the context
+            # should have been left untouched for the next plugin to pick it
+            # up.
+            self.assertIsNone(context.status_code)
 
     def test_bearer_token_improperly_formatted(self):
         """Test that when the bearer token is improperly formatted, an unauthorized status coe is set in the context."""
-        # Set up all the required fields for the test.
-        backend = self._find_jwt_backend()["auth"]
-        context = mock.Mock
+
+        # Set up all the required fields and prerequisites for the test.
+        backend: Backend = self._find_jwt_backend()
+        context = PolicyContext(backend)
 
         # Make a request that contains an improper bearer authorization header.
         request = mock.Mock
@@ -185,7 +207,7 @@ class TestMatchingBackends(TestCase):
             mock.patch("turnpike.plugins.oidc.oidc.request", request),
         ):
             # Call the function under test.
-            self.oidc_jwt_plugin.process(context=context, backend_auth=backend)
+            self.oidc_jwt_plugin.process(context=context, backend=backend)
 
             # Ensure that the correct log message has been issued.
             self.assertTrue(
@@ -200,8 +222,8 @@ class TestMatchingBackends(TestCase):
         """Tests that when we are unable to get the OIDC configuration, an error is raised and an internal server error is returned."""
 
         # Set up all the required fields and prerequisites for the test.
-        backend = self._find_jwt_backend()["auth"]
-        context = mock.Mock
+        backend: Backend = self._find_jwt_backend()
+        context = PolicyContext(backend)
         request = mock.Mock
         request.headers = {"Authorization": "Bearer abcde"}
 
@@ -215,7 +237,7 @@ class TestMatchingBackends(TestCase):
             mock.patch("turnpike.plugins.oidc.oidc.requests.get", get),
         ):
             # Call the function under test.
-            self.oidc_jwt_plugin.process(context=context, backend_auth=backend)
+            self.oidc_jwt_plugin.process(context=context, backend=backend)
 
             # Ensure that the correct log message has been issued.
             self.assertTrue("Unable to fetch the OIDC configuration to validate the token:" in cm.output[0])
@@ -227,8 +249,8 @@ class TestMatchingBackends(TestCase):
         """Tests that when we are unable to get the OIDC configuration, an error is raised and an internal server error is returned."""
 
         # Set up all the required fields and prerequisites for the test.
-        backend = self._find_jwt_backend()["auth"]
-        context = mock.Mock
+        backend: Backend = self._find_jwt_backend()
+        context = PolicyContext(backend)
         request = mock.Mock
         request.headers = {"Authorization": "Bearer abcde"}
 
@@ -242,7 +264,7 @@ class TestMatchingBackends(TestCase):
             mock.patch("turnpike.plugins.oidc.oidc.requests.get", get),
         ):
             # Call the function under test.
-            self.oidc_jwt_plugin.process(context=context, backend_auth=backend)
+            self.oidc_jwt_plugin.process(context=context, backend=backend)
 
             # Ensure that the correct log message has been issued.
             self.assertTrue("Unexpected status code received when fetching the OIDC configuration:" in cm.output[0])
@@ -254,8 +276,8 @@ class TestMatchingBackends(TestCase):
         """Tests that when the OIDC response does not contain the expected 'jwks_uri' field an error is returned and an internal server error is also returned."""
 
         # Set up all the required fields and prerequisites for the test.
-        backend = self._find_jwt_backend()["auth"]
-        context = mock.Mock
+        backend: Backend = self._find_jwt_backend()
+        context = PolicyContext(backend)
         request = mock.Mock
         request.headers = {"Authorization": "Bearer abcde"}
 
@@ -269,7 +291,7 @@ class TestMatchingBackends(TestCase):
             mock.patch("turnpike.plugins.oidc.oidc.requests.get", get),
         ):
             # Call the function under test.
-            self.oidc_jwt_plugin.process(context=context, backend_auth=backend)
+            self.oidc_jwt_plugin.process(context=context, backend=backend)
 
             # Ensure that the correct log message has been issued.
             self.assertTrue("OIDC configuration fetched from" in cm.output[0])
@@ -280,9 +302,10 @@ class TestMatchingBackends(TestCase):
 
     def test_unable_get_jwks_certificates(self):
         """Tests that when an error occurs when fetching the JWKS certificates, an error is raised and an internal server error is returned."""
+
         # Set up all the required fields and prerequisites for the test.
-        backend = self._find_jwt_backend()["auth"]
-        context = mock.Mock
+        backend: Backend = self._find_jwt_backend()
+        context = PolicyContext(backend)
         request = mock.Mock
         request.headers = {"Authorization": "Bearer abcde"}
 
@@ -296,7 +319,7 @@ class TestMatchingBackends(TestCase):
             mock.patch("turnpike.plugins.oidc.oidc.requests.get", get),
         ):
             # Call the function under test.
-            self.oidc_jwt_plugin.process(context=context, backend_auth=backend)
+            self.oidc_jwt_plugin.process(context=context, backend=backend)
 
             # Ensure that the correct log message has been issued.
             self.assertTrue("OIDC configuration fetched from" in cm.output[0])
@@ -307,9 +330,10 @@ class TestMatchingBackends(TestCase):
 
     def test_unable_get_jwks_certificates_unexpected_status_code(self):
         """Tests that when an unexpected status code is returning when fetching the JWKS certificates, an error is returned and an internal server error too."""
+
         # Set up all the required fields and prerequisites for the test.
-        backend = self._find_jwt_backend()["auth"]
-        context = mock.Mock
+        backend: Backend = self._find_jwt_backend()
+        context = PolicyContext(backend)
         request = mock.Mock
         request.headers = {"Authorization": "Bearer abcde"}
 
@@ -323,7 +347,7 @@ class TestMatchingBackends(TestCase):
             mock.patch("turnpike.plugins.oidc.oidc.requests.get", get),
         ):
             # Call the function under test.
-            self.oidc_jwt_plugin.process(context=context, backend_auth=backend)
+            self.oidc_jwt_plugin.process(context=context, backend=backend)
 
             # Ensure that the correct log message has been issued.
             self.assertTrue("OIDC configuration fetched from" in cm.output[0])
@@ -334,9 +358,10 @@ class TestMatchingBackends(TestCase):
 
     def test_unable_generate_keyset(self):
         """Tests that the keyset cannot be built from the JWKS certificates, an error is returned and an internal server error is returned too."""
+
         # Set up all the required fields and prerequisites for the test.
-        backend = self._find_jwt_backend()["auth"]
-        context = mock.Mock
+        backend: Backend = self._find_jwt_backend()
+        context = PolicyContext(backend)
         request = mock.Mock
         request.headers = {"Authorization": "Bearer abcde"}
 
@@ -351,7 +376,7 @@ class TestMatchingBackends(TestCase):
             mock.patch("turnpike.plugins.oidc.oidc.requests.get", get),
         ):
             # Call the function under test.
-            self.oidc_jwt_plugin.process(context=context, backend_auth=backend)
+            self.oidc_jwt_plugin.process(context=context, backend=backend)
 
             # Ensure that the correct log message has been issued.
             self.assertTrue("OIDC configuration fetched from" in cm.output[0])
@@ -362,9 +387,10 @@ class TestMatchingBackends(TestCase):
 
     def test_unable_decode_token(self):
         """Tests that when decoding the token raises an error, an unauthorized error is returned."""
+
         # Set up all the required fields and prerequisites for the test.
-        backend = self._find_jwt_backend()["auth"]
-        context = mock.Mock
+        backend: Backend = self._find_jwt_backend()
+        context = PolicyContext(backend)
         get_jwks_keyset = mock.Mock
         request = mock.Mock
         request.headers = {"Authorization": "Bearer abcde"}
@@ -376,7 +402,7 @@ class TestMatchingBackends(TestCase):
             mock.patch("turnpike.plugins.oidc.oidc.OIDCAuthPlugin._get_jwks_keyset", get_jwks_keyset),
         ):
             # Call the function under test.
-            self.oidc_jwt_plugin.process(context=context, backend_auth=backend)
+            self.oidc_jwt_plugin.process(context=context, backend=backend)
 
             # Ensure that the correct log message has been issued.
             self.assertTrue("Unable to decode token:" in cm.output[0])
@@ -386,9 +412,10 @@ class TestMatchingBackends(TestCase):
 
     def test_token_missing_client_id(self):
         """Tests that when the token is missing the 'client_id' property, an unauthorized response is returned."""
+
         # Set up all the required fields and prerequisites for the test.
-        backend = self._find_jwt_backend()["auth"]
-        context = mock.Mock
+        backend: Backend = self._find_jwt_backend()
+        context = PolicyContext(backend)
         get_jwks_keyset = mock.Mock
 
         token = mock.Mock
@@ -408,7 +435,7 @@ class TestMatchingBackends(TestCase):
             mock.patch("turnpike.plugins.oidc.oidc.jwt.decode", jwt_decode),
         ):
             # Call the function under test.
-            self.oidc_jwt_plugin.process(context=context, backend_auth=backend)
+            self.oidc_jwt_plugin.process(context=context, backend=backend)
 
             # Ensure that the correct log message has been issued.
             self.assertTrue('The received token does not contain the "clientId" claim' in cm.output[0])
@@ -418,9 +445,10 @@ class TestMatchingBackends(TestCase):
 
     def test_token_unauthorized_client_id(self):
         """Tests that when the token's 'client_id' property is not present in our back ends, an unauthorized response is returned."""
+
         # Set up all the required fields and prerequisites for the test.
-        backend = self._find_jwt_backend()["auth"]
-        context = mock.Mock
+        backend: Backend = self._find_jwt_backend()
+        context = PolicyContext(backend)
         get_jwks_keyset = mock.Mock
 
         token = mock.Mock
@@ -440,7 +468,7 @@ class TestMatchingBackends(TestCase):
             mock.patch("turnpike.plugins.oidc.oidc.jwt.decode", jwt_decode),
         ):
             # Call the function under test.
-            self.oidc_jwt_plugin.process(context=context, backend_auth=backend)
+            self.oidc_jwt_plugin.process(context=context, backend=backend)
 
             # Ensure that the correct log message has been issued.
             self.assertTrue(
@@ -453,9 +481,10 @@ class TestMatchingBackends(TestCase):
 
     def test_token_missing_scopes(self):
         """Tests that when the token's scope claim is missing, an unauthorized response is returned."""
+
         # Set up all the required fields and prerequisites for the test.
-        backend = self._find_jwt_backend()["auth"]
-        context = mock.Mock
+        backend: Backend = self._find_jwt_backend()
+        context = PolicyContext(backend)
         get_jwks_keyset = mock.Mock
 
         token = mock.Mock
@@ -475,7 +504,7 @@ class TestMatchingBackends(TestCase):
             mock.patch("turnpike.plugins.oidc.oidc.jwt.decode", jwt_decode),
         ):
             # Call the function under test.
-            self.oidc_jwt_plugin.process(context=context, backend_auth=backend)
+            self.oidc_jwt_plugin.process(context=context, backend=backend)
 
             # Ensure that the correct log message has been issued.
             self.assertTrue(
@@ -488,9 +517,10 @@ class TestMatchingBackends(TestCase):
 
     def test_token_missing_some_scopes(self):
         """Tests that when the token's scope claim is missing or empty, an unauthorized response is returned."""
+
         # Set up all the required fields and prerequisites for the test.
-        backend = self._find_jwt_backend()["auth"]
-        context = mock.Mock
+        backend: Backend = self._find_jwt_backend()
+        context = PolicyContext(backend)
         get_jwks_keyset = mock.Mock
 
         token = mock.Mock
@@ -510,7 +540,7 @@ class TestMatchingBackends(TestCase):
             mock.patch("turnpike.plugins.oidc.oidc.jwt.decode", jwt_decode),
         ):
             # Call the function under test.
-            self.oidc_jwt_plugin.process(context=context, backend_auth=backend)
+            self.oidc_jwt_plugin.process(context=context, backend=backend)
 
             # Ensure that the correct log message has been issued.
             self.assertTrue(
@@ -523,9 +553,10 @@ class TestMatchingBackends(TestCase):
 
     def test_token_missing_expiration_claim(self):
         """Tests that when the token's expiration claim is missing, an unauthorized response is returned."""
+
         # Set up all the required fields and prerequisites for the test.
-        backend = self._find_jwt_backend()["auth"]
-        context = mock.Mock
+        backend: Backend = self._find_jwt_backend()
+        context = PolicyContext(backend)
         get_jwks_keyset = mock.Mock
 
         token = mock.Mock
@@ -549,7 +580,7 @@ class TestMatchingBackends(TestCase):
             mock.patch("turnpike.plugins.oidc.oidc.jwt.decode", jwt_decode),
         ):
             # Call the function under test.
-            self.oidc_jwt_plugin.process(context=context, backend_auth=backend)
+            self.oidc_jwt_plugin.process(context=context, backend=backend)
 
             # Ensure that the correct log message has been issued.
             self.assertEqual(
@@ -562,9 +593,10 @@ class TestMatchingBackends(TestCase):
 
     def test_token_invalid_expiration_claim(self):
         """Tests that when the token is expired, an unauthorized response is returned."""
+
         # Set up all the required fields and prerequisites for the test.
-        backend = self._find_jwt_backend()["auth"]
-        context = mock.Mock
+        backend: Backend = self._find_jwt_backend()
+        context = PolicyContext(backend)
         get_jwks_keyset = mock.Mock
 
         token = mock.Mock
@@ -590,7 +622,7 @@ class TestMatchingBackends(TestCase):
             mock.patch("turnpike.plugins.oidc.oidc.jwt.decode", jwt_decode),
         ):
             # Call the function under test.
-            self.oidc_jwt_plugin.process(context=context, backend_auth=backend)
+            self.oidc_jwt_plugin.process(context=context, backend=backend)
 
             # Ensure that the correct log message has been issued.
             self.assertEqual(
@@ -603,9 +635,10 @@ class TestMatchingBackends(TestCase):
 
     def test_token_missing_issuer_claim(self):
         """Tests that when the token's issuer claim is missing, an unauthorized response is returned."""
+
         # Set up all the required fields and prerequisites for the test.
-        backend = self._find_jwt_backend()["auth"]
-        context = mock.Mock
+        backend: Backend = self._find_jwt_backend()
+        context = PolicyContext(backend)
         get_jwks_keyset = mock.Mock
 
         token = mock.Mock
@@ -630,7 +663,7 @@ class TestMatchingBackends(TestCase):
             mock.patch("turnpike.plugins.oidc.oidc.jwt.decode", jwt_decode),
         ):
             # Call the function under test.
-            self.oidc_jwt_plugin.process(context=context, backend_auth=backend)
+            self.oidc_jwt_plugin.process(context=context, backend=backend)
 
             # Ensure that the correct log message has been issued.
             self.assertEqual(
@@ -643,9 +676,10 @@ class TestMatchingBackends(TestCase):
 
     def test_token_invalid_issuer_claim(self):
         """Tests that when the token's issuer claim is incorrect, an unauthorized response is returned."""
+
         # Set up all the required fields and prerequisites for the test.
-        backend = self._find_jwt_backend()["auth"]
-        context = mock.Mock
+        backend: Backend = self._find_jwt_backend()
+        context = PolicyContext(backend)
         get_jwks_keyset = mock.Mock
 
         token = mock.Mock
@@ -671,7 +705,7 @@ class TestMatchingBackends(TestCase):
             mock.patch("turnpike.plugins.oidc.oidc.jwt.decode", jwt_decode),
         ):
             # Call the function under test.
-            self.oidc_jwt_plugin.process(context=context, backend_auth=backend)
+            self.oidc_jwt_plugin.process(context=context, backend=backend)
 
             # Ensure that the correct log message has been issued.
             self.assertEqual(
@@ -684,9 +718,10 @@ class TestMatchingBackends(TestCase):
 
     def test_authorized_token_no_scopes_backend(self):
         """Tests that when the back end does not have specific scopes listed, a valid token with any scopes will be authorized."""
+
         # Set up all the required fields and prerequisites for the test.
-        backend = self._find_jwt_backend()["auth"]
-        context = mock.Mock
+        backend: Backend = self._find_jwt_backend()
+        context = PolicyContext(backend)
         get_jwks_keyset = mock.Mock
 
         token = mock.Mock
@@ -712,7 +747,7 @@ class TestMatchingBackends(TestCase):
             mock.patch("turnpike.plugins.oidc.oidc.jwt.decode", jwt_decode),
         ):
             # Call the function under test.
-            self.oidc_jwt_plugin.process(context=context, backend_auth=backend)
+            self.oidc_jwt_plugin.process(context=context, backend=backend)
 
             # Ensure that the context contains the authorization data.
             if not context.auth:
@@ -742,9 +777,10 @@ class TestMatchingBackends(TestCase):
 
     def test_authorized_token_no_scopes_backend_token(self):
         """Tests that when the back end does not have specific scopes listed, a valid token without the 'scope' field also gets authorized."""
+
         # Set up all the required fields and prerequisites for the test.
-        backend = self._find_jwt_backend()["auth"]
-        context = mock.Mock
+        backend: Backend = self._find_jwt_backend()
+        context = PolicyContext(backend)
         get_jwks_keyset = mock.Mock
 
         token = mock.Mock
@@ -769,7 +805,7 @@ class TestMatchingBackends(TestCase):
             mock.patch("turnpike.plugins.oidc.oidc.jwt.decode", jwt_decode),
         ):
             # Call the function under test.
-            self.oidc_jwt_plugin.process(context=context, backend_auth=backend)
+            self.oidc_jwt_plugin.process(context=context, backend=backend)
 
             # Ensure that the context contains the authorization data.
             if not context.auth:
@@ -799,9 +835,10 @@ class TestMatchingBackends(TestCase):
 
     def test_authorized_token_more_scopes_necessary(self):
         """Tests that when the back end lists certain scopes, and the token has more than the ones listed, the request is authorized."""
+
         # Set up all the required fields and prerequisites for the test.
-        backend = self._find_jwt_backend()["auth"]
-        context = mock.Mock
+        backend: Backend = self._find_jwt_backend()
+        context = PolicyContext(backend)
         get_jwks_keyset = mock.Mock
 
         token = mock.Mock
@@ -827,7 +864,7 @@ class TestMatchingBackends(TestCase):
             mock.patch("turnpike.plugins.oidc.oidc.jwt.decode", jwt_decode),
         ):
             # Call the function under test.
-            self.oidc_jwt_plugin.process(context=context, backend_auth=backend)
+            self.oidc_jwt_plugin.process(context=context, backend=backend)
 
             # Ensure that the context contains the authorization data.
             if not context.auth:
@@ -857,9 +894,10 @@ class TestMatchingBackends(TestCase):
 
     def test_oidc_requests_get_cached(self):
         """Tests that we only call the IT services once to retrieve the JWKS certificates."""
+
         # Set up all the required fields and prerequisites for the test.
-        backend = self._find_jwt_backend()["auth"]
-        context = mock.Mock
+        backend: Backend = self._find_jwt_backend()
+        context = PolicyContext(backend)
 
         # Simulate that IT is responding correctly. However, the keyset will not be able to be generated because the
         # mocked response does not contain valid JWKS certificates.
@@ -891,19 +929,15 @@ class TestMatchingBackends(TestCase):
             mock.patch("turnpike.plugins.oidc.oidc.jwt.decode", jwt_decode),
         ):
             # Call the function under test.
-            self.oidc_jwt_plugin.process(context=context, backend_auth=backend)
+            self.oidc_jwt_plugin.process(context=context, backend=backend)
 
             # Ensure that the "requests.get" method gets called twice on the first time, one to fetch the OIDC
             # configuration and another one to fetch the "JWKS" certificates.
             self.assertEqual(2, get.call_count)
 
             # Call the function under test again.
-            self.oidc_jwt_plugin.process(context=context, backend_auth=backend)
+            self.oidc_jwt_plugin.process(context=context, backend=backend)
 
             # When the caching is working, the call count should not have been modified because the JWKS certificates
             # should have been picked up from the cache.
             self.assertEqual(2, get.call_count)
-
-
-if __name__ == "__main__":
-    unittest.main()

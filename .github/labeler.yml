@@ -1,0 +1,5 @@
+# Docs: https://github.com/marketplace/actions/labeler
+
+# Add "bot" label to any PR where the head branch name starts with "konflux" or "dependabot"
+bot:
+ - head-branch: ['^konflux/', '^dependabot/']

@@ -34,9 +34,18 @@
         # from the requests and append the rest of it to the origin for the "proxy_pass" directive, because no one
         # was really using regex locations for anything else. And we can achieve the same thing by rewriting the
         # URI before passing it to "proxy_pass".
-        rewrite {{ route }}(.*)$ $1$is_args$args break;
+        #
+        # The reason to prepend the "$upstream" variable is because if we have the following location...
+        #
+        # - location /api/test
+        #
+        # ... and a request is sent to "/api/test" without anything else, the capture group will be empty and then
+        # Nginx complains with a "the rewritten URI has zero length" error. Prepending the "$upstream" variable
+        # ensures that the rewritten URI will always have, at least, the upstream's URL and therefore the rewrite
+        # will never be empty.
+        rewrite {{ route }}(.*)$ $upstream$1$is_args$args break;
 
-        proxy_pass              $upstream$uri;
+        proxy_pass              $uri;
         proxy_set_header        X-Original-URI $request_uri;
         proxy_set_header        X-Real-IP $remote_addr;
         proxy_set_header        X-Forwarded-Host $proxy_host;

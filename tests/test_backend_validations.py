@@ -2,6 +2,8 @@ import os
 import sys
 import unittest
 
+from turnpike.model.backend import Backend
+
 sys.path.append(os.path.abspath("./nginx"))
 
 from configuration_builder.build_config import InvalidBackendDefinitionError
@@ -135,4 +137,124 @@ class TestBackendValidations(unittest.TestCase):
         self.assertEqual(
             f'[backend_name: {backend["name"]}] The back end does not have either an "auth" or "source_ip" definitions, nor its route\'s first segment begins with the allowed public segments. Either add an access restriction mechanism, or modify the route so that it begins with one of the allowed public segments',
             str(cm.exception),
+        )
+
+    def test_backend_config_oidc_empty_service_accounts(self):
+        """Tests that when an OIDC back end does not have the 'service accounts' defined, an exception is raised."""
+        with self.assertRaises(NotImplementedError) as context:
+            Backend(
+                {
+                    "name": "turnpike-general",
+                    "route": "/api/turnpike/v1",
+                    "origin": "http://web.svc.cluster.local:12345/api/turnpike/v1",
+                    "auth": {"oidc": {"serviceAccounts": {}}},
+                }
+            )
+
+        self.assertIn(
+            'The backend "turnpike-general" has an "oidc" authentication method but the "serviceAccounts" key is either missing or is empty',
+            context.exception.__str__(),
+        )
+
+    def test_backend_config_oidc_missing_client_id(self):
+        """Tests that when an OIDC back end contains a 'service accounts' object with a missing client id, an exception is raised."""
+        with self.assertRaises(NotImplementedError) as context:
+            Backend(
+                {
+                    "origin": "http://web.svc.cluster.local:12345/api/turnpike/v1",
+                    "route": "/api/turnpike/v1",
+                    "name": "turnpike-general",
+                    "auth": {
+                        "oidc": {
+                            "serviceAccounts": [
+                                {
+                                    "clientId": "b3c001b2-363c-11f0-8477-083a885cd988",
+                                    "scopes": ["scope_a", "scope_b", "scope_c"],
+                                },
+                                {
+                                    "clientId": "be2534d3-363c-11f0-b37f-083a885cd988",
+                                    "scopes": ["scope_d", "scope_e", "scope_f"],
+                                },
+                                {"scopes": ["scope_g", "scope_h", "scope_i"]},
+                            ]
+                        }
+                    },
+                }
+            )
+
+        self.assertIn(
+            'The backend "turnpike-general" has a "service account" defined without a properly defined client ID',
+            context.exception.__str__(),
+        )
+
+    def test_backend_config_oidc_improper_client_id(self):
+        """Tests that when an OIDC back end contains a 'service accounts' object with an improperly defined client id, an exception is raised."""
+        with self.assertRaises(NotImplementedError) as context:
+            Backend(
+                {
+                    "origin": "http://web.svc.cluster.local:12345/api/turnpike/v1",
+                    "route": "/api/turnpike/v1",
+                    "name": "turnpike-general",
+                    "auth": {
+                        "oidc": {
+                            "serviceAccounts": [
+                                {
+                                    "clientId": "b3c001b2-363c-11f0-8477-083a885cd988",
+                                    "scopes": ["scope_a", "scope_b", "scope_c"],
+                                },
+                                {
+                                    "clientId": "be2534d3-363c-11f0-b37f-083a885cd988",
+                                    "scopes": ["scope_d", "scope_e", "scope_f"],
+                                },
+                                {"clientId": "", "scopes": ["scope_g", "scope_h", "scope_i"]},
+                            ]
+                        }
+                    },
+                }
+            )
+
+        self.assertIn(
+            'The backend "turnpike-general" has a "service account" defined without a properly defined client ID',
+            context.exception.__str__(),
+        )
+
+    def test_backend_config_oidc_empty_scopes(self):
+        """Tests that when an OIDC back end contains a 'service accounts' object with an empty 'scopes' object, an exception is raised."""
+        with self.assertRaises(NotImplementedError) as context:
+            Backend(
+                {
+                    "origin": "http://web.svc.cluster.local:12345/api/turnpike/v1",
+                    "route": "/api/turnpike/v1",
+                    "name": "turnpike-general",
+                    "auth": {
+                        "oidc": {
+                            "serviceAccounts": [
+                                {
+                                    "scopes": [
+                                        "scope_a",
+                                        "scope_b",
+                                        "scope_c",
+                                    ],
+                                    "clientId": "20382883-363d-11f0-9ee4-083a885cd988",
+                                },
+                                {
+                                    "clientId": "20382b03-363d-11f0-9ee5-083a885cd988",
+                                },
+                                {
+                                    "clientId": "20382b44-363d-11f0-9ee6-083a885cd988",
+                                    "scopes": [
+                                        "scope_d",
+                                        "scope_e",
+                                        "",
+                                    ],
+                                },
+                            ],
+                        },
+                    },
+                },
+            )
+
+        self.assertIn(
+            'The backend "turnpike-general" has a "service account" defined with a list that has an empty scope',
+            context.exception.__str__(),
         )

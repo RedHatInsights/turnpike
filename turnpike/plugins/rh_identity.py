@@ -3,13 +3,13 @@ import json
 
 from flask import current_app
 
-from ..plugin import TurnpikePlugin
+from ..plugin import TurnpikePlugin, PolicyContext
 
 
 class RHIdentityPlugin(TurnpikePlugin):
     headers_to_forward = {"X-RH-Identity"}
 
-    def process(self, context):
+    def process(self, context: PolicyContext) -> PolicyContext:
         if context.auth:
             identity_type = context.auth["auth_plugin"].principal_type
             auth_type = context.auth["auth_plugin"].name

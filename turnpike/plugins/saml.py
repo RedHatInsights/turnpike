@@ -1,13 +1,14 @@
 from flask import current_app, session
 
-from ..plugin import TurnpikeAuthPlugin
+from ..model.backend import Backend
+from ..plugin import TurnpikeAuthPlugin, PolicyContext
 
 
 class SAMLAuthPlugin(TurnpikeAuthPlugin):
     name = "saml-auth"
     principal_type = "Associate"
 
-    def process(self, context, backend_auth):
+    def process(self, context: PolicyContext, backend: Backend) -> PolicyContext:
         """Authenticates the user by verifying their SAML attributes.
 
         After the user has completed the SAML login flow, which leaves the
@@ -15,7 +16,7 @@ class SAMLAuthPlugin(TurnpikeAuthPlugin):
         against that data to check whether the user has access or not.
         """
         current_app.logger.debug("Begin SAML Auth plugin processing")
-        if "saml" in backend_auth and "samlUserdata" in session:
+        if backend.authentication_saml and "samlUserdata" in session:
             auth_dict = session["samlUserdata"]
 
             auth_tuples = auth_dict.items()
@@ -28,8 +29,7 @@ class SAMLAuthPlugin(TurnpikeAuthPlugin):
                 auth_plugin=self,
             )
 
-            predicate = backend_auth["saml"]
-            authorized = eval(predicate, dict(user=auth_dict))
+            authorized = eval(backend.authentication_saml.predicate, dict(user=auth_dict))
             if not authorized:
                 context.status_code = 403
 

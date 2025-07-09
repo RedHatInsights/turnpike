@@ -2,12 +2,12 @@ import ipaddress
 
 from flask import current_app, request
 
-from ..plugin import TurnpikePlugin
+from ..plugin import TurnpikePlugin, PolicyContext
 
 
 class SourceIPPlugin(TurnpikePlugin):
-    def process(self, context):
-        if "source_ip" not in context.backend:
+    def process(self, context: PolicyContext) -> PolicyContext:
+        if not context.backend.source_ip:
             return context
 
         # We count on the existence of an X-Forwarded-For header, given the policy service is proxied to at least by
@@ -22,7 +22,7 @@ class SourceIPPlugin(TurnpikePlugin):
             current_app.logger.exception(f"Invalid X-Forwarded-For hop list found: {hops}")
             context.status_code = 403
             return context
-        allowed_ip_networks = [ipaddress.ip_network(cidr) for cidr in context.backend["source_ip"]]
+        allowed_ip_networks = [ipaddress.ip_network(cidr) for cidr in context.backend.source_ip]
         current_app.logger.debug(
             f"hops {hops}, hops_to_edge {hops_to_edge}, allowed_ip_networks {allowed_ip_networks}"
         )

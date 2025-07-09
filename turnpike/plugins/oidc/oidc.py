@@ -1,18 +1,18 @@
 import http
-import re
 import typing
-from http import HTTPStatus
-from typing import Dict, Optional, Union
+from typing import Optional
 
 import requests
 from flask import request
 from joserfc import jwt
 from joserfc.jwk import KeySet
-from joserfc.jwt import Token, JWTClaimsRegistry, ClaimsOption
+from joserfc.jwt import Token, JWTClaimsRegistry
 from requests import Response
 
-from turnpike import cache
-from turnpike.plugin import TurnpikeAuthPlugin
+import turnpike
+from turnpike.model.backend import Backend
+from turnpike.model.oidc_authentication import OIDCServiceAccountAuthentication
+from turnpike.plugin import TurnpikeAuthPlugin, PolicyContext
 from turnpike.plugins.oidc.unable_create_keyset_error import UnableCreateKeysetError
 
 
@@ -44,7 +44,7 @@ class OIDCAuthPlugin(TurnpikeAuthPlugin):
 
     def _get_jwks_keyset(self) -> KeySet:
         """Generates a key set with which tokens can be verified."""
-        jwks_certificates = cache.get("oidc_jwks_response")
+        jwks_certificates = turnpike.cache.get("oidc_jwks_response")
         if not jwks_certificates:
             try:
                 oidc_response: Response = requests.get(url=self.oidc_configuration_url)
@@ -79,17 +79,17 @@ class OIDCAuthPlugin(TurnpikeAuthPlugin):
 
             # Store the retrieved certificates for 24 hours, which is the recommended caching setting for the JWKS
             # certificates.
-            cache.set(key="oidc_jwks_response", value=jwks_certificates, timeout=86400)
+            turnpike.cache.set(key="oidc_jwks_response", value=jwks_certificates, timeout=86400)
 
         try:
             return KeySet.import_key_set(jwks_certificates)
         except Exception as e:
             raise UnableCreateKeysetError(f"Unable to create a keyset from the JWKS certificates: {e}")
 
-    def process(self, context, backend_auth: Dict[str, Dict[str, list[Dict[str, Union[str, list[str]]]]]]):
+    def process(self, context: PolicyContext, backend: Backend) -> PolicyContext:
         # When the given backend does not have an "oidc" section defined, we simply "skip" this plugin by returning
         # the unmodified context.
-        if not "oidc" in backend_auth:
+        if not backend.authentication_oidc:
             self.app.logger.debug(
                 'The back end does not have an "oidc" authorization key defined. Skipping "oidc" authorization plugin'
             )
@@ -143,17 +143,10 @@ class OIDCAuthPlugin(TurnpikeAuthPlugin):
             context.status_code = http.HTTPStatus.UNAUTHORIZED
             return context
 
-        # Grab the "service accounts" from the backend definition. We know it is there because the OIDC backends get
-        # validated at boot time in the "__init__" file.
-        service_accounts: list[Dict[str, Union[str, list[str]]]] = backend_auth["oidc"]["serviceAccounts"]
-
         # Check whether the client ID from the token is defined in our OIDC configurations.
-        target_sa: Optional[Dict[str, Union[str, list[str]]]] = None
-        for sa in service_accounts:
-            if sa["clientId"] == token_client_id:
-                target_sa = sa
-                break
-
+        target_sa: Optional[OIDCServiceAccountAuthentication.ServiceAccount] = (
+            backend.authentication_oidc.service_account_by_client_id(token_client_id)
+        )
         if not target_sa:
             self.app.logger.debug(
                 f'The client ID "{token_client_id}" from the JWT is not present in the authorized service accounts for the back end'
@@ -174,9 +167,8 @@ class OIDCAuthPlugin(TurnpikeAuthPlugin):
         # incoming token contains all the scopes that we have defined. The reason why we don't use the
         # "JWTClaimsRegistry" for these checks is that the checks that the registry performs for the "values" argument
         # are not exhaustive, so as long as one of the scopes is present, the validation passes.
-        expected_scopes: typing.Union[str, Optional[list[str]]] = target_sa.get("scopes")
-        if expected_scopes:
-            for expected_scope in expected_scopes:
+        if target_sa.scopes:
+            for expected_scope in target_sa.scopes:
                 if expected_scope not in token_scopes:
                     self.app.logger.debug(
                         f'The request is denied because the expected scope "{expected_scope}" was not found in the incoming token\'s scopes "{token_scopes}" with client id "{token_client_id}'

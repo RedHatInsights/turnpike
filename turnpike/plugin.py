@@ -62,12 +62,6 @@ class TurnpikePlugin:
       method must also return a `PolicyContext` object. It will probably be
       useful in your `process` method to access Flask app and request context,
       using `Flask.current_app` or `Flask.request`.
-
-    * `register_blueprint(self)` - This is optional. If your plugin also has
-      other views that need to be registered, you can map those views to URL's
-      in a Flask `Blueprint` object. Register that `Blueprint` to the app in
-      this method, referencing `self.app` instead of `Flask.current_app`, as
-      this method is called before the Flask app context is prepared.
     """
 
     headers_to_forward = set()
@@ -75,9 +69,6 @@ class TurnpikePlugin:
 
     def __init__(self, app):
         self.app = app
-
-    def register_blueprint(self):
-        pass
 
     def process(self, context):
         raise NotImplementedError()
@@ -118,17 +109,6 @@ class TurnpikeAuthPlugin:
       Successfully authentication should result in the `auth` attribute of the returned
       `PolicyContext` to be set. Unsuccessful authorization should result in the
       `status_code` attribute of the returned `PolicyContext` to be set to 403.
-
-    * `register_blueprint(self)` - This is optional. If your plugin also has
-      other views that need to be registered, you can map those views to URL's
-      in a Flask `Blueprint` object. Register that `Blueprint` to the app in
-      this method, referencing `self.app` instead of `Flask.current_app`, as
-      this method is called before the Flask app context is prepared.
-
-    * `login_url(self)` - This is optional. If at the end of the `AuthPlugin`
-      processing, no plugin has authenticated the user, then in order, each
-      `TurnpikeAuthPlugin` will have the chance to offer a URL to redirect the
-      client to in order to authenticate.
     """
 
     name = "unnamed"
@@ -139,11 +119,5 @@ class TurnpikeAuthPlugin:
     def __init__(self, app):
         self.app = app
 
-    def register_blueprint(self):
-        pass
-
     def process(self, context, backend_auth):
         raise NotImplementedError()
-
-    def login_url(self):
-        return None

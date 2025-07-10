@@ -1,6 +1,7 @@
 import importlib
+from http import HTTPStatus
 
-from flask import request, current_app
+from flask import current_app
 
 from ..plugin import TurnpikePlugin, TurnpikeAuthPlugin
 
@@ -20,10 +21,6 @@ class AuthPlugin(TurnpikePlugin):
             self.headers_to_forward = self.headers_to_forward.union(plugin_instance.headers_to_forward)
             self.headers_needed = self.headers_needed.union(plugin_instance.headers_needed)
 
-    def register_blueprint(self):
-        for plugin_instance in self.auth_plugins:
-            plugin_instance.register_blueprint()
-
     def process(self, context):
         current_app.logger.debug("Begin auth")
         backend_auth = context.backend.get("auth")
@@ -41,8 +38,6 @@ class AuthPlugin(TurnpikePlugin):
                 return context
 
         # If we get here, no plugin reported successful authentication.
-        context.status_code = 401
-        context.headers["login_url"] = next(
-            url for url in [plugin.login_url() for plugin in self.auth_plugins] if url is not None
-        )
+        context.status_code = HTTPStatus.UNAUTHORIZED
+
         return context

@@ -1,6 +1,6 @@
 .env
 nginx/certs/
-saml/
+/saml/
 turnpike/saml/
 *.pyc
 dev-config.py

@@ -55,6 +55,10 @@ objects:
                 value: "${FLASK_SERVER_NAME}"
               - name: FLASK_ENV
                 value: "${FLASK_ENV}"
+              - name: INTERNAL_HOSTNAME
+                value: ${INTERNAL_HOSTNAME}
+              - name: PRIVATE_HOSTNAME
+                value: ${PRIVATE_HOSTNAME}
               - name: WEB_ENV
                 value: "${WEB_ENV}"
               - name: REDIS_HOST
@@ -278,3 +282,9 @@ parameters:
 - description: The realm Turnpike wants to validate the tokens against.
   name: SSO_OIDC_REALM
   value: realm
+- description: The hostname for the internal domain.
+  name: INTERNAL_HOSTNAME
+  required: true
+- description: The hostname for the private domain.
+  name: PRIVATE_HOSTNAME
+  required: true

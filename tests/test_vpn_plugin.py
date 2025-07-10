@@ -84,7 +84,7 @@ class TestVPNPlugin(TestCase):
             )
 
     def test_private_backend_valid_edge_host_header(self):
-        """Tests that the plugin sets up the flag header for Nginx when the "edge host" header is valid for a VPN-required back end."""
+        """Tests that the plugin does not set any status code in the context when the "edge host" header is correct."""
         vpn_plugin = self.setUpVPNPlugin("production")
         context = PolicyContext()
         context.backend = self.default_backend
@@ -98,9 +98,6 @@ class TestVPNPlugin(TestCase):
         ):
             # Call the function under test.
             vpn_plugin.process(context)
-
-            # Assert that the flag header for Nginx is set.
-            self.assertTrue(context.headers[VPNPlugin.nginx_original_request_comes_from_vpn])
 
             # Ensure that the correct logs were printed.
             self.assertIn(

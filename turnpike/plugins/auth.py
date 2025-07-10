@@ -1,8 +1,8 @@
 import importlib
 
-from flask import request, current_app
+from flask import current_app
 
-from ..plugin import TurnpikePlugin, TurnpikeAuthPlugin
+from ..plugin import TurnpikePlugin, TurnpikeAuthPlugin, PolicyContext
 
 
 class AuthPlugin(TurnpikePlugin):
@@ -24,17 +24,17 @@ class AuthPlugin(TurnpikePlugin):
         for plugin_instance in self.auth_plugins:
             plugin_instance.register_blueprint()
 
-    def process(self, context):
+    def process(self, context: PolicyContext) -> PolicyContext:
         current_app.logger.debug("Begin auth")
-        backend_auth = context.backend.get("auth")
+        backend = context.backend
 
         # If the route does not require authentication, then we defer to other
         # plugins.
-        if not backend_auth:
+        if not backend.requires_authentication():
             current_app.logger.debug("No auth required for backend")
             return context
         for auth_plugin in self.auth_plugins:
-            context = auth_plugin.process(context, backend_auth)
+            context = auth_plugin.process(context=context, backend_auth=backend)
             if context.auth or context.status_code:
                 # The auth plugin authenticated the user or wants to return immediately
                 current_app.logger.debug(f"Auth complete: {context}")

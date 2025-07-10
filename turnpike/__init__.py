@@ -10,6 +10,7 @@ from werkzeug.middleware.proxy_fix import ProxyFix
 
 from . import plugin, views
 from .cache import cache
+from .model.backend import Backend
 
 
 def create_app(test_config=None):
@@ -52,9 +53,6 @@ def create_app(test_config=None):
     app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1, x_port=1)
     app.config.from_envvar("TURNPIKE_CONFIG", silent=True)
 
-    # Validate that the OIDC back ends are properly defined.
-    validate_oidc_definitions(app)
-
     health = HealthCheck()
     app.add_url_rule("/_healthcheck/", view_func=health.run)
     app.add_url_rule("/_nginx_config/", view_func=views.nginx_config_data)
@@ -77,55 +75,3 @@ def create_app(test_config=None):
     app.add_url_rule("/api/turnpike/identity/", view_func=views.identity)
     app.add_url_rule("/api/turnpike/session/", view_func=views.session)
     return app
-
-
-def validate_oidc_definitions(app: Flask):
-    """Validates that the OIDC back ends are correctly defined."""
-    backends = app.config.get("BACKENDS")
-    if not backends:
-        raise NotImplementedError("No backends have been configured in the application")
-
-    for backend in backends:
-        auth = backend.get("auth")
-        if not auth:
-            app.logger.warning(f'The backend "{backend["name"]}" does not contain an "auth" object')
-            continue
-
-        if not "oidc" in auth:
-            continue
-
-        oidc = auth.get("oidc")
-        if not oidc:
-            raise NotImplementedError(
-                f'The backend "{backend["name"]}" contains an empty "oidc" object. Either add some service accounts or delete it.'
-            )
-
-        service_accounts = oidc.get("serviceAccounts")
-        if not service_accounts:
-            raise NotImplementedError(
-                f'The backend "{backend["name"]}" has a "serviceAccounts" definition but the list is empty'
-            )
-
-        for service_account in service_accounts:
-            if "clientId" not in service_account:
-                raise NotImplementedError(
-                    f'The backend "{backend["name"]}" has a "service account" defined with a missing "clientId" property'
-                )
-
-            if not service_account.get("clientId"):
-                raise NotImplementedError(
-                    f'The backend "{backend["name"]}" has a "service account" defined with an empty "clientId" property'
-                )
-
-            if "scopes" in service_account:
-                scopes = service_account.get("scopes")
-                if not scopes:
-                    raise NotImplementedError(
-                        f'The backend "{backend["name"]}" has a "service account" defined with an empty "scopes" property. Either add some scopes or delete the "scopes" definition.'
-                    )
-
-                for scope in scopes:
-                    if not scope:
-                        raise NotImplementedError(
-                            f'The backend "{backend["name"]}" has a "service account" defined with a list that has an empty scope.'
-                        )

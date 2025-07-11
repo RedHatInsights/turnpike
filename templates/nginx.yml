@@ -46,6 +46,8 @@ objects:
               value: "${NGINX_SERVER_NAME}"
             - name: NGINX_VPN_SERVER_NAME
               value: "${NGINX_VPN_SERVER_NAME}"
+            - name: FLASK_SERVER_NAME
+              value: "${FLASK_SERVER_NAME}"
             - name: FLASK_SERVICE_URL
               value: "${FLASK_SERVICE_URL}"
             - name: NGINX_SSL_CONFIG
@@ -153,6 +155,9 @@ parameters:
 - description: Domains allowed to be routed to
   name: ALLOWED_ORIGIN_DOMAINS
   value: '[".svc.cluster.local"]'
+  required: true
+- description: Effective hostname for this service
+  name: FLASK_SERVER_NAME
   required: true
 - description: URL to Flask service
   name: FLASK_SERVICE_URL

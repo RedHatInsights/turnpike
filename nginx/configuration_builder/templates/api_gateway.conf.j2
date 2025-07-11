@@ -5,6 +5,11 @@ server {
     server_name_in_redirect on;
     {{ NGINX_SSL_CONFIG }}
     include      api_conf.d/*.conf;
+    set          $proxy_host {{ FLASK_SERVER_NAME }};
+
+    if ($proxy_host = "") {
+        set $proxy_host $host;
+    }
 
     location /_nginx/ {
         access_log off;
@@ -27,7 +32,7 @@ server {
         proxy_set_header        referer $http_referer;
         proxy_set_header        X-Original-URI $request_uri;
         proxy_set_header        X-Real-IP $remote_addr;
-        proxy_set_header        X-Forwarded-Host $host;
+        proxy_set_header        X-Forwarded-Host $proxy_host;
         proxy_set_header        X-Forwarded-For $proxy_add_x_forwarded_for;
         proxy_set_header        X-Forwarded-Port 443;
         proxy_set_header        X-Forwarded-Proto https;
@@ -42,7 +47,7 @@ server {
         proxy_pass              {{ FLASK_SERVICE_URL }};
         proxy_set_header        X-Original-URI $request_uri;
         proxy_set_header        X-Real-IP $remote_addr;
-        proxy_set_header        X-Forwarded-Host $host;
+        proxy_set_header        X-Forwarded-Host $proxy_host;
         proxy_set_header        X-Forwarded-For $proxy_add_x_forwarded_for;
         proxy_set_header        X-Forwarded-Port 443;
         proxy_set_header        X-Forwarded-Proto https;

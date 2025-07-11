@@ -5,7 +5,6 @@ import json
 import logging
 import os
 import re
-import socket
 import sys
 import time
 import typing
@@ -99,7 +98,7 @@ def main(args):
     request_obj = request.Request(
         f'{os.environ["FLASK_SERVICE_URL"]}/_nginx_config/',
         headers={
-            "X-Forwarded-Host": socket.gethostname(),
+            "X-Forwarded-Host": os.environ["FLASK_SERVER_NAME"],
             "X-Forwarded-Port": "443",
             "X-Forwarded-Proto": "https",
         },

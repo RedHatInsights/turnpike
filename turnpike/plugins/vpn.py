@@ -21,28 +21,35 @@ class VPNPlugin(TurnpikePlugin):
         super().__init__(app)
 
     def process(self, context: PolicyContext):
-        if self.vpn_config_key not in context.backend or context.backend[self.vpn_config_key] != True:  # type: ignore
+        if not context.backend:
+            self.app.logger.info(f"Skipping VPN plugin because the context does not have a back end: {context}")
             return context
 
         edge_host = request.headers.get(self.edge_host_header)
         backend_name = context.backend["name"]
 
+        # Make sure to deny requests whenever the "edge host" header is
+        # missing, and the target back end has the "private: true" directive,
+        # which signals that only requests coming from the VPN are allowed.
         if not edge_host:
-            # TODO: integrate glitchtip with turnpike and capture this so we get alert if it happens, see https://issues.redhat.com/browse/RHCLOUD-40788
-            return self.forbidden(
-                context,
-                logging.WARNING,
-                "request to backend '%s' denied - missing '%s' header which is required for vpn restricted backend",
-                backend_name,
-                self.edge_host_header,
-            )
+            if self.vpn_config_key in context.backend and context.backend.get(self.vpn_config_key) == True:
+                # TODO: integrate glitchtip with turnpike and capture this so we get alert if it happens, see https://issues.redhat.com/browse/RHCLOUD-40788
+                return self.forbidden(
+                    context,
+                    logging.INFO,
+                    "request to backend '%s' denied - missing '%s' header which is required for vpn restricted backend",
+                    backend_name,
+                    self.edge_host_header,
+                )
+            else:
+                return context
 
         match = self.vpn_regex.fullmatch(edge_host)
 
         if not match:
             return self.forbidden(
                 context,
-                logging.DEBUG,
+                logging.INFO,
                 "request to backend '%s' denied - '%s':'%s' does not originate from vpn restricted edge host",
                 backend_name,
                 self.edge_host_header,

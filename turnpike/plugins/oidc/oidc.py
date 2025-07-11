@@ -105,15 +105,16 @@ class OIDCAuthPlugin(TurnpikeAuthPlugin):
 
             return context
 
-        # Make sure the "Authorization" header conforms to the RFC 6750 § 2.1.
-        if bearer_token.startswith("Bearer "):
-            bearer_token = bearer_token.removeprefix("Bearer ")
-        else:
+        # Skip any requests with a non-"Bearer" authentication scheme, since
+        # this plugin only supports that specific one.
+        #
+        # The capital "B" and the space are an intended thing design make sure
+        # the "Authorization" header conforms to the RFC 6750 § 2.1.
+        if not bearer_token.startswith("Bearer "):
             self.app.logger.debug(
-                f'The received "Authorization" header does not contain a properly formatted bearer token'
+                f'Skipping the OIDC authorization because the "Authorization" header does not have a "Bearer" authorization scheme or it is malformed'
             )
 
-            context.status_code = http.HTTPStatus.UNAUTHORIZED
             return context
 
         # Get the key set which we will use to verify the signature of the certificate.
@@ -128,7 +129,7 @@ class OIDCAuthPlugin(TurnpikeAuthPlugin):
         # Attempt decoding the token with the specified key set. In case the token comes signed with a different key
         # set other than the one we are expecting, a decoding error will be raised.
         try:
-            token: Token = jwt.decode(value=bearer_token, key=key_set)
+            token: Token = jwt.decode(value=bearer_token.removeprefix("Bearer "), key=key_set)
         except Exception as e:
             self.app.logger.warning("Unable to decode token: %s", str(e))
 

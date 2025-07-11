@@ -138,9 +138,6 @@ class TestMatchingBackends(TestCase):
                 in cm.output[0]
             )
 
-            # Ensure that the context contains the default status code.
-            self.assertEqual(http.HTTPStatus.UNAUTHORIZED, context.status_code)
-
     def test_missing_bearer_token(self):
         """Test that when the bearer token is not present, an unauthorized status code is set in the context."""
 
@@ -166,9 +163,6 @@ class TestMatchingBackends(TestCase):
                 in cm.output[0]
             )
 
-            # Ensure that the context contains the expected status code.
-            self.assertEqual(http.HTTPStatus.UNAUTHORIZED, context.status_code)
-
     def test_bearer_token_improperly_formatted(self):
         """Test that when the bearer token is improperly formatted, an unauthorized status coe is set in the context."""
         # Set up all the required fields for the test.
@@ -189,12 +183,9 @@ class TestMatchingBackends(TestCase):
 
             # Ensure that the correct log message has been issued.
             self.assertTrue(
-                'The received "Authorization" header does not contain a properly formatted bearer token'
+                'Skipping the OIDC authorization because the "Authorization" header does not have a "Bearer" authorization scheme or it is malformed'
                 in cm.output[0]
             )
-
-            # Ensure that the context contains the expected status code.
-            self.assertEqual(http.HTTPStatus.UNAUTHORIZED, context.status_code)
 
     def test_unable_get_oidc_configuration(self):
         """Tests that when we are unable to get the OIDC configuration, an error is raised and an internal server error is returned."""

@@ -4,11 +4,12 @@ import sys
 import unittest
 import yaml
 
+from turnpike.views.views import policy_view
+
 sys.path.append(os.path.abspath("./tests/mocked_plugins"))
 sys.path.append(os.path.abspath("./turnpike"))
 
 from turnpike import create_app
-from turnpike.views import policy_view
 from unittest import mock
 
 

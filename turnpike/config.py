@@ -1,3 +1,4 @@
+import logging
 import os
 import redis
 import yaml
@@ -11,7 +12,13 @@ if not SECRET_KEY:
 
 SERVER_NAME = os.environ.get("SERVER_NAME")
 TESTING = os.environ.get("TESTING", False)
-SAML_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "saml")
+
+# Generate the path for the SAML settings.
+GENERAL_SAML_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "saml/general")
+PRIVATE_SAML_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "saml/private")
+
+logging.info(f"Directory for the general SAML settings set to {GENERAL_SAML_PATH}")
+logging.info(f"Directory for the private SAML settings set to {PRIVATE_SAML_PATH}")
 
 SESSION_TYPE: str = "redis"
 SESSION_REDIS: Redis = redis.Redis(host=os.environ.get("REDIS_HOST", "redis"))

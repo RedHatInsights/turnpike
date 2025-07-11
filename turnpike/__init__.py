@@ -1,15 +1,21 @@
 import importlib
 from logging.config import dictConfig
 
-from flask import Flask
+from flask import Flask, Blueprint
 from flask_session import Session
 from healthcheck import HealthCheck
 from prometheus_client import make_wsgi_app
 from werkzeug.middleware.dispatcher import DispatcherMiddleware
 from werkzeug.middleware.proxy_fix import ProxyFix
 
-from . import plugin, views
+from . import plugin
+from .views import views
 from .cache import cache
+from turnpike.views.saml.acs_view import ACSView
+from turnpike.views.saml.login_view import LoginView
+from turnpike.views.saml.metadata_view import MetadataView
+from turnpike.views.saml.mock_assertion_view import MockSAMLAssertionView
+from turnpike.views.saml.sls_view import SLSView
 
 
 def create_app(test_config=None):
@@ -59,6 +65,17 @@ def create_app(test_config=None):
     app.add_url_rule("/_healthcheck/", view_func=health.run)
     app.add_url_rule("/_nginx_config/", view_func=views.nginx_config_data)
     app.wsgi_app = DispatcherMiddleware(app.wsgi_app, {"/metrics": make_wsgi_app()})
+
+    # Set up the blueprint for the SAML authentication views.
+    blueprint = Blueprint(name="saml", import_name=__name__, url_prefix="/saml")
+
+    blueprint.add_url_rule(rule="/metadata.xml", view_func=MetadataView.as_view("saml-metadata"))
+    blueprint.add_url_rule(rule="/login/", view_func=LoginView.as_view("saml-login"))
+    blueprint.add_url_rule(rule="/acs/", view_func=ACSView.as_view("saml-acs"))
+    blueprint.add_url_rule(rule="/sls/", view_func=SLSView.as_view("saml-sls"))
+    blueprint.add_url_rule(rule="/mock/", view_func=MockSAMLAssertionView.as_view("saml-mock"))
+
+    app.register_blueprint(blueprint)
 
     chain_objs = []
     for plugin_name in app.config["PLUGIN_CHAIN"]:

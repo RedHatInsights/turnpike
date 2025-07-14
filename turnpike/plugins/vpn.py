@@ -1,11 +1,10 @@
-import logging
-import re
-
 from http import HTTPStatus
+
 from flask import request, Flask
+from requests.exceptions import InvalidHeader
 
 from .common.header_validator import HeaderValidator
-from .common.invalid_header_error import InvalidHeaderError
+from .common.non_vpn_edge_host_header_error import NonVPNEdgeHostHeaderError
 from ..plugin import TurnpikePlugin, PolicyContext
 
 
@@ -30,32 +29,8 @@ class VPNPlugin(TurnpikePlugin):
         vpn_edge_host_header_required: bool = (self.vpn_config_key in context.backend) and (
             context.backend.get(self.vpn_config_key) == True
         )
-        if edge_host:
-            # Whenever we receive an "edge host" header with a VPN hostname,
-            # make sure that the value is valid regardless of the back end's
-            # setting.
-            if self.header_validator.is_edge_host_header_vpn(edge_host):
-                try:
-                    self.header_validator.validate_edge_host_header_vpn(edge_host)
-                except InvalidHeaderError as ihe:
-                    self.app.logger.info(f'[backend: "{backend_name}"]{str(ihe)}')
 
-                    context.status_code = HTTPStatus.FORBIDDEN
-                    return context
-            else:
-                if vpn_edge_host_header_required:
-                    self.app.logger.info(
-                        f'[backend: "{backend_name}"][{HeaderValidator.EDGE_HOST_HEADER}: "{edge_host}"] Request denied. Backend requires the requests to come from the VPN'
-                    )
-
-                    context.status_code = HTTPStatus.FORBIDDEN
-                    return context
-                else:
-                    self.app.logger.debug(
-                        f'[backend: "{backend_name}"][{HeaderValidator.EDGE_HOST_HEADER}: "{edge_host}"] VPN plugin skipped. Backend is not VPN restricted'
-                    )
-                    return context
-        else:
+        if not edge_host:
             if vpn_edge_host_header_required:
                 # TODO: integrate glitchtip with turnpike and capture this so we get alert if it happens, see https://issues.redhat.com/browse/RHCLOUD-40788
                 self.app.logger.info(
@@ -67,6 +42,27 @@ class VPNPlugin(TurnpikePlugin):
             else:
                 self.app.logger.debug(f'[backend: "{backend_name}"] VPN plugin skipped. Backend is not VPN restricted')
                 return context
+
+        try:
+            self.header_validator.validate_edge_host_header_vpn(edge_host)
+        except NonVPNEdgeHostHeaderError:
+            if vpn_edge_host_header_required:
+                self.app.logger.info(
+                    f'[backend: "{backend_name}"][{HeaderValidator.EDGE_HOST_HEADER}: "{edge_host}"] Request denied. Backend requires the requests to come from the VPN'
+                )
+
+                context.status_code = HTTPStatus.FORBIDDEN
+                return context
+            else:
+                self.app.logger.debug(
+                    f'[backend: "{backend_name}"][{HeaderValidator.EDGE_HOST_HEADER}: "{edge_host}"] VPN plugin skipped. Backend is not VPN restricted'
+                )
+                return context
+        except InvalidHeader as ih:
+            self.app.logger.info(f'[backend: "{backend_name}"]{str(ih)}')
+
+            context.status_code = HTTPStatus.FORBIDDEN
+            return context
 
         # Set up a header for Nginx so that it can redirect the requester to
         # the internal VPN's host whenever it is necessary.

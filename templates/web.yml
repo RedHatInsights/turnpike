@@ -132,10 +132,10 @@ objects:
             terminationMessagePolicy: File
             volumeMounts:
               - mountPath: /usr/src/app/turnpike/saml/internal
-                name: turnpike-saml-internal-settings
+                name: saml-internal-settings
                 readOnly: true
               - mountPath: /usr/src/app/turnpike/saml/private
-                name: turnpike-saml-private-settings
+                name: saml-private-settings
                 readOnly: true
               - mountPath: /usr/src/app/turnpike/saml/internal/certs
                 name: turnpike-saml-signing
@@ -152,22 +152,12 @@ objects:
         - name: quay-cloudservices-pull
         - name: rh-registry-pull
         volumes:
-          - name: turnpike-saml-internal-settings
-            secret:
-              secretName: saml-settings
-              items:
-                - key: internal-settings
-                  path: settings.json
-                - key: internal-advanced-settings
-                  path: advanced_settings.json
-          - name: turnpike-saml-private-settings
-            secret:
-              secretName: saml-settings
-              items:
-                - key: private-settings
-                  path: settings.json
-                - key: private-advanced-settings
-                  path: advanced_settings.json
+          - name: saml-internal-settings
+            configMap:
+              name: turnpike-saml-internal-settings
+          - name: saml-private-settings
+            configMap:
+              name: turnpike-saml-private-settings
           - configMap:
               name: turnpike-routes
             name: turnpike-routes
@@ -190,7 +180,7 @@ objects:
   metadata:
     labels:
       app: turnpike
-    name: turnpike-saml-internal
+    name: turnpike-saml-internal-settings
     annotations:
       qontract.recycle: "true"
   data:
@@ -203,7 +193,7 @@ objects:
   metadata:
     labels:
       app: turnpike
-    name: turnpike-saml-private
+    name: turnpike-saml-private-settings
     annotations:
       qontract.recycle: "true"
   data:

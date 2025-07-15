@@ -68,7 +68,7 @@ class SAMLView(views.MethodView):
             )
         else:
             return OneLogin_Saml2_Auth(
-                request_data=request_data, custom_base_path=current_app.config["GENERAL_SAML_PATH"]
+                request_data=request_data, custom_base_path=current_app.config["INTERNAL_SAML_PATH"]
             )
 
     def __prepare_flask_request__(self, req: Request):

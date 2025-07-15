@@ -14,10 +14,10 @@ SERVER_NAME = os.environ.get("SERVER_NAME")
 TESTING = os.environ.get("TESTING", False)
 
 # Generate the path for the SAML settings.
-GENERAL_SAML_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "saml/general")
+INTERNAL_SAML_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "saml/internal")
 PRIVATE_SAML_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "saml/private")
 
-logging.info(f"Directory for the general SAML settings set to {GENERAL_SAML_PATH}")
+logging.info(f"Directory for the internal SAML settings set to {INTERNAL_SAML_PATH}")
 logging.info(f"Directory for the private SAML settings set to {PRIVATE_SAML_PATH}")
 
 SESSION_TYPE: str = "redis"

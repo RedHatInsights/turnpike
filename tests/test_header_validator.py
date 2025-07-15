@@ -6,6 +6,7 @@ from unittest.mock import Mock
 from requests.exceptions import InvalidHeader
 
 from turnpike import create_app
+from turnpike.plugins.common.AllowedNetworks import AllowedNetworks
 from turnpike.plugins.common.header_validator import HeaderValidator
 
 
@@ -46,33 +47,19 @@ class TestHeaderValidator(TestCase):
         header_validator = self.set_up_header_validator("stage")
 
         with self.assertRaises(InvalidHeader) as cm:
-            header_validator.validate_edge_host_header_vpn("redhat.com")
+            header_validator.validate_edge_host_header("redhat.com")
 
-        self.assertEqual(
-            f'[{header_validator.EDGE_HOST_HEADER}: "redhat.com"] Unrecognized edge host', str(cm.exception)
-        )
-
-    def test_edge_host_non_private_network(self):
-        """Tests that the function under test raises an error for an "edge host" coming from outside the VPN network."""
-        header_validator = self.set_up_header_validator("stage")
-
-        with self.assertRaises(InvalidHeader) as cm:
-            header_validator.validate_edge_host_header_vpn("internal.console.stage.redhat.com")
-
-        self.assertEqual(
-            f'[{header_validator.EDGE_HOST_HEADER}: "internal.console.stage.redhat.com"] Request comes from a non-private network',
-            str(cm.exception),
-        )
+        self.assertEqual("Unrecognized edge host", str(cm.exception))
 
     def test_non_prod_host_in_production(self):
         """Tests that the function under test raises an error for a non-prod "edge host" while in a production environment."""
         header_validator = self.set_up_header_validator("production")
 
         with self.assertRaises(InvalidHeader) as cm:
-            header_validator.validate_edge_host_header_vpn("mtls.private.console.stage.redhat.com")
+            header_validator.validate_edge_host_header("mtls.private.console.stage.redhat.com")
 
         self.assertEqual(
-            f'[{header_validator.EDGE_HOST_HEADER}: "mtls.private.console.stage.redhat.com"] Request comes from a non-production environment',
+            "Request comes from a non-production environment",
             str(cm.exception),
         )
 
@@ -81,17 +68,45 @@ class TestHeaderValidator(TestCase):
         header_validator = self.set_up_header_validator("stage")
 
         with self.assertRaises(InvalidHeader) as cm:
-            header_validator.validate_edge_host_header_vpn("mtls.private.console.redhat.com")
+            header_validator.validate_edge_host_header("mtls.private.console.redhat.com")
 
         self.assertEqual(
-            f'[{header_validator.EDGE_HOST_HEADER}: "mtls.private.console.redhat.com"] Request comes from a production environment',
+            "Request comes from a production environment",
             str(cm.exception),
         )
 
-    def test_valid_header(self):
-        """Tests that the function under test does not raise an error when a valid "edge host" value is passed."""
-        non_prod_header_validator = self.set_up_header_validator("stage")
-        non_prod_header_validator.validate_edge_host_header_vpn("private.console.stage.redhat.com")
+    def test_edge_host_header_internal(self):
+        """Tests that the function under test validates an "edge host" coming from an internal network."""
+        header_validator = self.set_up_header_validator("stage")
 
-        prod_header_validator = self.set_up_header_validator("prod")
-        prod_header_validator.validate_edge_host_header_vpn("private.console.redhat.com")
+        edge_host_internal_headers: list[str] = [
+            "mtls.internal.console.stage.redhat.com",
+            "mtls.internal.console.dev.redhat.com",
+            "mtls.internal.cloud.stage.redhat.com",
+            "mtls.internal.cloud.dev.redhat.com",
+            "internal.console.stage.redhat.com",
+            "internal.console.dev.redhat.com",
+            "internal.cloud.stage.redhat.com",
+            "internal.cloud.dev.redhat.com",
+        ]
+
+        for header in edge_host_internal_headers:
+            self.assertEqual(AllowedNetworks.INTERNAL, header_validator.validate_edge_host_header(header))
+
+    def test_edge_host_header_vpn(self):
+        """Tests that the function under test validates an "edge host" coming from a private network."""
+        header_validator = self.set_up_header_validator("stage")
+
+        edge_host_vpn_headers: list[str] = [
+            "mtls.private.console.stage.redhat.com",
+            "mtls.private.console.dev.redhat.com",
+            "mtls.private.cloud.stage.redhat.com",
+            "mtls.private.cloud.dev.redhat.com",
+            "private.console.stage.redhat.com",
+            "private.console.dev.redhat.com",
+            "private.cloud.stage.redhat.com",
+            "private.cloud.dev.redhat.com",
+        ]
+
+        for header in edge_host_vpn_headers:
+            self.assertEqual(AllowedNetworks.PRIVATE, header_validator.validate_edge_host_header(header))

@@ -131,13 +131,13 @@ objects:
             terminationMessagePath: /dev/termination-log
             terminationMessagePolicy: File
             volumeMounts:
-              - mountPath: /usr/src/app/turnpike/saml/general
-                name: turnpike-saml-general-settings
+              - mountPath: /usr/src/app/turnpike/saml/internal
+                name: turnpike-saml-internal-settings
                 readOnly: true
               - mountPath: /usr/src/app/turnpike/saml/private
                 name: turnpike-saml-private-settings
                 readOnly: true
-              - mountPath: /usr/src/app/turnpike/saml/general/certs
+              - mountPath: /usr/src/app/turnpike/saml/internal/certs
                 name: turnpike-saml-signing
                 readOnly: true
               - mountPath: /usr/src/app/turnpike/saml/private/certs
@@ -152,13 +152,13 @@ objects:
         - name: quay-cloudservices-pull
         - name: rh-registry-pull
         volumes:
-          - name: turnpike-saml-general-settings
+          - name: turnpike-saml-internal-settings
             secret:
               secretName: saml-settings
               items:
-                - key: general-settings
+                - key: internal-settings
                   path: settings.json
-                - key: general-advanced-settings
+                - key: internal-advanced-settings
                   path: advanced_settings.json
           - name: turnpike-saml-private-settings
             secret:
@@ -185,6 +185,32 @@ objects:
   data:
     backends.yml: |
       ${BACKEND_ROUTES}
+- apiVersion: v1
+  kind: ConfigMap
+  metadata:
+    labels:
+      app: turnpike
+    name: turnpike-saml-internal
+    annotations:
+      qontract.recycle: "true"
+  data:
+    settings.json: |
+      ${INTERNAL_SETTINGS_JSON}
+    advanced_settings.json: |
+      ${INTERNAL_ADVANCED_SETTINGS_JSON}
+- apiVersion: v1
+  kind: ConfigMap
+  metadata:
+    labels:
+      app: turnpike
+    name: turnpike-saml-private
+    annotations:
+      qontract.recycle: "true"
+  data:
+    settings.json: |
+      ${PRIVATE_SETTINGS_JSON}
+    advanced_settings.json: |
+      ${PRIVATE_ADVANCED_SETTINGS_JSON}
 parameters:
 - description: Initial amount of memory the Flask container will request.
   displayName: Memory Request
@@ -226,6 +252,18 @@ parameters:
   name: WEB_ENV
   required: true
   value: stage
+- description: OneLogin python3-saml "settings.json" contents for the internal network.
+  name: INTERNAL_SETTINGS_JSON
+  required: true
+- description: OneLogin python3-saml "advanced_settings.json" contents for the internal network.
+  name: INTERNAL_ADVANCED_SETTINGS_JSON
+  required: true
+- description: OneLogin python3-saml "settings.json" contents for the private network.
+  name: PRIVATE_SETTINGS_JSON
+  required: true
+- description: OneLogin python3-saml "advanced_settings.json" contents for the private network.
+  name: PRIVATE_ADVANCED_SETTINGS_JSON
+  required: true
 - description: Backend route map
   name: BACKEND_ROUTES
   required: true

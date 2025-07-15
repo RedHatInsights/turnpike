@@ -1,22 +1,20 @@
-import logging
-import re
-
 from http import HTTPStatus
-from flask import request
 
+from flask import request, Flask
+from requests.exceptions import InvalidHeader
+
+from .common.header_validator import HeaderValidator
+from .common.non_vpn_edge_host_header_error import NonVPNEdgeHostHeaderError
 from ..plugin import TurnpikePlugin, PolicyContext
 
 
 class VPNPlugin(TurnpikePlugin):
-    vpn_pattern = r"(?:mtls\.)?private\.(?:console|cloud)\.(?:(stage|dev)\.)?redhat\.com"
-    edge_host_header = "x-rh-edge-host"
     nginx_original_request_comes_from_vpn = "X-Rh-Original-Request-Comes-From-Vpn"
     vpn_config_key = "private"
 
-    def __init__(self, app):
-        self.vpn_regex = re.compile(self.vpn_pattern)
+    def __init__(self, app: Flask):
         self.env = app.config.get("WEB_ENV").casefold()
-        self.headers_needed = set(self.edge_host_header)
+        self.header_validator = HeaderValidator(app)
 
         super().__init__(app)
 
@@ -25,73 +23,52 @@ class VPNPlugin(TurnpikePlugin):
             self.app.logger.info(f"Skipping VPN plugin because the context does not have a back end: {context}")
             return context
 
-        edge_host = request.headers.get(self.edge_host_header)
+        edge_host = request.headers.get(HeaderValidator.EDGE_HOST_HEADER)
         backend_name = context.backend["name"]
 
-        # Make sure to deny requests whenever the "edge host" header is
-        # missing, and the target back end has the "private: true" directive,
-        # which signals that only requests coming from the VPN are allowed.
+        vpn_edge_host_header_required: bool = (self.vpn_config_key in context.backend) and (
+            context.backend.get(self.vpn_config_key) == True
+        )
+
         if not edge_host:
-            if self.vpn_config_key in context.backend and context.backend.get(self.vpn_config_key) == True:
+            if vpn_edge_host_header_required:
                 # TODO: integrate glitchtip with turnpike and capture this so we get alert if it happens, see https://issues.redhat.com/browse/RHCLOUD-40788
-                return self.forbidden(
-                    context,
-                    logging.INFO,
-                    "request to backend '%s' denied - missing '%s' header which is required for vpn restricted backend",
-                    backend_name,
-                    self.edge_host_header,
+                self.app.logger.info(
+                    f'[backend: "{backend_name}"] Request denied. Missing mandatory "{HeaderValidator.EDGE_HOST_HEADER}" header for VPN restricted backend'
                 )
+
+                context.status_code = HTTPStatus.FORBIDDEN
+                return context
             else:
+                self.app.logger.debug(f'[backend: "{backend_name}"] VPN plugin skipped. Backend is not VPN restricted')
                 return context
 
-        match = self.vpn_regex.fullmatch(edge_host)
+        try:
+            self.header_validator.validate_edge_host_header_vpn(edge_host)
+        except NonVPNEdgeHostHeaderError:
+            if vpn_edge_host_header_required:
+                self.app.logger.info(
+                    f'[backend: "{backend_name}"][{HeaderValidator.EDGE_HOST_HEADER}: "{edge_host}"] Request denied. Backend requires the requests to come from the VPN'
+                )
 
-        if not match:
-            return self.forbidden(
-                context,
-                logging.INFO,
-                "request to backend '%s' denied - '%s':'%s' does not originate from vpn restricted edge host",
-                backend_name,
-                self.edge_host_header,
-                edge_host,
-            )
+                context.status_code = HTTPStatus.FORBIDDEN
+                return context
+            else:
+                self.app.logger.debug(
+                    f'[backend: "{backend_name}"][{HeaderValidator.EDGE_HOST_HEADER}: "{edge_host}"] VPN plugin skipped. Backend is not VPN restricted'
+                )
+                return context
+        except InvalidHeader as ih:
+            self.app.logger.info(f'[backend: "{backend_name}"]{str(ih)}')
 
-        match_env = match.groups()[0]
-        if self.is_production() and match_env:
-            return self.forbidden(
-                context,
-                logging.INFO,
-                "request to backend '%s' denied - '%s':'%s' is from edge host in wrong env, expected prod host",
-                backend_name,
-                self.edge_host_header,
-                edge_host,
-            )
-        elif not self.is_production() and not match_env:
-            return self.forbidden(
-                context,
-                logging.INFO,
-                "request to backend '%s' denied - '%s':'%s' is from edge host in wrong env, expected non prod host",
-                backend_name,
-                self.edge_host_header,
-                edge_host,
-            )
+            context.status_code = HTTPStatus.FORBIDDEN
+            return context
 
         # Set up a header for Nginx so that it can redirect the requester to
         # the internal VPN's host whenever it is necessary.
         context.headers[self.nginx_original_request_comes_from_vpn] = "true"
 
         self.app.logger.debug(
-            "request to backend '%s' approved - '%s':'%s' is valid for vpn restricted backend",
-            backend_name,
-            self.edge_host_header,
-            edge_host,
+            f'[backend: "{backend_name}"][{HeaderValidator.EDGE_HOST_HEADER}: "{edge_host}"] Request successfully passed through the VPN plugin'
         )
         return context
-
-    def forbidden(self, context, level, msg, *args, **kwargs):
-        self.app.logger.log(level, msg, *args, **kwargs)
-        context.status_code = HTTPStatus.FORBIDDEN
-        return context
-
-    def is_production(self):
-        return self.env == "prod" or self.env == "production"

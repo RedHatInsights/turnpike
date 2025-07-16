@@ -63,10 +63,18 @@ class SAMLView(views.MethodView):
                 session[self.session_request_vpn] = True
 
         if session.get(self.session_request_vpn):
+            current_app.logger.debug(
+                f'[{self.header_validator.EDGE_HOST_HEADER}: "{edge_host_header}"] Using private SAML settings'
+            )
+
             return OneLogin_Saml2_Auth(
                 request_data=request_data, custom_base_path=current_app.config["PRIVATE_SAML_PATH"]
             )
         else:
+            current_app.logger.debug(
+                f'[{self.header_validator.EDGE_HOST_HEADER}: "{edge_host_header}"] Using internal SAML settings'
+            )
+
             return OneLogin_Saml2_Auth(
                 request_data=request_data, custom_base_path=current_app.config["INTERNAL_SAML_PATH"]
             )

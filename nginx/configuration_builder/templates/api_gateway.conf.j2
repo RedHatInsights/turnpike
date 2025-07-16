@@ -58,9 +58,12 @@ server {
     location @error401 {
         # Make sure that the incoming requests from the VPN get the "internal" host set up in their redirect.
         if ($original_request_comes_from_vpn) {
+            add_header X-Debug $original-request_comes_from_vpn always;
+
             return 302 https://{{ NGINX_VPN_SERVER_NAME }}$login_url;
         }
 
+        add_header X-Debug 'Regular redirect' always;
         return 302 https://{{ NGINX_SERVER_NAME }}$login_url;
     }
 }

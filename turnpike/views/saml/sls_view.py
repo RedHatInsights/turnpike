@@ -1,7 +1,7 @@
 from http import HTTPStatus
+from typing import Optional
 
-from black.brackets import Optional
-from flask import views, session, redirect, make_response
+from flask import session, redirect, make_response
 
 from turnpike.views.saml.generic_saml_view import GenericSAMLView
 from turnpike.views.saml.saml_context import SAMLContext

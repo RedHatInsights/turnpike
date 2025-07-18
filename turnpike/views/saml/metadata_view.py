@@ -1,6 +1,6 @@
 from http import HTTPStatus
 
-from flask import views, make_response
+from flask import make_response
 
 from turnpike.views.saml.generic_saml_view import GenericSAMLView
 from turnpike.views.saml.saml_context import SAMLContext

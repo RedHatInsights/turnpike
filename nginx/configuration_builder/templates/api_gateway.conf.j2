@@ -60,7 +60,7 @@ server {
         # In the case that the request comes from the "private" network,
         # override the settings so that the redirect points to the "private"
         # SAML endpoints instead.
-        if ($host ~ private) {
+        if ($http_x_rh_edge_host ~ private) {
             set $redirect_hostname  {{ PRIVATE_HOSTNAME }};
             set $saml_type          'private';
         }

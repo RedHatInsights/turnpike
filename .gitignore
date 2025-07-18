@@ -4,5 +4,5 @@
 .idea
 dev-config.py
 nginx/certs/
-saml/
+/saml/
 turnpike/saml/

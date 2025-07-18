@@ -13,9 +13,19 @@ if not SECRET_KEY:
 SERVER_NAME = os.environ.get("SERVER_NAME")
 TESTING = os.environ.get("TESTING", False)
 
-# Generate the path for the SAML settings.
+# SAML settings {
+#
+# Begin with the paths where we will have our SAML client configurations. The
+# OneLogin utility will assume that the certificates are in the "/certs"
+# subdirectory of each location.
 INTERNAL_SAML_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "saml/internal")
 PRIVATE_SAML_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "saml/private")
+
+# Finish with the hostnames to be used for the SAML verifications by the
+# OneLogin utility.
+INTERNAL_HOSTNAME = os.environ.get("INTERNAL_HOSTNAME")
+PRIVATE_HOSTNAME = os.environ.get("PRIVATE_HOSTNAME")
+# } // SAML settings
 
 logging.info(f"Directory for the internal SAML settings set to {INTERNAL_SAML_PATH}")
 logging.info(f"Directory for the private SAML settings set to {PRIVATE_SAML_PATH}")

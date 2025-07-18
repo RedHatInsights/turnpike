@@ -50,8 +50,12 @@ objects:
               value: "${FLASK_SERVER_NAME}"
             - name: FLASK_SERVICE_URL
               value: "${FLASK_SERVICE_URL}"
+            - name: INTERNAL_HOSTNAME
+              value: ${INTERNAL_HOSTNAME}
             - name: NGINX_SSL_CONFIG
               value: "${NGINX_SSL_CONFIG}"
+            - name: PRIVATE_HOSTNAME
+              value: ${PRIVATE_HOSTNAME}
             - name: TURNPIKE_ALLOWED_ROUTES
               value: "${ALLOWED_ROUTES}"
             - name: TURNPIKE_NO_AUTH_ROUTES
@@ -171,3 +175,9 @@ parameters:
 - description: Replica count for turnpike-nginx
   name: REPLICAS
   value: "1"
+- description: The hostname for the internal domain.
+  name: INTERNAL_HOSTNAME
+  required: true
+- description: The hostname for the private domain.
+  name: PRIVATE_HOSTNAME
+  required: true

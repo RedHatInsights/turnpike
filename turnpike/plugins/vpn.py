@@ -83,10 +83,6 @@ class VPNPlugin(TurnpikePlugin):
                 )
                 return context
 
-        # Set up a header for Nginx so that it can redirect the requester to
-        # the internal VPN's host whenever it is necessary.
-        context.headers[self.nginx_original_request_comes_from_vpn] = "true"
-
         self.app.logger.debug(
             f'[backend: "{backend_name}"][{HeaderValidator.EDGE_HOST_HEADER}: "{edge_host}"] Request successfully passed through the VPN plugin'
         )

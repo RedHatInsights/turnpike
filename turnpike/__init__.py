@@ -1,15 +1,22 @@
 import importlib
 from logging.config import dictConfig
 
-from flask import Flask
+from flask import Flask, Blueprint
 from flask_session import Session
 from healthcheck import HealthCheck
 from prometheus_client import make_wsgi_app
 from werkzeug.middleware.dispatcher import DispatcherMiddleware
 from werkzeug.middleware.proxy_fix import ProxyFix
 
-from . import plugin, views
+from . import plugin
+from .views import views
 from .cache import cache
+from turnpike.views.saml.acs_view import ACSView
+from turnpike.views.saml.login_view import LoginView
+from turnpike.views.saml.metadata_view import MetadataView
+from turnpike.views.saml.mock_assertion_view import MockSAMLAssertionView
+from turnpike.views.saml.sls_view import SLSView
+from .views.saml.saml_settings_type import SAMLSettingsType
 
 
 def create_app(test_config=None):
@@ -60,6 +67,44 @@ def create_app(test_config=None):
     app.add_url_rule("/_nginx_config/", view_func=views.nginx_config_data)
     app.wsgi_app = DispatcherMiddleware(app.wsgi_app, {"/metrics": make_wsgi_app()})
 
+    # Set up the blueprints for the SAML authentications.
+    base_saml_blueprint = Blueprint(name="saml", import_name=__name__, url_prefix="/saml")
+    internal_saml_blueprint = Blueprint(name="saml-internal", import_name=__name__, url_prefix="/internal")
+    private_saml_blueprint = Blueprint(name="saml-private", import_name=__name__, url_prefix="/private")
+
+    # Define the "internal" SAML views which will work with the "internal"
+    # SAML settings.
+    internal_saml_blueprint.add_url_rule(rule="/acs/", view_func=ACSView.as_view("saml-internal-acs"))
+    internal_saml_blueprint.add_url_rule(rule="/login/", view_func=LoginView.as_view("saml-internal-login"))
+    internal_saml_blueprint.add_url_rule(
+        rule="/metadata.xml", view_func=MetadataView.as_view("saml-internal-metadata")
+    )
+    internal_saml_blueprint.add_url_rule(rule="/mock/", view_func=MockSAMLAssertionView.as_view("saml-internal-mock"))
+    internal_saml_blueprint.add_url_rule(rule="/sls/", view_func=SLSView.as_view("saml-internal-sls"))
+
+    # Define the "private" SAML views which will work with the "private"
+    # SAML settings.
+    private_saml_blueprint.add_url_rule(
+        rule="/acs/", view_func=ACSView.as_view("saml-internal-acs", {"saml_settings_type": SAMLSettingsType.PRIVATE})
+    )
+    private_saml_blueprint.add_url_rule(
+        rule="/login/",
+        view_func=LoginView.as_view("saml-internal-login", {"saml_settings_type": SAMLSettingsType.PRIVATE}),
+    )
+    private_saml_blueprint.add_url_rule(
+        rule="/metadata.xml",
+        view_func=MetadataView.as_view("saml-internal-metadata", {"saml_settings_type": SAMLSettingsType.PRIVATE}),
+    )
+    private_saml_blueprint.add_url_rule(rule="/mock/", view_func=MockSAMLAssertionView.as_view("saml-internal-mock"))
+    private_saml_blueprint.add_url_rule(
+        rule="/sls/", view_func=SLSView.as_view("saml-internal-sls", {"saml_settings_type": SAMLSettingsType.PRIVATE})
+    )
+
+    # Register all the blueprints to build the paths in Flask.
+    base_saml_blueprint.register_blueprint(internal_saml_blueprint)
+    base_saml_blueprint.register_blueprint(private_saml_blueprint)
+    app.register_blueprint(base_saml_blueprint)
+
     chain_objs = []
     for plugin_name in app.config["PLUGIN_CHAIN"]:
         mod_name, cls_name = plugin_name.rsplit(".", 1)
@@ -69,7 +114,6 @@ def create_app(test_config=None):
             raise ValueError(f"Plugin {plugin_name} does not resolve to a TurnpikePlugin.")
         app.logger.info(f"Registering plugin: {plugin_name}")
         instance = cls(app)
-        instance.register_blueprint()
         chain_objs.append(instance)
     app.config["PLUGIN_CHAIN_OBJS"] = chain_objs
 

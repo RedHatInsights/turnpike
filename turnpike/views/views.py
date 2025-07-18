@@ -3,8 +3,8 @@ import json
 
 from flask import current_app, request, make_response
 
-from .metrics import Metrics
-from .plugin import PolicyContext
+from turnpike.metrics import Metrics
+from turnpike.plugin import PolicyContext
 
 
 def policy_view():

@@ -1,15 +1,10 @@
 server {
     listen       {{ NGINX_LISTEN }} default_server;
-    server_name  {{ NGINX_SERVER_NAME }} {{ NGINX_VPN_SERVER_NAME }};
+    server_name  {{ INTERNAL_HOSTNAME }} {{ PRIVATE_HOSTNAME }};
     port_in_redirect off;
     server_name_in_redirect on;
     {{ NGINX_SSL_CONFIG }}
     include      api_conf.d/*.conf;
-    set          $proxy_host {{ FLASK_SERVER_NAME }};
-
-    if ($proxy_host = "") {
-        set $proxy_host $host;
-    }
 
     location /_nginx/ {
         access_log off;
@@ -32,7 +27,7 @@ server {
         proxy_set_header        referer $http_referer;
         proxy_set_header        X-Original-URI $request_uri;
         proxy_set_header        X-Real-IP $remote_addr;
-        proxy_set_header        X-Forwarded-Host $proxy_host;
+        proxy_set_header        X-Forwarded-Host $host;
         proxy_set_header        X-Forwarded-For $proxy_add_x_forwarded_for;
         proxy_set_header        X-Forwarded-Port 443;
         proxy_set_header        X-Forwarded-Proto https;
@@ -47,23 +42,29 @@ server {
         proxy_pass              {{ FLASK_SERVICE_URL }};
         proxy_set_header        X-Original-URI $request_uri;
         proxy_set_header        X-Real-IP $remote_addr;
-        proxy_set_header        X-Forwarded-Host $proxy_host;
+        proxy_set_header        X-Forwarded-Host $host;
         proxy_set_header        X-Forwarded-For $proxy_add_x_forwarded_for;
         proxy_set_header        X-Forwarded-Port 443;
         proxy_set_header        X-Forwarded-Proto https;
     }
     {% endfor %}
 
+    # Default error location for "401 - Unauthorized" responses.
     error_page 401 = @error401;
     location @error401 {
-        # Make sure that the incoming requests from the VPN get the "internal" host set up in their redirect.
-        if ($original_request_comes_from_vpn) {
-            add_header X-Debug $original_request_comes_from_vpn always;
+        # Set up a couple of variables so that we redirect users to the
+        # "internal" SAML login page by default.
+        set $redirect_hostname      {{ INTERNAL_HOSTNAME }};
+        set $saml_type              'internal';
 
-            return 302 https://{{ NGINX_VPN_SERVER_NAME }}$login_url;
+        # In the case that the request comes from the "private" network,
+        # override the settings so that the redirect points to the "private"
+        # SAML endpoints instead.
+        if ($host ~ private) {
+            set $redirect_hostname  {{ PRIVATE_HOSTNAME }};
+            set $saml_type          'private';
         }
 
-        add_header X-Debug 'Regular redirect' always;
-        return 302 https://{{ NGINX_SERVER_NAME }}$login_url;
+        return 302 https://$redirect_hostname/saml/$saml_type/login/?next=$request_uri;
     }
 }

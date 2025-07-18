@@ -1,5 +1,6 @@
 import logging
 import os
+
 import redis
 import yaml
 from redis import Redis

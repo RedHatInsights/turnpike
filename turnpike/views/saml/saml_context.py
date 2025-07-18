@@ -1,9 +1,8 @@
 from urllib.parse import urlparse
 
-from flask import request, session, current_app
+from flask import request, current_app
 from onelogin.saml2.auth import OneLogin_Saml2_Auth
 
-from turnpike.plugins.vpn import VPNPlugin
 from turnpike.views.saml.saml_settings_type import SAMLSettingsType
 
 

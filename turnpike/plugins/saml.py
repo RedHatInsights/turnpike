@@ -1,7 +1,4 @@
-from flask import current_app, request, session, url_for
-
-from ..plugin import TurnpikeAuthPlugin
-from flask import current_app, request, session, url_for
+from flask import current_app, session
 
 from ..plugin import TurnpikeAuthPlugin
 

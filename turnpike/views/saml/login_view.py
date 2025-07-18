@@ -1,4 +1,4 @@
-from flask import views, redirect, request
+from flask import redirect, request
 
 from turnpike.views.saml.generic_saml_view import GenericSAMLView
 from turnpike.views.saml.saml_context import SAMLContext

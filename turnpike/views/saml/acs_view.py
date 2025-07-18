@@ -1,6 +1,6 @@
 from http import HTTPStatus
 
-from flask import views, session, request, redirect, current_app, make_response
+from flask import session, request, redirect, current_app, make_response
 from onelogin.saml2.utils import OneLogin_Saml2_Utils
 
 from turnpike.views.saml.generic_saml_view import GenericSAMLView

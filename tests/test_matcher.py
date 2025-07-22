@@ -46,7 +46,7 @@ class TestMatchingBackends(unittest.TestCase):
         """Tests that when a backend is not matched, Turnpike returns a "Forbidden" response."""
         with self.app.app_context():
             mocked_request = mock.Mock
-            mocked_request.headers = {"X-Original-Uri": "/", "X-Matched-Backend": "nothing"}
+            mocked_request.headers = {"X-Original-URI": "/", "X-Matched-Backend": "nothing"}
 
             with mock.patch("turnpike.views.request", mocked_request):
                 response = policy_view()
@@ -63,7 +63,7 @@ class TestMatchingBackends(unittest.TestCase):
             mocked_request = mock.Mock
 
             for expected_backend in ["rbac-general", "rbac-health-check"]:
-                mocked_request.headers = {"X-Original-Uri": "/", "X-Matched-Backend": expected_backend}
+                mocked_request.headers = {"X-Original-URI": "/", "X-Matched-Backend": expected_backend}
 
                 with mock.patch("turnpike.views.request", mocked_request):
                     # Call the view under test.
@@ -95,7 +95,7 @@ class TestMatchingBackends(unittest.TestCase):
             ]
 
             for test_case in test_cases:
-                mocked_request.headers = {"X-Original-Uri": test_case["url"]}
+                mocked_request.headers = {"X-Original-URI": test_case["url"]}
 
                 with mock.patch("turnpike.views.request", mocked_request):
                     # Call the view under test.

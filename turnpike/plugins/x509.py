@@ -20,13 +20,6 @@ class X509AuthPlugin(TurnpikeAuthPlugin):
         self.issuer_header = self.app.config["HEADER_CERTAUTH_ISSUER"]
         self.cdn_psk = self.app.config.get("HEADER_CERTAUTH_PSK")
 
-    @property
-    def headers_needed(self):
-        to_return = {self.subject_header, self.issuer_header}
-        if self.cdn_psk:
-            to_return.add(self.cdn_psk)
-        return to_return
-
     def psk_check(self):
         """If HEADER_CERTAUTH_PSK is set in the config, then check that the
         request headers contain it and that its value matches the expected PSK."""

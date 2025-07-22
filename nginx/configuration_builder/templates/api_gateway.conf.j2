@@ -1,55 +1,76 @@
 server {
-    listen       {{ NGINX_LISTEN }} default_server;
-    server_name  {{ INTERNAL_HOSTNAME }} {{ PRIVATE_HOSTNAME }};
-    port_in_redirect off;
+    listen                  {{ NGINX_LISTEN }} default_server;
+    port_in_redirect        off;
+    server_name             {{ INTERNAL_HOSTNAME }} {{ PRIVATE_HOSTNAME }};
     server_name_in_redirect on;
-    {{ NGINX_SSL_CONFIG }}
-    include      api_conf.d/*.conf;
 
+    {{ NGINX_SSL_CONFIG }}
+
+    # Include all the locations that were generated for us.
+    include api_conf.d/*.conf;
+
+    # Set up a "healthcheck" endpoint.
     location /_nginx/ {
         access_log off;
         return 200 "OK";
     }
 
+    # Set up an endpoint so that the Prometheus exporter can gather some
+    # statistics.
     location = /stub_status {
         stub_status;
     }
 
+    # Set up the endpoint which the locations will use to send an
+    # authentication request to Turnpike.
     location = /auth/ {
         internal;
 
-        proxy_pass              {{ FLASK_SERVICE_URL }};
-        proxy_buffer_size 16k;
+        # Define where the authentication request is going to be sent to, and
+        # with which headers.
+        proxy_buffer_size       16k;
+        proxy_buffers           64 4k;
         proxy_busy_buffers_size 24k;
-        proxy_buffers 64 4k;
-        proxy_pass_request_body off;
-        proxy_set_header        Content-Length "";
-        proxy_set_header        referer $http_referer;
-        proxy_set_header        X-Original-URI $request_uri;
-        proxy_set_header        X-Real-IP $remote_addr;
-        proxy_set_header        X-Forwarded-Host $host;
-        proxy_set_header        X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_set_header        X-Forwarded-Port 443;
-        proxy_set_header        X-Forwarded-Proto https;
-        proxy_set_header        X-Matched-Backend $matched_backend;
-        {% for header in headers %}
-        proxy_set_header        {{ header }} $http_{{ header.lower().replace('-', '_') }};
-        {% endfor %}
-    }
-
-    {% for blueprint in blueprints %}
-    location {{ blueprint }} {
         proxy_pass              {{ FLASK_SERVICE_URL }};
-        proxy_set_header        X-Original-URI $request_uri;
-        proxy_set_header        X-Real-IP $remote_addr;
-        proxy_set_header        X-Forwarded-Host $host;
-        proxy_set_header        X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_set_header        X-Forwarded-Port 443;
-        proxy_set_header        X-Forwarded-Proto https;
-    }
-    {% endfor %}
+        proxy_pass_request_body off;
 
-    # Default error location for "401 - Unauthorized" responses.
+        proxy_set_header    Content-Length      "";
+        proxy_set_header    Referer             $http_referer;
+        proxy_set_header    X-Forwarded-For     $proxy_add_x_forwarded_for;
+        proxy_set_header    X-Forwarded-Host    $host;
+        proxy_set_header    X-Forwarded-Port    443;
+        proxy_set_header    X-Forwarded-Proto   https;
+        proxy_set_header    X-Matched-Backend   $matched_backend;
+        proxy_set_header    X-Original-URI      $request_uri;
+        proxy_set_header    X-Real-IP           $remote_addr;
+
+        # For OIDC/Service account authorizations we need the "Authorization"
+        # header to be forwarded.
+        proxy_set_header    Authorization           $http_authorization;
+
+        # For x509 authentications Turnpike needs to verify the "CN" and the
+        # "Issuer" of the certificate, so every time Nginx receives them it
+        # must forward them to Turnpike.
+        proxy_set_header    X-Rh-Certauth-Cn        $http_x_rh_certauth_cn;
+        proxy_set_header    X-Rh-Certauth-Issuer    $http_x_rh_certauth_issuer;
+    }
+
+    # Location block for the SAML-authentication based requests. The location
+    # has to match Turnpike's SAML Blueprint's prefix.
+    location /saml {
+        proxy_pass          {{ FLASK_SERVICE_URL }};
+
+        proxy_set_header    X-Forwarded-For     $proxy_add_x_forwarded_for;
+        proxy_set_header    X-Forwarded-Host    $host;
+        proxy_set_header    X-Forwarded-Port    443;
+        proxy_set_header    X-Forwarded-Proto   https;
+        proxy_set_header    X-Original-URI      $request_uri;
+        proxy_set_header    X-Real-IP           $remote_addr;
+    }
+
+    # Default error location for "401 - Unauthorized" responses that come from
+    # the Flask application after performing the authorization. It redirects
+    # the user to the SAML login page.
     error_page 401 = @error401;
     location @error401 {
         # Set up a couple of variables so that we redirect users to the

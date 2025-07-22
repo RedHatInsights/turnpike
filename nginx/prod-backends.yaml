@@ -1,0 +1,3 @@
+- name: apicast-tests-ping
+  origin: http://localhost:8080/ping
+  route: /api/apicast-tests/ping

@@ -5,6 +5,8 @@ import redis
 import yaml
 from redis import Redis
 
+from turnpike.model.backend import Backend
+
 SECRET_KEY = os.environ.get("SECRET_KEY")
 CDN_PRESHARED_KEY = os.environ.get("CDN_PRESHARED_KEY")
 
@@ -82,7 +84,13 @@ AUTH_DEBUG = os.environ.get("AUTH_DEBUG", False)
 DEFAULT_RESPONSE_CODE = 200
 
 with open(os.environ["BACKENDS_CONFIG_MAP"]) as ifs:
-    BACKENDS = yaml.safe_load(ifs)
+    backends_raw = yaml.safe_load(ifs)
+
+    BACKENDS: dict[str, Backend] = {}
+    for backend_raw in backends_raw:
+        backend = Backend(backend_raw)
+
+        BACKENDS[backend.name] = backend
 
 # To be removed once https://github.com/RedHatInsights/turnpike/pull/385 is merged.
 NGINX_HEADER_BACKEND_MATCHING_ENABLED = (

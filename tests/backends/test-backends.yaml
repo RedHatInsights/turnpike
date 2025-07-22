@@ -1,5 +1,6 @@
 - name: rbac-general
   route: /api/rbac
+  origin: http://web.svc.cluster.local:12345/api/rbac
   auth:
     saml: "True"
 - name: rbac-health-check

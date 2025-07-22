@@ -57,7 +57,7 @@ objects:
 parameters:
 - description: Image url
   name: IMAGE
-  value: quay.io/cloudservices/turnpike-nginx-prometheus
+  value: quay.io/redhat-services-prod/hcc-accessmanagement-tenant/turnpike/turnpike-nginx-prometheus
 - description: Image tag
   name: IMAGE_TAG
   required: true

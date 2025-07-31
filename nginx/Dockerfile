@@ -7,6 +7,8 @@ RUN microdnf module enable -y nginx:1.24 && \
     chmod g+rwx /var/log/nginx && \
     rm -rf /var/lib/dnf /var/cache/dnf
 
+RUN microdnf update -y sqlite-libs
+
 COPY . /etc/nginx
 RUN chgrp -R root /etc/nginx && chmod -R g+rwX /etc/nginx
 COPY turnpike-entrypoint.sh /turnpike-entrypoint.sh

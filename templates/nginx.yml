@@ -132,7 +132,7 @@ parameters:
   required: true
 - description: Image url
   name: IMAGE
-  value: quay.io/cloudservices/turnpike-nginx
+  value: quay.io/redhat-services-prod/hcc-accessmanagement-tenant/turnpike/turnpike-nginx
 - description: Port nginx listens on
   name: NGINX_PORT
   value: "8080"

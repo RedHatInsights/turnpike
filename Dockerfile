@@ -1,4 +1,4 @@
-FROM registry.access.redhat.com/ubi9/ubi-minimal:9.6-1752587672
+FROM registry.access.redhat.com/ubi9/ubi-minimal:9.6-1754456323
 
 ENV FLASK_RUN_HOST 0.0.0.0
 ENV BACKENDS_CONFIG_MAP=/etc/turnpike/backends.yml
@@ -8,8 +8,6 @@ WORKDIR /usr/src/app
 COPY Pipfile.lock /usr/src/app/
 
 RUN microdnf install --nodocs -y gcc xmlsec1 python39 pip xmlsec1-openssl openssl
-
-RUN microdnf update -y sqlite-libs
 
 RUN pip3 install --upgrade pip && \
     pip3 install micropipenv && \

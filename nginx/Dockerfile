@@ -1,4 +1,4 @@
-FROM registry.access.redhat.com/ubi9/ubi-minimal:9.6-1752587672
+FROM registry.access.redhat.com/ubi9/ubi-minimal:9.6-1754456323
 
 # support running as an arbitrary user which belongs to the root group
 RUN microdnf module enable -y nginx:1.24 && \
@@ -6,8 +6,6 @@ RUN microdnf module enable -y nginx:1.24 && \
     pip3 install --no-cache-dir jinja2 pyyaml && \
     chmod g+rwx /var/log/nginx && \
     rm -rf /var/lib/dnf /var/cache/dnf
-
-RUN microdnf update -y sqlite-libs
 
 COPY . /etc/nginx
 RUN chgrp -R root /etc/nginx && chmod -R g+rwX /etc/nginx

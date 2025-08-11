@@ -1,3 +1,8 @@
+from typing import Optional
+
+from turnpike.model.backend import Backend
+
+
 class PolicyContext:
     """
     PolicyContext represents the policy evaluation context for a particular
@@ -32,11 +37,14 @@ class PolicyContext:
       dictionary is the proper way to go.
     """
 
-    backend = None
-    auth = None
+    backend: Backend
+    auth: Optional[dict] = None
     headers = {}
-    status_code = None
+    status_code: Optional[int] = None
     data = {}
+
+    def __init__(self, backend: Backend):
+        self.backend: Backend = backend
 
     def __str__(self):
         return f"PolicyContext: backend={self.backend} auth={self.auth}, headers={self.headers}, status_code={self.status_code}"
@@ -70,7 +78,7 @@ class TurnpikePlugin:
     def __init__(self, app):
         self.app = app
 
-    def process(self, context):
+    def process(self, context: PolicyContext):
         raise NotImplementedError()
 
 
@@ -119,5 +127,5 @@ class TurnpikeAuthPlugin:
     def __init__(self, app):
         self.app = app
 
-    def process(self, context, backend_auth):
+    def process(self, context: PolicyContext, backend_auth) -> PolicyContext:
         raise NotImplementedError()

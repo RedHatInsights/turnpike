@@ -3,7 +3,7 @@ from http import HTTPStatus
 
 from flask import current_app
 
-from ..plugin import TurnpikePlugin, TurnpikeAuthPlugin
+from ..plugin import TurnpikePlugin, TurnpikeAuthPlugin, PolicyContext
 
 
 class AuthPlugin(TurnpikePlugin):
@@ -21,17 +21,17 @@ class AuthPlugin(TurnpikePlugin):
             self.headers_to_forward = self.headers_to_forward.union(plugin_instance.headers_to_forward)
             self.headers_needed = self.headers_needed.union(plugin_instance.headers_needed)
 
-    def process(self, context):
+    def process(self, context: PolicyContext) -> PolicyContext:
         current_app.logger.debug("Begin auth")
-        backend_auth = context.backend.get("auth")
+        backend = context.backend
 
         # If the route does not require authentication, then we defer to other
         # plugins.
-        if not backend_auth:
+        if not backend.requires_authentication():
             current_app.logger.debug("No auth required for backend")
             return context
         for auth_plugin in self.auth_plugins:
-            context = auth_plugin.process(context, backend_auth)
+            context = auth_plugin.process(context=context, backend_auth=backend)
             if context.auth or context.status_code:
                 # The auth plugin authenticated the user or wants to return immediately
                 current_app.logger.debug(f"Auth complete: {context}")

@@ -24,12 +24,10 @@ class VPNPlugin(TurnpikePlugin):
             return context
 
         edge_host = request.headers.get(HeaderValidator.EDGE_HOST_HEADER)
-        backend_name = context.backend["name"]
+        backend_name = context.backend.name
 
         # Determine whether the backend is VPN-restricted or not.
-        vpn_edge_host_header_required: bool = (self.vpn_config_key in context.backend) and (
-            context.backend.get(self.vpn_config_key) == True
-        )
+        vpn_edge_host_header_required: bool = context.backend.private == True
 
         # When the "edge host" header is not present for VPN-restricted back
         # ends, the request needs to be rejected.

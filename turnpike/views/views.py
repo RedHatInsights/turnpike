@@ -1,28 +1,29 @@
 import base64
 import json
+from typing import Optional
 
 from flask import current_app, request, make_response
 
+from turnpike import Backend
 from turnpike.metrics import Metrics
 from turnpike.plugin import PolicyContext
 
 
 def policy_view():
-    context = PolicyContext()
-
     # Start by identifying which route is being asked about
     original_url = request.headers.get("X-Original-Uri", "/")
-    nginx_matched_backend = request.headers.get("X-Matched-Backend")
+    nginx_matched_backend_name = request.headers.get("X-Matched-Backend")
 
     current_app.logger.debug(f"Received original URI: {original_url}")
-    current_app.logger.debug(f"Matched back end in NGINX: {nginx_matched_backend}")
+    current_app.logger.debug(f"Matched back end in NGINX: {nginx_matched_backend_name}")
 
-    if current_app.config.get("NGINX_HEADER_BACKEND_MATCHING_ENABLED") and nginx_matched_backend:
-        context.backend = match_by_backend_name(nginx_matched_backend)
+    matched_backend: Optional[Backend]
+    if current_app.config.get("NGINX_HEADER_BACKEND_MATCHING_ENABLED") and nginx_matched_backend_name:
+        matched_backend = match_by_backend_name(nginx_matched_backend_name)
     else:
-        context.backend = match_by_route(original_url)
+        matched_backend = match_by_route(original_url)
 
-    if not context.backend:
+    if not matched_backend:
         # This condition shouldn't be hit - it would mean that there was a
         # bug, a mismatch between the routes configured in nginx and the
         # routes configured here.
@@ -31,16 +32,17 @@ def policy_view():
         Metrics.request_count.labels(original_url, status_code).inc()
         return make_response("", status_code)
 
-    current_app.logger.debug(f"Matched back end in Turnpike: {context.backend['name']}")
+    context = PolicyContext(matched_backend)
+    current_app.logger.debug(f"Matched back end in Turnpike: {context.backend.name}")
 
     for plugin in current_app.config.get("PLUGIN_CHAIN_OBJS", []):
         current_app.logger.debug(f"Processing request with plugin {plugin}.")
         context = plugin.process(context)
         if context.status_code:
             current_app.logger.debug(f"Plugin set status code {context.status_code}.")
-            Metrics.request_count.labels(context.backend["name"], context.status_code).inc()
+            Metrics.request_count.labels(context.backend.name, context.status_code).inc()
             return make_response("", context.status_code, context.headers)
-    Metrics.request_count.labels(context.backend["name"], current_app.config["DEFAULT_RESPONSE_CODE"]).inc()
+    Metrics.request_count.labels(context.backend.name, current_app.config["DEFAULT_RESPONSE_CODE"]).inc()
     return make_response("", current_app.config["DEFAULT_RESPONSE_CODE"], context.headers)
 
 
@@ -78,22 +80,21 @@ def session():
     return make_response(response, 200)
 
 
-def match_by_backend_name(nginx_matched_backend):
+def match_by_backend_name(nginx_matched_backend_name: str) -> Optional[Backend]:
     """Returns the back end that matches the given name."""
-
-    for backend in current_app.config["BACKENDS"]:
-        if backend["name"] == nginx_matched_backend:
-            return backend
-
-    return None
+    return current_app.config["BACKENDS"].get(nginx_matched_backend_name)
 
 
-def match_by_route(original_url):
+def match_by_route(original_url: str) -> Optional[Backend]:
     """Returns the back end that matches the backend whose route matches the closest to the given one."""
 
-    matches = [backend for backend in current_app.config["BACKENDS"] if original_url.startswith(backend["route"])]
+    backends: dict[str, Backend] = current_app.config["BACKENDS"]
+    matches: list[Backend] = []
+    for backend in backends.values():
+        if original_url.startswith(backend.route):
+            matches.append(backend)
 
     if matches:
-        return max(matches, key=lambda match: len(match["route"]))
+        return max(matches, key=lambda match: len(match.route))
     else:
         return None

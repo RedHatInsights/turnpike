@@ -2,8 +2,10 @@ import http
 import os
 import sys
 import unittest
+
 import yaml
 
+from turnpike.model.backend import Backend
 from turnpike.views.views import policy_view
 
 sys.path.append(os.path.abspath("./tests/mocked_plugins"))
@@ -19,10 +21,18 @@ class TestMatchingBackends(unittest.TestCase):
     def setUp(self):
         """Set up a mocked Turnpike app."""
         with open("./tests/backends/test-backends.yaml") as test_backends_file:
+            backends_raw = yaml.safe_load(test_backends_file)
+
+            backends: dict[str, Backend] = {}
+            for backend_raw in backends_raw:
+                backend = Backend(backend_raw)
+
+                backends[backend.name] = backend
+
             test_config = {
                 "AUTH_DEBUG": True,
                 "AUTH_PLUGIN_CHAIN": ["turnpike.plugins.x509.X509AuthPlugin", "turnpike.plugins.saml.SAMLAuthPlugin"],
-                "BACKENDS": yaml.safe_load(test_backends_file),
+                "BACKENDS": backends,
                 "CACHE_TYPE": "SimpleCache",
                 "DEFAULT_RESPONSE_CODE": http.HTTPStatus.INTERNAL_SERVER_ERROR,
                 "HEADER_CERTAUTH_SUBJECT": "subject",
@@ -77,7 +87,7 @@ class TestMatchingBackends(unittest.TestCase):
 
                     self.assertEqual(
                         expected_backend,
-                        mocked_plugin.matched_backend["name"],
+                        mocked_plugin.matched_backend.name,
                         "unexpected back end matched by Turnpike",
                     )
 
@@ -109,10 +119,6 @@ class TestMatchingBackends(unittest.TestCase):
 
                     self.assertEqual(
                         test_case["expected_backend"],
-                        mocked_plugin.matched_backend["name"],
+                        mocked_plugin.matched_backend.name,
                         "unexpected back end matched by Turnpike",
                     )
-
-
-if __name__ == "__main__":
-    unittest.main()

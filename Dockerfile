@@ -7,7 +7,7 @@ WORKDIR /usr/src/app
 
 COPY Pipfile.lock /usr/src/app/
 
-RUN microdnf install --nodocs -y gcc xmlsec1 python39 pip xmlsec1-openssl openssl
+RUN microdnf install --nodocs -y gcc xmlsec1 python39 python3-devel pip xmlsec1-openssl openssl
 
 RUN pip3 install --upgrade pip && \
     pip3 install micropipenv && \

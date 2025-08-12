@@ -11,7 +11,7 @@ def policy_view():
     context = PolicyContext()
 
     # Start by identifying which route is being asked about
-    original_url = request.headers.get("X-Original-Uri", "/")
+    original_url = request.headers.get("X-Original-URI", "/")
     nginx_matched_backend = request.headers.get("X-Matched-Backend")
 
     current_app.logger.debug(f"Received original URI: {original_url}")
@@ -53,20 +53,6 @@ def identity():
     else:
         response = {"error": "No x-rh-identity header found in the request."}
     return make_response(response, 200)
-
-
-def nginx_config_data():
-    to_upstream = set()
-    to_policy_service = set()
-    for plugin in current_app.config.get("PLUGIN_CHAIN_OBJS", []):
-        to_upstream = to_upstream.union(plugin.headers_to_forward)
-        to_policy_service = to_policy_service.union(plugin.headers_needed)
-    response_dict = dict(
-        to_upstream=list(to_upstream),
-        to_policy_service=list(to_policy_service),
-        blueprints=[bp.url_prefix for bp in current_app.blueprints.values()],
-    )
-    return make_response(json.dumps(response_dict), 200, {"Content-Type": "application/json"})
 
 
 def session():

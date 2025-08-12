@@ -4,18 +4,8 @@ USER root
 
 ENV SCRAPE_URI=http://localhost:8080/stub_status
 
-ENV GO_VERSION=1.24.2
-ENV GOROOT=/usr/local/go
-ENV GOPATH=/go
-ENV PATH=$PATH:$GOROOT/bin:$GOPATH/bin
-
-RUN microdnf install -y tar git-core make && \
+RUN microdnf install -y tar git-core make go && \
     microdnf clean all
-
-# Install Go
-RUN curl -LO https://go.dev/dl/go${GO_VERSION}.linux-amd64.tar.gz && \
-    tar -C /usr/local -xzf go${GO_VERSION}.linux-amd64.tar.gz && \
-    rm go${GO_VERSION}.linux-amd64.tar.gz
 
 RUN git clone --branch v1.4.2 https://github.com/nginxinc/nginx-prometheus-exporter && \
     cd nginx-prometheus-exporter && \

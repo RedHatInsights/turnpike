@@ -64,7 +64,6 @@ def create_app(test_config=None):
 
     health = HealthCheck()
     app.add_url_rule("/_healthcheck/", view_func=health.run)
-    app.add_url_rule("/_nginx_config/", view_func=views.nginx_config_data)
     app.wsgi_app = DispatcherMiddleware(app.wsgi_app, {"/metrics": make_wsgi_app()})
 
     # Set up the blueprints for the SAML authentications.

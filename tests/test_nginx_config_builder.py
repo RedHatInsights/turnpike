@@ -70,7 +70,7 @@ class TestNginxConfigBuilder(unittest.TestCase):
             mock.patch("configuration_builder.build_config.open", open_mock, create=True),
             mock.patch("configuration_builder.build_config.get_resolver", get_resolver_mock),
         ):
-            write_nginx_locations(self.test_backends, {})
+            write_nginx_locations(self.test_backends)
 
         # Assert that the files were "open to be written" in the particular order that we expect.
         call_list = open_mock.call_args_list

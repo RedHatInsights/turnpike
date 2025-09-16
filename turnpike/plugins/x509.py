@@ -30,6 +30,11 @@ class X509AuthPlugin(TurnpikeAuthPlugin):
     def psk_check(self):
         """If HEADER_CERTAUTH_PSK is set in the config, then check that the
         request headers contain it and that its value matches the expected PSK."""
+
+        # When alternative gateway secret is created, turnpike provides this specific check
+        if self.cdn_psk in request.headers and request.headers[self.cdn_psk] == "alt-gateway-secret":
+            return self.cdn_psk in request.headers and request.headers[self.cdn_psk]
+        # otherwise, continue as normal
         return (not self.cdn_psk) or (
             self.cdn_psk in request.headers
             and request.headers[self.cdn_psk] == self.app.config.get("CDN_PRESHARED_KEY")

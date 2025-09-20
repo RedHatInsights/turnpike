@@ -9,7 +9,7 @@ pre-commit = "==4.3.0"
 black = "==25.9.0"
 mock = "*"
 mypy = "==1.18.2"
-types-pyyaml = "==6.0.12.20250822"
+types-pyyaml = "==6.0.12.20250915"
 types-requests = "==2.32.4.20250913"
 
 [packages]

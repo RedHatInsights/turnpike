@@ -8,7 +8,7 @@ pip install micropipenv
 micropipenv install
 
 # #Run black/lint command
-pip install black==25.1.0
+pip install black==25.9.0
 if ! (black --check -l 119 -t py39 /var/workdir --diff); then
     echo "black formatter encountered an issue"
     exit 1

@@ -7,6 +7,7 @@ from redis import Redis
 
 SECRET_KEY = os.environ.get("SECRET_KEY")
 CDN_PRESHARED_KEY = os.environ.get("CDN_PRESHARED_KEY")
+CDN_PRESHARED_KEY_ALT = os.environ.get("CDN_PRESHARED_KEY_ALT")
 
 if not SECRET_KEY:
     raise ValueError("No SECRET_KEY set.")

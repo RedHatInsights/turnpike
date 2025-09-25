@@ -73,8 +73,6 @@ objects:
                   secretKeyRef:
                     key: gateway-secret
                     name: gateway-secret
-              - name: HEADER_CERTAUTH_PSK_ALT
-                value: ${HEADER_CERTAUTH_PSK_ALT}
               - name: CDN_PRESHARED_KEY_ALT
                 valueFrom:
                   secretKeyRef:
@@ -240,9 +238,6 @@ parameters:
 - description: Header that Akamai sends with the PSK
   name: HEADER_CERTAUTH_PSK
   value: "x-rh-insights-gateway-secret"
-- description: Header that Akamai sends with the PSK with the alternative gateway secret for secret rotation.
-  name: HEADER_CERTAUTH_PSK_ALT
-  value: "x-rh-insights-alt-gateway-secret"
 - description: Effective hostname for this service
   name: FLASK_SERVER_NAME
   required: true

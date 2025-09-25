@@ -19,7 +19,8 @@ class X509AuthPlugin(TurnpikeAuthPlugin):
         self.subject_header = self.app.config["HEADER_CERTAUTH_SUBJECT"]
         self.issuer_header = self.app.config["HEADER_CERTAUTH_ISSUER"]
         self.cdn_psk = self.app.config.get("HEADER_CERTAUTH_PSK")
-        self.cdn_psk_alt = self.app.config.get("HEADER_CERTAUTH_PSK_ALT")
+        self.cdn_preshared_key = self.app.config.get("CDN_PRESHARED_KEY")
+        self.cdn_preshared_key_alt = self.app.config.get("CDN_PRESHARED_KEY_ALT")
 
     @property
     def headers_needed(self):
@@ -36,21 +37,8 @@ class X509AuthPlugin(TurnpikeAuthPlugin):
             return False
 
         request_secret = request.headers[self.cdn_psk]
-        alt_request_secret = request.headers[self.cdn_psk_alt]
 
-        if alt_request_secret == "alt-gateway-secret":
-            return alt_request_secret == self.app.config.get("CDN_PRESHARED_KEY_ALT")
-
-        return request_secret == self.app.config.get("CDN_PRESHARED_KEY")
-
-        # # When alternative gateway secret is created, turnpike provides this specific check
-        # if self.cdn_psk in request.headers and request.headers[self.cdn_psk] == "alt-gateway-secret":
-        #     return self.cdn_psk in request.headers and request.headers[self.cdn_psk]
-        # # otherwise, continue as normal
-        #     self.cdn_psk in request.headers
-        #     and request.headers[self.cdn_psk] == self.app.config.get("CDN_PRESHARED_KEY")
-        # return (not self.cdn_psk) or (
-        # )
+        return request_secret == self.cdn_preshared_key or request_secret == self.cdn_preshared_key_alt
 
     def process(self, context, backend_auth):
         self.app.logger.debug("Begin X509 plugin processing")

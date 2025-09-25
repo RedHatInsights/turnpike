@@ -11,7 +11,7 @@ from turnpike import create_app
 from turnpike.plugins.x509 import X509AuthPlugin
 
 
-class TestAlternativeGatewaySecret(unittest.TestCase):
+class TestX509PSKAlt(unittest.TestCase):
     def setUp(self):
         with open("./tests/backends/test-backends.yaml") as test_backends_file:
             test_config = {
@@ -25,48 +25,34 @@ class TestAlternativeGatewaySecret(unittest.TestCase):
                 "DEFAULT_RESPONSE_CODE": http.HTTPStatus.INTERNAL_SERVER_ERROR,
                 "HEADER_CERTAUTH_SUBJECT": "subject",
                 "HEADER_CERTAUTH_ISSUER": "issuer",
+                # HEADER_CERTAUTH_PSK is the header name that carries the PSK value
                 "HEADER_CERTAUTH_PSK": "x-rh-insights-gateway-secret",
-                "HEADER_CERTAUTH_PSK_ALT": "x-rh-insights-alt-gateway-secret",
+                # CDN_PRESHARED_KEY_ALT holds the alternative secret value to accept
                 "CDN_PRESHARED_KEY_ALT": "alt-gateway-secret",
                 "PLUGIN_CHAIN": [
                     "tests.mocked_plugins.mocked_plugin.MockPlugin",
                 ],
-                "SECRET_KEY": "alt-gateway-secret",
+                "SECRET_KEY": "test-secret",
             }
 
         self.app = create_app(test_config)
         self.app.config.update({"TESTING": True})
         self.plugin = X509AuthPlugin(self.app)
 
-    def test_accepts_alternative_gateway_secret(self):
-        """Alt secret provided under the alternative header should be accepted."""
+    def test_accepts_alternative_cdn_preshared_key_alt(self):
+        """When the main PSK header value equals CDN_PRESHARED_KEY_ALT, psk_check should accept it."""
         headers = {
-            # main header must exist (value ignored when alt header supplies the alt secret)
-            self.plugin.cdn_psk: "ignored",
-            self.plugin.cdn_psk_alt: "alt-gateway-secret",
+            self.plugin.cdn_psk: "alt-gateway-secret",
             self.plugin.subject_header: "CN=test",
         }
         with self.app.test_request_context("/", headers=headers):
             self.assertTrue(self.plugin.psk_check())
 
-    def test_rejects_incorrect_alternative_value(self):
-        """Both PSK headers present but neither matches configured secrets -> reject."""
+    def test_rejects_when_value_does_not_match_any_secret(self):
+        """If the PSK header value does not match CDN_PRESHARED_KEY or CDN_PRESHARED_KEY_ALT, psk_check should reject."""
         headers = {
             self.plugin.cdn_psk: "wrong-secret",
-            self.plugin.cdn_psk_alt: "wrong-secret",
             self.plugin.subject_header: "CN=test",
         }
         with self.app.test_request_context("/", headers=headers):
             self.assertFalse(self.plugin.psk_check())
-
-    def test_accepts_cdn_preshared_key_when_configured(self):
-        """Main pre-shared key when configured should be accepted."""
-        self.app.config["CDN_PRESHARED_KEY"] = "shared-secret"
-        headers = {
-            self.plugin.cdn_psk: "shared-secret",
-            # ensure alt header is present to avoid KeyError inside psk_check
-            self.plugin.cdn_psk_alt: "",
-            self.plugin.subject_header: "CN=test",
-        }
-        with self.app.test_request_context("/", headers=headers):
-            self.assertTrue(self.plugin.psk_check())

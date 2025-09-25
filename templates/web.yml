@@ -78,6 +78,7 @@ objects:
                   secretKeyRef:
                     key: alt-gateway-secret
                     name: gateway-secret
+                    optional: true
               - name: AUTH_DEBUG
                 value: "${AUTH_DEBUG}"
               - name: SSO_OIDC_HOST

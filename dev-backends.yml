@@ -39,4 +39,5 @@
   route: /api/echo/
   origin: http://echo-server.svc.cluster.local:8080/api/echo/
   auth:
+    saml: "True"
     x509: "True"

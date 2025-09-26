@@ -28,7 +28,15 @@
 - name: nginx_regression_test
   route: /api/does_not_exist/
   origin: http://foo:5000/does_not_exist/
+  auth:
+    saml: "True"
+    x509: "True"
 - name: vpn_restricted_api
   route: /public/vpn/echo/
   private: true
   origin: http://echo-server.svc.cluster.local:8080/vpn/echo/
+- name: echo_server_api
+  route: /api/echo/
+  origin: http://echo-server.svc.cluster.local:8080/api/echo/
+  auth:
+    x509: "True"

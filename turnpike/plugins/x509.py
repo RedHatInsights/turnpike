@@ -19,6 +19,8 @@ class X509AuthPlugin(TurnpikeAuthPlugin):
         self.subject_header = self.app.config["HEADER_CERTAUTH_SUBJECT"]
         self.issuer_header = self.app.config["HEADER_CERTAUTH_ISSUER"]
         self.cdn_psk = self.app.config.get("HEADER_CERTAUTH_PSK")
+        self.cdn_preshared_key = self.app.config.get("CDN_PRESHARED_KEY")
+        self.cdn_preshared_key_alt = self.app.config.get("CDN_PRESHARED_KEY_ALT")
 
     @property
     def headers_needed(self):
@@ -30,10 +32,13 @@ class X509AuthPlugin(TurnpikeAuthPlugin):
     def psk_check(self):
         """If HEADER_CERTAUTH_PSK is set in the config, then check that the
         request headers contain it and that its value matches the expected PSK."""
-        return (not self.cdn_psk) or (
-            self.cdn_psk in request.headers
-            and request.headers[self.cdn_psk] == self.app.config.get("CDN_PRESHARED_KEY")
-        )
+
+        if not self.cdn_psk or self.cdn_psk not in request.headers:
+            return False
+
+        request_secret = request.headers[self.cdn_psk]
+
+        return request_secret == self.cdn_preshared_key or request_secret == self.cdn_preshared_key_alt
 
     def process(self, context, backend_auth):
         self.app.logger.debug("Begin X509 plugin processing")

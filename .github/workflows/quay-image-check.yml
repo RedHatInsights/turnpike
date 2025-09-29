@@ -15,6 +15,7 @@ jobs:
           quay_repo: redhat-services-prod/hcc-accessmanagement-tenant/turnpike/turnpike-web
           commit_sha: ${{ github.sha }}
           slack_webhook_url: ${{ secrets.SLACK_WEBHOOK_URL }}
+          delay_minutes: 5
 
   check-image-turnpike-nginx:
     runs-on: ubuntu-latest
@@ -25,6 +26,7 @@ jobs:
           quay_repo: redhat-services-prod/hcc-accessmanagement-tenant/turnpike/turnpike-nginx
           commit_sha: ${{ github.sha }}
           slack_webhook_url: ${{ secrets.SLACK_WEBHOOK_URL }}
+          delay_minutes: 5
 
   check-image-turnpike-nginx-prometheus:
     runs-on: ubuntu-latest
@@ -35,3 +37,4 @@ jobs:
           quay_repo: redhat-services-prod/hcc-accessmanagement-tenant/turnpike/turnpike-nginx-prometheus
           commit_sha: ${{ github.sha }}
           slack_webhook_url: ${{ secrets.SLACK_WEBHOOK_URL }}
+          delay_minutes: 5

@@ -106,6 +106,10 @@ spec:
       description: Whether to enable privileged mode, should be used only with remote VMs
       name: privileged-nested
       type: string
+    - name: buildah-format
+      default: docker
+      type: string
+      description: The format for the resulting image's mediaType. Valid values are oci or docker.
     results:
     - description: ""
       name: IMAGE_URL
@@ -133,7 +137,7 @@ spec:
         - name: name
           value: init
         - name: bundle
-          value: quay.io/konflux-ci/tekton-catalog/task-init:0.2@sha256:ec962d0be18f36ca7d331c99bf243800f569fc0a2ea6f8c8c3d3a574b71c44dc
+          value: quay.io/konflux-ci/tekton-catalog/task-init:0.2@sha256:abf231cfc5a68b56f68a8ac9bb26dca3c3e434c88dd9627c72bdec0b8c335c67
         - name: kind
           value: task
         resolver: bundles
@@ -183,7 +187,7 @@ spec:
         - name: name
           value: git-clone-oci-ta
         - name: bundle
-          value: quay.io/konflux-ci/tekton-catalog/task-git-clone-oci-ta@sha256:d35e5d501cb5f5f88369511f76249857cb5ac30250e1dcf086939321964ff6b9
+          value: quay.io/konflux-ci/tekton-catalog/task-git-clone-oci-ta:0.1@sha256:3f1b468066b301083d8550e036f5a654fcb064810bd29eb06fec6d8ad3e35b9c
         - name: kind
           value: task
         resolver: bundles
@@ -288,6 +292,8 @@ spec:
         value: $(tasks.prefetch-dependencies.results.SOURCE_ARTIFACT)
       - name: CACHI2_ARTIFACT
         value: $(tasks.prefetch-dependencies.results.CACHI2_ARTIFACT)
+      - name: BUILDAH_FORMAT
+        value: $(params.buildah-format)
       runAfter:
       - prefetch-dependencies
       taskRef:
@@ -317,6 +323,8 @@ spec:
       - name: IMAGES
         value:
         - $(tasks.build-container.results.IMAGE_URL)@$(tasks.build-container.results.IMAGE_DIGEST)
+      - name: BUILDAH_FORMAT
+        value: $(params.buildah-format)
       runAfter:
       - build-container
       taskRef:

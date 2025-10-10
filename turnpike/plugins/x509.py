@@ -22,13 +22,6 @@ class X509AuthPlugin(TurnpikeAuthPlugin):
         self.cdn_preshared_key = self.app.config.get("CDN_PRESHARED_KEY")
         self.cdn_preshared_key_alt = self.app.config.get("CDN_PRESHARED_KEY_ALT")
 
-    @property
-    def headers_needed(self):
-        to_return = {self.subject_header, self.issuer_header}
-        if self.cdn_psk:
-            to_return.add(self.cdn_psk)
-        return to_return
-
     def psk_check(self):
         """If HEADER_CERTAUTH_PSK is set in the config, then check that the
         request headers contain it and that its value matches the expected PSK."""

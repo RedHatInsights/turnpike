@@ -42,12 +42,6 @@ objects:
         - env:
             - name: NGINX_LISTEN
               value: "${NGINX_LISTEN}"
-            - name: NGINX_SERVER_NAME
-              value: "${NGINX_SERVER_NAME}"
-            - name: NGINX_VPN_SERVER_NAME
-              value: "${NGINX_VPN_SERVER_NAME}"
-            - name: FLASK_SERVER_NAME
-              value: "${FLASK_SERVER_NAME}"
             - name: FLASK_SERVICE_URL
               value: "${FLASK_SERVICE_URL}"
             - name: INTERNAL_HOSTNAME
@@ -160,17 +154,8 @@ parameters:
   name: ALLOWED_ORIGIN_DOMAINS
   value: '[".svc.cluster.local"]'
   required: true
-- description: Effective hostname for this service
-  name: FLASK_SERVER_NAME
-  required: true
 - description: URL to Flask service
   name: FLASK_SERVICE_URL
-  required: true
-- description: Nginx default server name
-  name: NGINX_SERVER_NAME
-  required: true
-- description: Nginx server name for the VPN host
-  name: NGINX_VPN_SERVER_NAME
   required: true
 - description: Replica count for turnpike-nginx
   name: REPLICAS

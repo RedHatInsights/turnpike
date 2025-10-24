@@ -55,4 +55,10 @@
         {% for header in headers %}
         proxy_set_header        {{ header }} $turnpike_{{ header.lower().replace("-", "_") }};
         {% endfor %}
+
+        # timeouts
+        send_timeout {{ timeout }};
+        client_body_timeout {{ timeout }};
+        proxy_read_timeout {{ timeout }};
+        proxy_send_timeout {{ timeout }};
     }

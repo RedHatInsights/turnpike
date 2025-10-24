@@ -138,6 +138,10 @@ def write_nginx_locations(backends, headers_to_upstream) -> None:
         # Validate the back end's definition.
         validate_route(backend)
 
+        # set defaults
+        if "timeout" not in backend:
+            backend["timeout"] = "60s"
+
         location_path = f"/etc/nginx/api_conf.d/{backend_name}.conf"
         with open(location_path, "w") as ofs:
             ofs.write(template.render(headers=headers_to_upstream, resolver=resolver, **backend))

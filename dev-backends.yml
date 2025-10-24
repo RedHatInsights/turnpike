@@ -41,3 +41,9 @@
   auth:
     saml: "True"
     x509: "True"
+- name: apicast-tests
+  route: /api/apicast-tests/
+  origin: http://apicast-test-services.svc.cluster.local:9092/api/apicast-tests/
+  timeout: 90s
+  auth:
+    x509: "True"

@@ -24,6 +24,8 @@ objects:
   kind: Deployment
   metadata:
     name: prometheus-nginx
+    annotations:
+      ignore-check.kube-linter.io/minimum-three-replicas: "for turnpike-prometheus-nginx we dont need 3 replicas"
   spec:
     replicas: ${{REPLICAS}}
     selector:

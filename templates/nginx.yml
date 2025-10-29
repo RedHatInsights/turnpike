@@ -185,4 +185,5 @@ parameters:
   required: true
 - description: The default timeout for nginx routes in seconds
   name: NGINX_DEFAULT_TIMEOUT_SECONDS
+  value: 60
   required: false

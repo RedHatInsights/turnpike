@@ -44,6 +44,7 @@
 - name: apicast-tests
   route: /api/apicast-tests/
   origin: http://apicast-test-services.svc.cluster.local:9092/api/apicast-tests/
-  timeout: 90s
+  timeout: 90
+  buffering: "off"
   auth:
     x509: "True"

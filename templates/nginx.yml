@@ -62,6 +62,8 @@ objects:
               value: "${ALLOWED_NO_AUTH_ROUTES}"
             - name: TURNPIKE_ALLOWED_ORIGIN_DOMAINS
               value: "${ALLOWED_ORIGIN_DOMAINS}"
+            - name: NGINX_DEFAULT_TIMEOUT_SECONDS
+              value: "${NGINX_DEFAULT_TIMEOUT_SECONDS}"
           image: ${IMAGE}:${IMAGE_TAG}
           imagePullPolicy: Always
           livenessProbe:
@@ -181,3 +183,6 @@ parameters:
 - description: The hostname for the private domain.
   name: PRIVATE_HOSTNAME
   required: true
+- description: The default timeout for nginx routes in seconds
+  name: NGINX_DEFAULT_TIMEOUT_SECONDS
+  required: false

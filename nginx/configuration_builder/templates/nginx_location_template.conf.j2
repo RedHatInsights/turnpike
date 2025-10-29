@@ -57,8 +57,12 @@
         {% endfor %}
 
         # timeouts
-        send_timeout {{ timeout }};
-        client_body_timeout {{ timeout }};
-        proxy_read_timeout {{ timeout }};
-        proxy_send_timeout {{ timeout }};
+        send_timeout        {{ timeout }}s;
+        client_body_timeout {{ timeout }}s;
+        proxy_read_timeout  {{ timeout }}s;
+        proxy_send_timeout  {{ timeout }}s;
+
+        # buffering
+        proxy_request_buffering     {{ buffering }};
+        proxy_buffering             {{ buffering }};
     }

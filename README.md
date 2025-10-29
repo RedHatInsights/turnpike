@@ -158,6 +158,29 @@ For example to restrict the endpoint to a certificate with the DN of `/CN=test`,
 If using TLS terminated at Nginx, note that CRL and/or OCSP support should be configured in `NGINX_SSL_CONFIG` as
 needed.
 
+### Optional Route Params
+
+Each route has some optional params you can set: private, timeout, buffering.
+
+`private` : `true|false` - specify if the route should be vpn restricted or not. Defaults to `false` if not provided
+
+`timeout` : (a valid integer) - set the nginx timeout for this route, in seconds. This will set each of the following nginx directives to the provided value: `send_timeout`, `client_body_timeout`, `proxy_read_timeout`, `proxy_send_timeout`
+
+`buffering` : `on|off` - set nginx buffering to on or off, defaults to `on` if not provided. This will set the following nginx directives: `proxy_request_buffering`, `proxy_buffering`
+
+Example route with all config options
+```
+- name: turnpike                          # name of the backend
+  route: /api/turnpike                    # route of the backend
+  origin: http://web:5000/api/turnpike    # url to proxy requests to
+  private: false                          # vpn restricted, default false
+  timeout: 90                             # nginx timeouts in seconds, default 60
+  buffering: "off"                        # nginx buffering, "on" or "off" defaults to "on"
+  auth:                                   # auth for the backend
+    saml: "True"                          # saml auth: a python expression that must evaluate to True or False
+    x509: "True"                          # x509 auth: a python expression that must evaluate to True or False
+```
+
 ### Writing your own plugins
 
 Turnpike's policy service is based on passing a request through a series of plugins that

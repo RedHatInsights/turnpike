@@ -72,5 +72,18 @@ services:
           - echo-server.svc.cluster.local
     environment:
       PORT: 8080
+
+  apicast-test-services:
+    build:
+      context: ../apicast-test-services
+    ports:
+      - "9092:9092"
+    environment:
+      - THIN_TIMEOUT=600
+    networks:
+      mynet:
+        aliases:
+          - apicast-test-services.svc.cluster.local
+
 networks:
   mynet:

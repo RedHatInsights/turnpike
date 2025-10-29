@@ -20,6 +20,7 @@ PROTECTED_ROUTES = ["saml", "auth", "_nginx"]
 ALLOWED_ROUTES = json.loads(os.environ.get("TURNPIKE_ALLOWED_ROUTES", '["public", "api", "app"]'))
 ALLOWED_NO_AUTH_ROUTES = json.loads(os.environ.get("TURNPIKE_NO_AUTH_ROUTES", '["public"]'))
 ALLOWED_ORIGIN_DOMAINS = json.loads(os.environ.get("TURNPIKE_ALLOWED_ORIGIN_DOMAINS", '[".svc.cluster.local"]'))
+NGINX_DEFAULT_TIMEOUT = os.environ.get("NGINX_DEFAULT_TIMEOUT_SECONDS", 60)
 
 # Configure the logging.
 logging_handle = "logger-nginx-build-config"
@@ -137,6 +138,13 @@ def write_nginx_locations(backends, headers_to_upstream) -> None:
 
         # Validate the back end's definition.
         validate_route(backend)
+
+        # set defaults
+        if "timeout" not in backend:
+            backend["timeout"] = NGINX_DEFAULT_TIMEOUT
+
+        if "buffering" not in backend or backend["buffering"] not in ["on", "off"]:
+            backend["buffering"] = "on"
 
         location_path = f"/etc/nginx/api_conf.d/{backend_name}.conf"
         with open(location_path, "w") as ofs:

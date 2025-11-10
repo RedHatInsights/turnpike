@@ -6,7 +6,7 @@ verify_ssl = true
 [dev-packages]
 pytest = "==8.4.2"
 pre-commit = "==4.3.0"
-black = "==25.9.0"
+black = "==25.11.0"
 mock = "*"
 mypy = "==1.18.2"
 types-pyyaml = "==6.0.12.20250915"

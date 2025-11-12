@@ -2,7 +2,7 @@
 set -ex
 
 echo "INSTALL DEPENDENCIES"
-microdnf install --nodocs -y gcc python39 python3-devel pip xmlsec1
+microdnf install --nodocs -y gcc python311 python3-devel pip xmlsec1
 pip install --upgrade pip
 pip install micropipenv
 micropipenv install

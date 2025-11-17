@@ -1,4 +1,4 @@
-FROM registry.access.redhat.com/ubi9/ubi-minimal:9.7-1762956380
+FROM registry.access.redhat.com/ubi9/ubi-minimal:9.7-1763362218
 
 ENV FLASK_RUN_HOST 0.0.0.0
 ENV BACKENDS_CONFIG_MAP=/etc/turnpike/backends.yml

@@ -1,5 +1,19 @@
 FROM registry.access.redhat.com/ubi9/ubi-minimal:9.7-1763362218
 
+LABEL name="turnpike-nginx-prometheus" \
+      summary="Red Hat Insights Turnpike Nginx Prometheus Exporter" \
+      description="Prometheus metrics exporter for Turnpike Nginx proxy. Exposes Nginx metrics for monitoring and observability." \
+      io.k8s.description="Prometheus metrics exporter for Turnpike Nginx proxy. Exposes Nginx metrics for monitoring and observability." \
+      io.k8s.display-name="Red Hat Insights Turnpike Nginx Prometheus Exporter" \
+      io.openshift.tags="insights,turnpike,nginx,prometheus,metrics,monitoring" \
+      com.redhat.component="turnpike-nginx-prometheus" \
+      version="1.0" \
+      release="1" \
+      vendor="Red Hat, Inc." \
+      url="https://github.com/RedHatInsights/turnpike" \
+      distribution-scope="private" \
+      maintainer="platform-accessmanagement@redhat.com"
+
 USER root
 
 ENV SCRAPE_URI=http://localhost:8080/stub_status

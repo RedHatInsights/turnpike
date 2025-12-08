@@ -21,7 +21,7 @@ ENV SCRAPE_URI=http://localhost:8080/stub_status
 RUN microdnf install -y tar git-core make go && \
     microdnf clean all
 
-RUN git clone --branch v1.4.2 https://github.com/nginxinc/nginx-prometheus-exporter && \
+RUN git clone --branch v1.5.1 https://github.com/nginx/nginx-prometheus-exporter && \
     cd nginx-prometheus-exporter && \
     make && \
     chmod +x ./nginx-prometheus-exporter

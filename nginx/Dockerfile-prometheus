@@ -16,6 +16,13 @@ LABEL name="turnpike-nginx-prometheus" \
 
 USER root
 
+# Install Go 1.25.5 to address CVE-2025-61729, CVE-2025-61727 & CVE-2025-4598 (Until new ubi9 minimal image supports this go version)
+RUN curl -LO https://go.dev/dl/go1.25.5.linux-amd64.tar.gz && \
+    rm -rf /usr/local/go && \
+    tar -C /usr/local -xzf go1.25.5.linux-amd64.tar.gz && \
+    rm go1.25.5.linux-amd64.tar.gz
+ENV PATH="/usr/local/go/bin:${PATH}"
+
 ENV SCRAPE_URI=http://localhost:8080/stub_status
 
 RUN microdnf install -y tar git-core make go && \

@@ -17,13 +17,6 @@ LABEL name="turnpike" \
 ENV FLASK_RUN_HOST 0.0.0.0
 ENV BACKENDS_CONFIG_MAP=/etc/turnpike/backends.yml
 
-# Install Go 1.25.5 to address CVE-2025-61729, CVE-2025-61727 & CVE-2025-4598 (Until new ubi9 minimal image supports this go version)
-RUN curl -LO https://go.dev/dl/go1.25.5.linux-amd64.tar.gz && \
-    rm -rf /usr/local/go && \
-    tar -C /usr/local -xzf go1.25.5.linux-amd64.tar.gz && \
-    rm go1.25.5.linux-amd64.tar.gz
-ENV PATH="/usr/local/go/bin:${PATH}"
-
 WORKDIR /usr/src/app
 
 COPY Pipfile.lock /usr/src/app/

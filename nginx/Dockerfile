@@ -14,13 +14,6 @@ LABEL name="turnpike-nginx" \
       distribution-scope="private" \
       maintainer="platform-accessmanagement@redhat.com"
 
-# Install Go 1.25.5 to address CVE-2025-61729, CVE-2025-61727 & CVE-2025-4598 (Until new ubi9 minimal image supports this go version)
-RUN curl -LO https://go.dev/dl/go1.25.5.linux-amd64.tar.gz && \
-    rm -rf /usr/local/go && \
-    tar -C /usr/local -xzf go1.25.5.linux-amd64.tar.gz && \
-    rm go1.25.5.linux-amd64.tar.gz
-ENV PATH="/usr/local/go/bin:${PATH}"
-
 # support running as an arbitrary user which belongs to the root group
 RUN microdnf module enable -y nginx:1.24 && \
     microdnf install -y nginx python3.11 pip && \

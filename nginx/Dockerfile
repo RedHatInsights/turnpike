@@ -1,6 +1,6 @@
-FROM registry.access.redhat.com/ubi9/ubi-minimal:9.7-1764794109
+# FROM registry.access.redhat.com/ubi9/ubi-minimal:9.7-1764794109
 
-# FROM quay.io/hummingbird/python:latest-builder
+FROM quay.io/hummingbird/python:latest-builder
 
 LABEL name="turnpike-nginx" \
       summary="Red Hat Insights Turnpike Nginx Proxy" \
@@ -17,18 +17,19 @@ LABEL name="turnpike-nginx" \
       maintainer="platform-accessmanagement@redhat.com"
 
 # support running as an arbitrary user which belongs to the root group
-RUN microdnf module enable -y nginx:1.24 && \
-    microdnf install -y nginx python3.11 pip && \
-    pip3 install --no-cache-dir jinja2 pyyaml && \
-    chmod g+rwx /var/log/nginx && \
-    rm -rf /var/lib/dnf /var/cache/dnf
-
-# USER root
-# RUN dnf module enable -y nginx:1.24 && \
-#     dnf install -y nginx python3.11 pip && \
+# RUN microdnf module enable -y nginx:1.24 && \
+#     microdnf install -y nginx python3.11 pip && \
 #     pip3 install --no-cache-dir jinja2 pyyaml && \
 #     chmod g+rwx /var/log/nginx && \
 #     rm -rf /var/lib/dnf /var/cache/dnf
+
+USER root
+
+# RUN dnf module enable -y nginx:1.24 && \
+RUN   dnf install -y nginx python3.11 && \
+    pip3 install --no-cache-dir jinja2 pyyaml && \
+    chmod g+rwx /var/log/nginx && \
+    rm -rf /var/lib/dnf /var/cache/dnf
 
 COPY . /etc/nginx
 RUN chgrp -R root /etc/nginx && chmod -R g+rwX /etc/nginx

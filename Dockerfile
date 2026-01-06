@@ -1,6 +1,6 @@
 # FROM registry.access.redhat.com/ubi9/ubi-minimal:9.7-1764794109
 
-FROM quay.io/hummingbird/python:latest
+FROM quay.io/hummingbird/python:latest-builder
 
 LABEL name="turnpike" \
       summary="Red Hat Insights Turnpike Authentication Gateway" \

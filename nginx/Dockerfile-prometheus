@@ -1,5 +1,5 @@
 # FROM registry.access.redhat.com/ubi9/ubi-minimal:9.7-1764794109
-FROM quay.io/hummingbird/python:latest
+FROM quay.io/hummingbird/python:latest-builder
 
 LABEL name="turnpike-nginx-prometheus" \
       summary="Red Hat Insights Turnpike Nginx Prometheus Exporter" \
@@ -30,6 +30,7 @@ RUN curl -LO https://go.dev/dl/go1.25.5.linux-amd64.tar.gz && \
     rm -rf /usr/local/go && \
     tar -C /usr/local -xzf go1.25.5.linux-amd64.tar.gz && \
     rm go1.25.5.linux-amd64.tar.gz
+
 ENV PATH="/usr/local/go/bin:${PATH}"
 
 RUN git clone --branch v1.5.1 https://github.com/nginx/nginx-prometheus-exporter && \

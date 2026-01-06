@@ -21,6 +21,8 @@ LABEL name="turnpike-nginx" \
 #     pip3 install --no-cache-dir jinja2 pyyaml && \
 #     chmod g+rwx /var/log/nginx && \
 #     rm -rf /var/lib/dnf /var/cache/dnf
+
+USER root
 RUN dnf module enable -y nginx:1.24 && \
     dnf install -y nginx python3.11 pip && \
     pip3 install --no-cache-dir jinja2 pyyaml && \

@@ -16,6 +16,7 @@ LABEL name="turnpike" \
       distribution-scope="private" \
       maintainer="platform-accessmanagement@redhat.com"
 
+USER root
 ENV FLASK_RUN_HOST=0.0.0.0
 ENV BACKENDS_CONFIG_MAP=/etc/turnpike/backends.yml
 

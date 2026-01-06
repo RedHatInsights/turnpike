@@ -22,7 +22,7 @@ ENV SCRAPE_URI=http://localhost:8080/stub_status
 # RUN microdnf install -y tar git-core make && \
 #     microdnf clean all
 
-RUN dnf install -y tar git-core make && \
+RUN dnf install -y tar git-core make curl gzip && \
     dnf clean all
 
 # Install Go 1.25.5 to address CVE-2025-61729, CVE-2025-61727 & CVE-2025-4598 (Until new ubi9 minimal image supports this go version)

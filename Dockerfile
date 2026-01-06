@@ -1,4 +1,6 @@
-FROM registry.access.redhat.com/ubi9/ubi-minimal:9.7-1764794109
+# FROM registry.access.redhat.com/ubi9/ubi-minimal:9.7-1764794109
+
+FROM quay.io/hummingbird/python:latest
 
 LABEL name="turnpike" \
       summary="Red Hat Insights Turnpike Authentication Gateway" \
@@ -14,7 +16,7 @@ LABEL name="turnpike" \
       distribution-scope="private" \
       maintainer="platform-accessmanagement@redhat.com"
 
-ENV FLASK_RUN_HOST 0.0.0.0
+ENV FLASK_RUN_HOST=0.0.0.0
 ENV BACKENDS_CONFIG_MAP=/etc/turnpike/backends.yml
 
 WORKDIR /usr/src/app

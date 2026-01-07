@@ -10,7 +10,7 @@ black = "==25.12.0"
 mock = "*"
 mypy = "==1.19.1"
 types-pyyaml = "==6.0.12.20250915"
-types-requests = "==2.32.4.20250913"
+types-requests = "==2.32.4.20260107"
 
 [packages]
 py-healthcheck = "==1.10.1"

@@ -108,10 +108,10 @@ spec:
       description: Whether to enable privileged mode, should be used only with remote VMs
       name: privileged-nested
       type: string
-    - name: buildah-format
-      default: docker
-      type: string
-      description: The format for the resulting image's mediaType. Valid values are oci or docker.
+    # - name: buildah-format
+    #   default: docker
+    #   type: string
+    #   description: The format for the resulting image's mediaType. Valid values are oci or docker.
     - name: enable-cache-proxy
       default: 'false'
       description: Enable cache proxy configuration
@@ -231,8 +231,8 @@ spec:
         value: $(tasks.prefetch-dependencies.results.SOURCE_ARTIFACT)
       - name: CACHI2_ARTIFACT
         value: $(tasks.prefetch-dependencies.results.CACHI2_ARTIFACT)
-      - name: BUILDAH_FORMAT
-        value: $(params.buildah-format)
+      # - name: BUILDAH_FORMAT
+      #   value: $(params.buildah-format)
       - name: HTTP_PROXY
         value: $(tasks.init.results.http-proxy)
       - name: NO_PROXY
@@ -266,8 +266,8 @@ spec:
       - name: IMAGES
         value:
         - $(tasks.build-container.results.IMAGE_URL)@$(tasks.build-container.results.IMAGE_DIGEST)
-      - name: BUILDAH_FORMAT
-        value: $(params.buildah-format)
+      # - name: BUILDAH_FORMAT
+      #   value: $(params.buildah-format)
       runAfter:
       - build-container
       taskRef:

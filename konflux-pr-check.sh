@@ -2,20 +2,20 @@
 set -ex
 
 echo "INSTALL DEPENDENCIES"
-microdnf install --nodocs -y gcc python311 python3-devel pip xmlsec1
-pip install --upgrade pip
-pip install micropipenv
+microdnf install --nodocs -y gcc python311 python3.11-pip python3-devel xmlsec1
+python3.11 -m pip install --upgrade pip
+python3.11 -m pip install micropipenv
 micropipenv install
 
 # #Run black/lint command
-pip install black==25.11.0
-if ! (black --check -l 119 -t py39 /var/workdir --diff); then
+python3.11 -m pip install black==26.1.0
+if ! (black --check -l 119 -t py311 /var/workdir --diff); then
     echo "black formatter encountered an issue"
     exit 1
 fi
 
 echo "Run the unit tests"
-pip install pytest
+python3.11 -m pip install pytest
 echo "RUN THE UNIT TESTS"
 pytest --disable-pytest-warnings tests/
 result=$?

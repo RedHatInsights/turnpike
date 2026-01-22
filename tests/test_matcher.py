@@ -47,7 +47,7 @@ class TestMatchingBackends(unittest.TestCase):
             mocked_request = mock.Mock
             mocked_request.headers = {"X-Original-Uri": "/", "X-Matched-Backend": "nothing"}
 
-            with mock.patch("turnpike.views.request", mocked_request):
+            with mock.patch("turnpike.views.views.request", mocked_request):
                 response = policy_view()
 
                 self.assertEqual(
@@ -64,7 +64,7 @@ class TestMatchingBackends(unittest.TestCase):
             for expected_backend in ["rbac-general", "rbac-health-check"]:
                 mocked_request.headers = {"X-Original-Uri": "/", "X-Matched-Backend": expected_backend}
 
-                with mock.patch("turnpike.views.request", mocked_request):
+                with mock.patch("turnpike.views.views.request", mocked_request):
                     # Call the view under test.
                     policy_view()
 
@@ -96,7 +96,7 @@ class TestMatchingBackends(unittest.TestCase):
             for test_case in test_cases:
                 mocked_request.headers = {"X-Original-Uri": test_case["url"]}
 
-                with mock.patch("turnpike.views.request", mocked_request):
+                with mock.patch("turnpike.views.views.request", mocked_request):
                     # Call the view under test.
                     policy_view()
 

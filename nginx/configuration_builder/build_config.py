@@ -14,7 +14,6 @@ import jinja2
 import yaml
 import yaml.error
 
-
 # Do not include leading or trailing slashes in these routes
 PROTECTED_ROUTES = ["saml", "auth", "_nginx"]
 ALLOWED_ROUTES = json.loads(os.environ.get("TURNPIKE_ALLOWED_ROUTES", '["public", "api", "app"]'))

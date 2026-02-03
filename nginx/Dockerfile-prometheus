@@ -18,10 +18,13 @@ USER root
 
 ENV SCRAPE_URI=http://localhost:8080/stub_status
 
-RUN microdnf install -y tar git-core make go && \
+RUN microdnf update -y curl-minimal libcurl-minimal glib2 && \
+    microdnf install -y tar git-core make && \
     microdnf clean all
 
-RUN git clone --branch v1.4.2 https://github.com/nginxinc/nginx-prometheus-exporter && \
+RUN curl -fsSL https://go.dev/dl/go1.25.6.linux-amd64.tar.gz | tar -C /usr/local -xzf - && \
+    export PATH=$PATH:/usr/local/go/bin && \
+    git clone --branch v1.4.3 https://github.com/nginxinc/nginx-prometheus-exporter && \
     cd nginx-prometheus-exporter && \
     make && \
     chmod +x ./nginx-prometheus-exporter

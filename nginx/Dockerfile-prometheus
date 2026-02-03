@@ -24,7 +24,7 @@ RUN microdnf update -y curl-minimal libcurl-minimal glib2 && \
 
 RUN curl -fsSL https://go.dev/dl/go1.25.6.linux-amd64.tar.gz | tar -C /usr/local -xzf - && \
     export PATH=$PATH:/usr/local/go/bin && \
-    git clone --branch v1.4.3 https://github.com/nginxinc/nginx-prometheus-exporter && \
+    git clone --branch v1.5.1 https://github.com/nginxinc/nginx-prometheus-exporter && \
     cd nginx-prometheus-exporter && \
     make && \
     chmod +x ./nginx-prometheus-exporter

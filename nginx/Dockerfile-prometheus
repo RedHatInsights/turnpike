@@ -18,8 +18,7 @@ USER root
 
 ENV SCRAPE_URI=http://localhost:8080/stub_status
 
-RUN microdnf update -y curl-minimal libcurl-minimal glib2 && \
-    microdnf install -y tar git-core make && \
+RUN microdnf install -y tar git-core make && \
     microdnf clean all
 
 RUN curl -fsSL https://go.dev/dl/go1.25.6.linux-amd64.tar.gz | tar -C /usr/local -xzf - && \

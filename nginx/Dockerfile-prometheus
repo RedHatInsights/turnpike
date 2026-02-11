@@ -21,7 +21,7 @@ ENV SCRAPE_URI=http://localhost:8080/stub_status
 RUN microdnf install -y tar git-core make && \
     microdnf clean all
 
-RUN curl -fsSL https://go.dev/dl/go1.25.6.linux-amd64.tar.gz | tar -C /usr/local -xzf - && \
+RUN curl -fsSL https://go.dev/dl/go1.25.7.linux-amd64.tar.gz | tar -C /usr/local -xzf - && \
     export PATH=$PATH:/usr/local/go/bin && \
     git clone --branch v1.5.1 https://github.com/nginxinc/nginx-prometheus-exporter && \
     cd nginx-prometheus-exporter && \

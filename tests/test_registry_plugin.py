@@ -56,14 +56,19 @@ class TestRegistryAuthPlugin(TestCase):
         context.backend = self._find_registry_backend()
         return context
 
-    def _mock_registry_response(self, status_code=200, json_data=None):
-        response = mock.Mock()
-        response.status_code = status_code
-        if json_data is not None:
-            response.json.return_value = json_data
-        else:
-            response.json.return_value = {"access": {"pull": "granted"}}
-        return response
+    def _mock_post_side_effect(self, status_code=200, json_data=None):
+        """Create a fresh mock response side effect to avoid shared state pollution"""
+
+        def side_effect(*args, **kwargs):
+            response = mock.Mock()
+            response.status_code = status_code
+            if json_data is not None:
+                response.json.return_value = json_data
+            else:
+                response.json.return_value = {"access": {"pull": "granted"}}
+            return response
+
+        return side_effect
 
     def test_skip_when_registry_not_in_backend_auth(self):
         context = PolicyContext()
@@ -101,7 +106,7 @@ class TestRegistryAuthPlugin(TestCase):
         backend_auth = context.backend["auth"]
         headers = {"Authorization": self._make_basic_auth_header("123|alice", "secret")}
 
-        post = mock.Mock(return_value=self._mock_registry_response())
+        post = mock.Mock(side_effect=self._mock_post_side_effect())
         with self.app.test_request_context("/", headers=headers):
             with mock.patch("turnpike.plugins.registry.requests.post", post):
                 result = self.plugin.process(context, backend_auth)
@@ -117,7 +122,7 @@ class TestRegistryAuthPlugin(TestCase):
         backend_auth = context.backend["auth"]
         headers = {"Authorization": self._make_basic_auth_header("123|alice", "secret")}
 
-        post = mock.Mock(return_value=self._mock_registry_response(status_code=403))
+        post = mock.Mock(side_effect=self._mock_post_side_effect(status_code=403))
         with self.app.test_request_context("/", headers=headers):
             with mock.patch("turnpike.plugins.registry.requests.post", post):
                 result = self.plugin.process(context, backend_auth)
@@ -147,7 +152,7 @@ class TestRegistryAuthPlugin(TestCase):
         backend_auth = context.backend["auth"]
         headers = {"Authorization": self._make_basic_auth_header("123|alice", "secret")}
 
-        post = mock.Mock(return_value=self._mock_registry_response(json_data={"access": {"pull": "denied"}}))
+        post = mock.Mock(side_effect=self._mock_post_side_effect(json_data={"access": {"pull": "denied"}}))
         with self.app.test_request_context("/", headers=headers):
             with mock.patch("turnpike.plugins.registry.requests.post", post):
                 result = self.plugin.process(context, backend_auth)
@@ -160,7 +165,7 @@ class TestRegistryAuthPlugin(TestCase):
         backend_auth = context.backend["auth"]
         headers = {"Authorization": self._make_basic_auth_header("123|alice", "secret")}
 
-        post = mock.Mock(return_value=self._mock_registry_response())
+        post = mock.Mock(side_effect=self._mock_post_side_effect())
         with self.app.test_request_context("/", headers=headers):
             with mock.patch("turnpike.plugins.registry.requests.post", post):
                 self.plugin.process(context, backend_auth)
@@ -190,7 +195,7 @@ class TestRegistryAuthPlugin(TestCase):
         backend_auth = context.backend["auth"]
         headers = {"Authorization": self._make_basic_auth_header("123|alice", "secret")}
 
-        post = mock.Mock(return_value=self._mock_registry_response())
+        post = mock.Mock(side_effect=self._mock_post_side_effect())
         with self.app.test_request_context("/", headers=headers):
             with mock.patch("turnpike.plugins.registry.requests.post", post):
                 result = self.plugin.process(context, backend_auth)
@@ -216,7 +221,7 @@ class TestRegistryAuthPlugin(TestCase):
         backend_auth = context.backend["auth"]
         headers = {"Authorization": self._make_basic_auth_header("plainuser", "secret")}
 
-        post = mock.Mock(return_value=self._mock_registry_response())
+        post = mock.Mock(side_effect=self._mock_post_side_effect())
         with self.app.test_request_context("/", headers=headers):
             with mock.patch("turnpike.plugins.registry.requests.post", post):
                 result = self.plugin.process(context, backend_auth)
@@ -251,7 +256,7 @@ class TestRegistryAuthPlugin(TestCase):
         backend_auth = context.backend["auth"]
         headers = {"Authorization": self._make_basic_auth_header("123|alice", "p:a:s:s")}
 
-        post = mock.Mock(return_value=self._mock_registry_response())
+        post = mock.Mock(side_effect=self._mock_post_side_effect())
         with self.app.test_request_context("/", headers=headers):
             with mock.patch("turnpike.plugins.registry.requests.post", post):
                 result = self.plugin.process(context, backend_auth)
@@ -266,7 +271,7 @@ class TestRegistryAuthPlugin(TestCase):
         backend_auth = context.backend["auth"]
         headers = {"Authorization": self._make_basic_auth_header("123|alice", "secret")}
 
-        post = mock.Mock(return_value=self._mock_registry_response(json_data={"status": "ok"}))
+        post = mock.Mock(side_effect=self._mock_post_side_effect(json_data={"status": "ok"}))
         with self.app.test_request_context("/", headers=headers):
             with mock.patch("turnpike.plugins.registry.requests.post", post):
                 result = self.plugin.process(context, backend_auth)

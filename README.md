@@ -217,7 +217,7 @@ pipenv shell --python python3.11
 pipenv sync --dev
 
 # run tests
-pytest
+python -m pytest -vv
 ```
 
 For testing SAML functionality, when the Flask config has `TESTING` set to a value that

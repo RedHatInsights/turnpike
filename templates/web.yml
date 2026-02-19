@@ -97,6 +97,8 @@ objects:
                 value: ${REGISTRY_SERVICE_CLIENT_KEY_PATH}
               - name: REGISTRY_SERVICE_SSL_VERIFY
                 value: ${REGISTRY_SERVICE_SSL_VERIFY}
+              - name: REGISTRY_AUTH_CACHE_TTL
+                value: ${REGISTRY_AUTH_CACHE_TTL}
             image: ${IMAGE}:${IMAGE_TAG}
             imagePullPolicy: Always
             name: web
@@ -323,3 +325,6 @@ parameters:
 - description: Whether to verify SSL when connecting to the registry service.
   name: REGISTRY_SERVICE_SSL_VERIFY
   value: "true"
+- description: Default TTL for registry auth cache.
+  name: REGISTRY_AUTH_CACHE_TTL
+  value: "500"

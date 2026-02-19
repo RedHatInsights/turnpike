@@ -4,6 +4,7 @@ from http import HTTPStatus
 import requests
 from flask import request
 
+from turnpike import cache
 from ..plugin import TurnpikeAuthPlugin
 
 
@@ -36,6 +37,7 @@ class RegistryAuthPlugin(TurnpikeAuthPlugin):
             raise ValueError("No REGISTRY_SERVICE_CLIENT_KEY_PATH set.")
 
         self.ssl_verify = app.config.get("REGISTRY_SERVICE_SSL_VERIFY", True)
+        self.cache_ttl = app.config.get("REGISTRY_AUTH_CACHE_TTL", 300)
 
     def _decode_basic_auth(self, header_value):
         """Decode a Basic Auth header value and return (username, password) or (None, None)."""
@@ -81,35 +83,45 @@ class RegistryAuthPlugin(TurnpikeAuthPlugin):
             context.status_code = HTTPStatus.UNAUTHORIZED
             return context
 
-        try:
-            res = requests.post(
-                url=self.registry_url,
-                json={"credentials": {"username": user, "password": password}},
-                cert=(self.client_cert_path, self.client_key_path),
-                verify=self.ssl_verify,
-            )
-        except Exception as e:
-            self.app.logger.error(f"Registry authentication request failed: {e}")
-            context.status_code = HTTPStatus.UNAUTHORIZED
-            return context
+        # Check cache for previously authenticated user (5-minute TTL)
+        cache_key = f"registry_auth:{user}"
+        cached_auth = cache.get(cache_key)
+        if cached_auth:
+            self.app.logger.debug(f"Registry auth cache hit for user: {user}")
+        else:
+            self.app.logger.debug(f"Registry auth cache miss for user: {user}")
+            try:
+                res = requests.post(
+                    url=self.registry_url,
+                    json={"credentials": {"username": user, "password": password}},
+                    cert=(self.client_cert_path, self.client_key_path),
+                    verify=self.ssl_verify,
+                )
+            except Exception as e:
+                self.app.logger.error(f"Registry authentication request failed: {e}")
+                context.status_code = HTTPStatus.UNAUTHORIZED
+                return context
 
-        if res.status_code != HTTPStatus.OK:
-            self.app.logger.warning(f"Registry authentication returned status {res.status_code}")
-            context.status_code = HTTPStatus.UNAUTHORIZED
-            return context
+            if res.status_code != HTTPStatus.OK:
+                self.app.logger.warning(f"Registry authentication returned status {res.status_code}")
+                context.status_code = HTTPStatus.UNAUTHORIZED
+                return context
 
-        try:
-            body = res.json()
-            pull_access = body["access"]["pull"]
-        except Exception:
-            self.app.logger.warning("Registry authentication returned invalid response body")
-            context.status_code = HTTPStatus.UNAUTHORIZED
-            return context
+            try:
+                body = res.json()
+                pull_access = body["access"]["pull"]
+            except Exception:
+                self.app.logger.warning("Registry authentication returned invalid response body")
+                context.status_code = HTTPStatus.UNAUTHORIZED
+                return context
 
-        if pull_access != "granted":
-            self.app.logger.warning("Registry authentication failed: pull access not granted")
-            context.status_code = HTTPStatus.UNAUTHORIZED
-            return context
+            if pull_access != "granted":
+                self.app.logger.warning("Registry authentication failed: pull access not granted")
+                context.status_code = HTTPStatus.UNAUTHORIZED
+                return context
+
+            cache.set(key=cache_key, value=True, timeout=self.cache_ttl)
+            self.app.logger.debug(f"Registry auth cached for user: {user}")
 
         org_id, username = self._parse_registry_user(user)
 

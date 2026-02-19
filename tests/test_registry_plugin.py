@@ -278,3 +278,48 @@ class TestRegistryAuthPlugin(TestCase):
 
         self.assertIsNone(result.auth)
         self.assertEqual(result.status_code, HTTPStatus.UNAUTHORIZED)
+
+    def test_registry_requests_get_cached(self):
+        """Tests that we only call the registry service once for the same user due to caching."""
+        # Set up the test context and backend auth
+        context = self._make_context()
+        backend_auth = context.backend["auth"]
+        headers = {"Authorization": self._make_basic_auth_header("123|alice", "secret")}
+
+        # Mock successful registry auth response
+        json_data = {"access": {"pull": "granted"}}
+        post = mock.Mock(side_effect=self._mock_post_side_effect(json_data=json_data))
+
+        with self.app.test_request_context("/", headers=headers):
+            with mock.patch("turnpike.plugins.registry.requests.post", post):
+                # First call should hit the external API
+                result1 = self.plugin.process(context, backend_auth)
+
+                # Ensure the call was successful
+                self.assertIsNotNone(result1.auth)
+                self.assertEqual(result1.status_code, None)  # No error status code set
+
+                # Verify external API was called once
+                self.assertEqual(1, post.call_count)
+
+                # Second call with same user should use cache
+                result2 = self.plugin.process(context, backend_auth)
+
+                # Ensure the second call was also successful
+                self.assertIsNotNone(result2.auth)
+                self.assertEqual(result2.status_code, None)
+
+                # Verify external API was still only called once (cache hit)
+                self.assertEqual(1, post.call_count)
+
+    def test_registry_cache_ttl_configurable(self):
+        """Tests that cache TTL can be configured via REGISTRY_AUTH_CACHE_TTL."""
+        # Test with custom TTL
+        custom_ttl = 600  # 10 minutes
+        with self.app.test_request_context():
+            with self.app.app_context():
+                self.app.config["REGISTRY_AUTH_CACHE_TTL"] = custom_ttl
+                plugin = RegistryAuthPlugin(self.app)
+
+                # Verify the plugin uses the configured TTL
+                self.assertEqual(plugin.cache_ttl, custom_ttl)

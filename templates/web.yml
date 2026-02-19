@@ -89,6 +89,14 @@ objects:
                 value: ${SSO_OIDC_PROTOCOL_SCHEME}
               - name: SSO_OIDC_REALM
                 value: ${SSO_OIDC_REALM}
+              - name: REGISTRY_SERVICE_URL
+                value: ${REGISTRY_SERVICE_URL}
+              - name: REGISTRY_SERVICE_CLIENT_CERT_PATH
+                value: ${REGISTRY_SERVICE_CLIENT_CERT_PATH}
+              - name: REGISTRY_SERVICE_CLIENT_KEY_PATH
+                value: ${REGISTRY_SERVICE_CLIENT_KEY_PATH}
+              - name: REGISTRY_SERVICE_SSL_VERIFY
+                value: ${REGISTRY_SERVICE_SSL_VERIFY}
             image: ${IMAGE}:${IMAGE_TAG}
             imagePullPolicy: Always
             name: web
@@ -154,6 +162,9 @@ objects:
               - mountPath: /etc/turnpike
                 name: turnpike-routes
                 readOnly: true
+              - mountPath: /etc/turnpike/registry-cert
+                name: registry-cert-volume
+                readOnly: true
             hostname: web
             terminationGracePeriodSeconds: 30
         imagePullSecrets:
@@ -172,6 +183,14 @@ objects:
           - name: turnpike-saml-signing
             secret:
               secretName: saml-signing
+          - name: registry-cert-volume
+            secret:
+              secretName: registry-cert
+              items:
+                - key: client.key
+                  path: client.key
+                - key: client.cert
+                  path: client.cert
 - apiVersion: v1
   kind: ConfigMap
   metadata:
@@ -289,3 +308,18 @@ parameters:
 - description: The hostname for the private domain.
   name: PRIVATE_HOSTNAME
   required: true
+- description: The URL of the registry authentication service.
+  name: REGISTRY_SERVICE_URL
+  required: true
+  value: https://container-registry-authorizer.stage.api.redhat.com/v1/authorization
+- description: Path to the client certificate for mTLS with the registry service.
+  name: REGISTRY_SERVICE_CLIENT_CERT_PATH
+  required: true
+  value: /etc/turnpike/registry-cert/client.cert
+- description: Path to the client key for mTLS with the registry service.
+  name: REGISTRY_SERVICE_CLIENT_KEY_PATH
+  required: true
+  value: /etc/turnpike/registry-cert/client.key
+- description: Whether to verify SSL when connecting to the registry service.
+  name: REGISTRY_SERVICE_SSL_VERIFY
+  value: "true"

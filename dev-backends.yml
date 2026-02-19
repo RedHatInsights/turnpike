@@ -48,3 +48,8 @@
   buffering: "off"
   auth:
     x509: "True"
+- name: registry-test
+  route: /api/registry-test/
+  origin: http://echo-server.svc.cluster.local:8080/api/registry-test/
+  auth:
+    registry: "True"

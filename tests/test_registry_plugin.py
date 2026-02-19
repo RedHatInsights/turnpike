@@ -313,6 +313,35 @@ class TestRegistryAuthPlugin(TestCase):
                 # Verify external API was still only called once (cache hit)
                 self.assertEqual(1, post.call_count)
 
+    def test_different_password_causes_cache_miss(self):
+        """Tests that changing the password for the same user bypasses the cache."""
+        context = self._make_context()
+        backend_auth = context.backend["auth"]
+        headers1 = {"Authorization": self._make_basic_auth_header("123|alice", "password1")}
+        headers2 = {"Authorization": self._make_basic_auth_header("123|alice", "password2")}
+
+        json_data = {"access": {"pull": "granted"}}
+        post = mock.Mock(side_effect=self._mock_post_side_effect(json_data=json_data))
+
+        with mock.patch("turnpike.plugins.registry.requests.post", post):
+            # First call with password1
+            with self.app.test_request_context("/", headers=headers1):
+                result1 = self.plugin.process(context, backend_auth)
+                self.assertIsNotNone(result1.auth)
+                self.assertEqual(1, post.call_count)
+
+            # Second call with password2 — must NOT use cache
+            with self.app.test_request_context("/", headers=headers2):
+                result2 = self.plugin.process(context, backend_auth)
+                self.assertIsNotNone(result2.auth)
+                self.assertEqual(2, post.call_count)
+
+            # Third call with password2 again — must use cache
+            with self.app.test_request_context("/", headers=headers2):
+                result3 = self.plugin.process(context, backend_auth)
+                self.assertIsNotNone(result3.auth)
+                self.assertEqual(2, post.call_count)
+
     def test_registry_cache_ttl_configurable(self):
         """Tests that cache TTL can be configured via REGISTRY_AUTH_CACHE_TTL."""
         custom_ttl = 600

@@ -207,7 +207,17 @@ Such as how to access turnpike, acquire certs, etc.
 ## Testing
 To run local unit tests:
 ```
-$ pytest
+# OPTIONAL: # delete existing virtualenv if having issues
+pipenv --rm
+
+# shell into venv
+pipenv shell --python python3.11
+
+# install deps
+pipenv sync --dev
+
+# run tests
+python -m pytest -vv
 ```
 
 For testing SAML functionality, when the Flask config has `TESTING` set to a value that

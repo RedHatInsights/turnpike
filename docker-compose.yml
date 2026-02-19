@@ -14,6 +14,8 @@ services:
       - "./saml:/usr/src/app/turnpike/saml"
       - "./dev-backends.yml:/etc/turnpike/backends.yml"
       - "./dev-config.py:/etc/turnpike/dev-config.py"
+      - "./local/test-cert.pem:/local/test-cert.pem:ro"
+      - "./local/test-key.pem:/local/test-key.pem:ro"
     networks:
       mynet:
         aliases:

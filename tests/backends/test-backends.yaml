@@ -19,3 +19,8 @@
             - scope_a
             - scope_b
         - clientId: 7881197c-3651-11f0-8354-083a885cd988
+- name: registry-service
+  route: /api/registry
+  origin: http://web.svc.cluster.local:12345/api/registry
+  auth:
+    registry: "True"

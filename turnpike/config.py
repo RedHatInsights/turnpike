@@ -49,6 +49,13 @@ HEADER_CERTAUTH_SUBJECT = os.environ.get("HEADER_CERTAUTH_SUBJECT", "x-rh-certau
 HEADER_CERTAUTH_ISSUER = os.environ.get("HEADER_CERTAUTH_ISSUER", "x-rh-certauth-issuer")
 HEADER_CERTAUTH_PSK = os.environ.get("HEADER_CERTAUTH_PSK", None)
 
+REGISTRY_SERVICE_URL = os.environ.get("REGISTRY_SERVICE_URL")
+REGISTRY_SERVICE_CLIENT_CERT_PATH = os.environ.get("REGISTRY_SERVICE_CLIENT_CERT_PATH")
+REGISTRY_SERVICE_CLIENT_KEY_PATH = os.environ.get("REGISTRY_SERVICE_CLIENT_KEY_PATH")
+REGISTRY_SERVICE_SSL_VERIFY = os.environ.get("REGISTRY_SERVICE_SSL_VERIFY", "true").lower() == "true"
+REGISTRY_AUTH_CACHE_TTL = int(os.environ.get("REGISTRY_AUTH_CACHE_TTL", 300))
+REGISTRY_SERVICE_TIMEOUT = int(os.environ.get("REGISTRY_SERVICE_TIMEOUT", 10))
+
 SSO_OIDC_HOST = os.environ.get("SSO_OIDC_HOST")
 if not SSO_OIDC_HOST:
     raise ValueError("No SSO_OIDC_HOST set.")
@@ -74,6 +81,7 @@ PLUGIN_CHAIN = [
 
 AUTH_PLUGIN_CHAIN = [
     "turnpike.plugins.oidc.oidc.OIDCAuthPlugin",
+    "turnpike.plugins.registry.RegistryAuthPlugin",
     "turnpike.plugins.saml.SAMLAuthPlugin",
     "turnpike.plugins.x509.X509AuthPlugin",
 ]

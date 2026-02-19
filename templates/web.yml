@@ -99,6 +99,8 @@ objects:
                 value: ${REGISTRY_SERVICE_SSL_VERIFY}
               - name: REGISTRY_AUTH_CACHE_TTL
                 value: ${REGISTRY_AUTH_CACHE_TTL}
+              - name: REGISTRY_SERVICE_TIMEOUT
+                value: ${REGISTRY_SERVICE_TIMEOUT}
             image: ${IMAGE}:${IMAGE_TAG}
             imagePullPolicy: Always
             name: web
@@ -313,7 +315,6 @@ parameters:
 - description: The URL of the registry authentication service.
   name: REGISTRY_SERVICE_URL
   required: true
-  value: https://container-registry-authorizer.stage.api.redhat.com/v1/authorization
 - description: Path to the client certificate for mTLS with the registry service.
   name: REGISTRY_SERVICE_CLIENT_CERT_PATH
   required: true
@@ -325,6 +326,9 @@ parameters:
 - description: Whether to verify SSL when connecting to the registry service.
   name: REGISTRY_SERVICE_SSL_VERIFY
   value: "true"
-- description: Default TTL for registry auth cache.
+- description: TTL in seconds for registry auth cache.
   name: REGISTRY_AUTH_CACHE_TTL
-  value: "500"
+  value: "300"
+- description: Timeout in seconds for registry service HTTP requests.
+  name: REGISTRY_SERVICE_TIMEOUT
+  value: "10"

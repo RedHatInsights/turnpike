@@ -37,7 +37,8 @@ class RegistryAuthPlugin(TurnpikeAuthPlugin):
             raise ValueError("No REGISTRY_SERVICE_CLIENT_KEY_PATH set.")
 
         self.ssl_verify = app.config.get("REGISTRY_SERVICE_SSL_VERIFY", True)
-        self.cache_ttl = app.config.get("REGISTRY_AUTH_CACHE_TTL", 300)
+        self.cache_ttl = int(app.config.get("REGISTRY_AUTH_CACHE_TTL", 300))
+        self.request_timeout = int(app.config.get("REGISTRY_SERVICE_TIMEOUT", 10))
 
     def _decode_basic_auth(self, header_value):
         """Decode a Basic Auth header value and return (username, password) or (None, None)."""
@@ -96,6 +97,7 @@ class RegistryAuthPlugin(TurnpikeAuthPlugin):
                     json={"credentials": {"username": user, "password": password}},
                     cert=(self.client_cert_path, self.client_key_path),
                     verify=self.ssl_verify,
+                    timeout=self.request_timeout,
                 )
             except Exception as e:
                 self.app.logger.error(f"Registry authentication request failed: {e}")

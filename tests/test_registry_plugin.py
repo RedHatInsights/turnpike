@@ -174,6 +174,7 @@ class TestRegistryAuthPlugin(TestCase):
         call_kwargs = post.call_args
         self.assertEqual(call_kwargs.kwargs["cert"], ("/tmp/test-cert.pem", "/tmp/test-key.pem"))
         self.assertEqual(call_kwargs.kwargs["verify"], True)
+        self.assertEqual(call_kwargs.kwargs["timeout"], 10)
 
     def test_malformed_base64_credentials(self):
         context = self._make_context()
@@ -314,12 +315,37 @@ class TestRegistryAuthPlugin(TestCase):
 
     def test_registry_cache_ttl_configurable(self):
         """Tests that cache TTL can be configured via REGISTRY_AUTH_CACHE_TTL."""
-        # Test with custom TTL
-        custom_ttl = 600  # 10 minutes
+        custom_ttl = 600
         with self.app.test_request_context():
             with self.app.app_context():
                 self.app.config["REGISTRY_AUTH_CACHE_TTL"] = custom_ttl
                 plugin = RegistryAuthPlugin(self.app)
-
-                # Verify the plugin uses the configured TTL
                 self.assertEqual(plugin.cache_ttl, custom_ttl)
+
+    def test_registry_cache_ttl_handles_string(self):
+        """Tests that REGISTRY_AUTH_CACHE_TTL is properly converted from string to int."""
+        with self.app.test_request_context():
+            with self.app.app_context():
+                self.app.config["REGISTRY_AUTH_CACHE_TTL"] = "600"
+                plugin = RegistryAuthPlugin(self.app)
+                self.assertEqual(plugin.cache_ttl, 600)
+
+    def test_registry_timeout_configurable(self):
+        """Tests that request timeout can be configured via REGISTRY_SERVICE_TIMEOUT."""
+        with self.app.test_request_context():
+            with self.app.app_context():
+                self.app.config["REGISTRY_SERVICE_TIMEOUT"] = 30
+                plugin = RegistryAuthPlugin(self.app)
+                self.assertEqual(plugin.request_timeout, 30)
+
+    def test_registry_timeout_handles_string(self):
+        """Tests that REGISTRY_SERVICE_TIMEOUT is properly converted from string to int."""
+        with self.app.test_request_context():
+            with self.app.app_context():
+                self.app.config["REGISTRY_SERVICE_TIMEOUT"] = "30"
+                plugin = RegistryAuthPlugin(self.app)
+                self.assertEqual(plugin.request_timeout, 30)
+
+    def test_registry_timeout_default(self):
+        """Tests that request timeout defaults to 10 seconds."""
+        self.assertEqual(self.plugin.request_timeout, 10)

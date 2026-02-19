@@ -3,6 +3,9 @@
         set $upstream  {{ origin }};
         set $matched_backend {{ name }};
         auth_request     /auth/;
+        {% if auth is defined and 'saml' in auth %}
+        error_page 401 = @error401;
+        {% endif %}
 
         {% for header in headers %}
         auth_request_set $turnpike_{{ header.lower().replace("-", "_") }} $upstream_http_{{ header.lower().replace("-", "_") }};

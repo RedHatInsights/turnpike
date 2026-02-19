@@ -3,9 +3,61 @@ import sys
 import unittest
 from unittest import mock
 
+import jinja2
+
 sys.path.append(os.path.abspath("./nginx"))
 
 from configuration_builder.build_config import write_nginx_locations
+
+TEMPLATE_PATH = os.path.join(
+    os.path.dirname(os.path.abspath(__file__)),
+    "../nginx/configuration_builder/templates/nginx_location_template.conf.j2",
+)
+
+
+class TestNginxLocationTemplateRendering(unittest.TestCase):
+    """Tests that the nginx location template renders error_page 401 conditionally based on SAML auth."""
+
+    def setUp(self):
+        with open(TEMPLATE_PATH) as f:
+            self.template = jinja2.Template(f.read())
+
+    def _render(self, **backend):
+        defaults = {
+            "name": "test-backend",
+            "route": "/api/test/",
+            "origin": "http://test.svc.cluster.local:8080/api/test/",
+            "timeout": 60,
+            "buffering": "on",
+            "headers": [],
+        }
+        defaults.update(backend)
+        return self.template.render(**defaults)
+
+    def test_saml_backend_has_error_page_401(self):
+        """Backends with SAML auth should redirect 401s to the SAML login page."""
+        output = self._render(auth={"saml": "True", "x509": "True"})
+        self.assertIn("error_page 401 = @error401", output)
+
+    def test_registry_backend_no_error_page_401(self):
+        """Backends with only registry auth should not redirect 401s."""
+        output = self._render(auth={"registry": "True"})
+        self.assertNotIn("error_page 401", output)
+
+    def test_oidc_backend_no_error_page_401(self):
+        """Backends with only OIDC auth should not redirect 401s."""
+        output = self._render(auth={"oidc": {"serviceAccounts": []}})
+        self.assertNotIn("error_page 401", output)
+
+    def test_x509_only_backend_no_error_page_401(self):
+        """Backends with only x509 auth should not redirect 401s."""
+        output = self._render(auth={"x509": "True"})
+        self.assertNotIn("error_page 401", output)
+
+    def test_no_auth_backend_no_error_page_401(self):
+        """Backends without any auth should not redirect 401s."""
+        output = self._render()
+        self.assertNotIn("error_page 401", output)
 
 
 class TestNginxConfigBuilder(unittest.TestCase):

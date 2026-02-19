@@ -1,4 +1,5 @@
 import base64
+import hashlib
 from http import HTTPStatus
 
 import requests
@@ -85,7 +86,8 @@ class RegistryAuthPlugin(TurnpikeAuthPlugin):
             return context
 
         # Check cache for previously authenticated user (5-minute TTL)
-        cache_key = f"registry_auth:{user}"
+        password_hash = hashlib.sha256(password.encode()).hexdigest()
+        cache_key = f"registry_auth:{user}:{password_hash}"
         cached_auth = cache.get(cache_key)
         if cached_auth:
             self.app.logger.debug(f"Registry auth cache hit for user: {user}")

@@ -27,11 +27,11 @@ class VPNPlugin(TurnpikePlugin):
         backend_name = context.backend["name"]
 
         # Determine whether the backend is VPN-restricted or not.
-        vpn_edge_host_header_required: bool = (self.vpn_config_key in context.backend) and (
+        is_backend_private: bool = (self.vpn_config_key in context.backend) and (
             context.backend.get(self.vpn_config_key) == True
         )
 
-        if not vpn_edge_host_header_required:
+        if not is_backend_private:
             self.app.logger.debug(
                 f'[backend: "{backend_name}"][{HeaderValidator.EDGE_HOST_HEADER}: "{edge_host}"] VPN plugin skipped. Backend is not VPN restricted'
             )

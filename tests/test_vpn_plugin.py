@@ -58,6 +58,34 @@ class TestVPNPlugin(TestCase):
         self.assertIsNone(result.status_code)
         self.assertIn("Skipping VPN plugin because the context does not have a back end", cm.output[0])
 
+    def test_skip_when_public_backend(self):
+        """Test taht the VPN plugin is skipped when backend is public / not vpn restricted"""
+        public_backend = copy.deepcopy(self.default_backend)
+        public_backend["private"] = False
+
+        vpn_plugin = self.setUpVPNPlugin(environment="stage", backend=public_backend)
+        context = PolicyContext()
+        context.backend = public_backend
+
+        request_mock = mock.Mock()
+        request_mock.headers = {HeaderValidator.EDGE_HOST_HEADER: "internal.console.stage.redhat.com"}
+
+        with (
+            self.assertLogs(vpn_plugin.app.logger.name, level="DEBUG") as cm,
+            mock.patch("turnpike.plugins.vpn.request", request_mock),
+        ):
+            # Call the function under test.
+            vpn_plugin.process(context)
+
+            # Assert that no status code is set in the context.
+            self.assertIsNone(context.status_code)
+
+            # Ensure that the correct logs were printed.
+            self.assertIn(
+                f'[backend: "{self.default_backend["name"]}"][{HeaderValidator.EDGE_HOST_HEADER}: "{request_mock.headers[HeaderValidator.EDGE_HOST_HEADER]}"] VPN plugin skipped. Backend is not VPN restricted',
+                cm.output[0],
+            )
+
     def test_private_backend_invalid_edge_host_header(self):
         """Tests that the plugin sets up a "forbidden" response when the "edge host" header is invalid for a VPN-required back end."""
         vpn_plugin = self.setUpVPNPlugin("stage")
@@ -130,35 +158,6 @@ class TestVPNPlugin(TestCase):
                 cm.output[0],
             )
 
-    def test_public_backend_non_private_edge_host_header(self):
-        """Tests that the plugin is skipped when there is a non-private "edge host" header and a public back end."""
-        # Make a copy of the default backend and set it as public.
-        public_backend = copy.deepcopy(self.default_backend)
-        public_backend["private"] = False
-
-        vpn_plugin = self.setUpVPNPlugin(environment="stage", backend=public_backend)
-        context = PolicyContext()
-        context.backend = public_backend
-
-        request_mock = mock.Mock()
-        request_mock.headers = {HeaderValidator.EDGE_HOST_HEADER: "internal.console.stage.redhat.com"}
-
-        with (
-            self.assertLogs(vpn_plugin.app.logger.name, level="DEBUG") as cm,
-            mock.patch("turnpike.plugins.vpn.request", request_mock),
-        ):
-            # Call the function under test.
-            vpn_plugin.process(context)
-
-            # Assert that no status code is set in the context.
-            self.assertIsNone(context.status_code)
-
-            # Ensure that the correct logs were printed.
-            self.assertIn(
-                f'[backend: "{self.default_backend["name"]}"][{HeaderValidator.EDGE_HOST_HEADER}: "{request_mock.headers[HeaderValidator.EDGE_HOST_HEADER]}"] VPN plugin skipped. Backend is not VPN restricted',
-                cm.output[0],
-            )
-
     def test_missing_edge_host_header_private_backend(self):
         """Tests that the plugin sets up a "forbidden" response when the request has no "edge host" header but the back end is private."""
         vpn_plugin = self.setUpVPNPlugin("stage")
@@ -181,34 +180,5 @@ class TestVPNPlugin(TestCase):
             # Ensure that the correct logs were printed.
             self.assertIn(
                 f'[backend: "{self.default_backend["name"]}"] Request denied. Missing mandatory "{HeaderValidator.EDGE_HOST_HEADER}" header for VPN restricted backend',
-                cm.output[0],
-            )
-
-    def test_missing_edge_host_header_public_backend(self):
-        """Tests that the plugin is skipped when the request does not have an "edge host" header for a public backend."""
-        # Make a copy of the default backend and set it as public.
-        public_backend = copy.deepcopy(self.default_backend)
-        public_backend["private"] = False
-
-        vpn_plugin = self.setUpVPNPlugin(environment="stage", backend=public_backend)
-        context = PolicyContext()
-        context.backend = public_backend
-
-        request_mock = mock.Mock()
-        request_mock.headers = {}
-
-        with (
-            self.assertLogs(vpn_plugin.app.logger.name, level="DEBUG") as cm,
-            mock.patch("turnpike.plugins.vpn.request", request_mock),
-        ):
-            # Call the function under test.
-            vpn_plugin.process(context)
-
-            # Assert that no status code is set in the context.
-            self.assertIsNone(context.status_code)
-
-            # Ensure that the correct logs were printed.
-            self.assertIn(
-                f'[backend: "{self.default_backend["name"]}"] VPN plugin skipped. Backend is not VPN restricted',
                 cm.output[0],
             )

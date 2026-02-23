@@ -59,7 +59,7 @@ class TestVPNPlugin(TestCase):
         self.assertIn("Skipping VPN plugin because the context does not have a back end", cm.output[0])
 
     def test_skip_when_public_backend(self):
-        """Test taht the VPN plugin is skipped when backend is public / not vpn restricted"""
+        """Test that the VPN plugin is skipped when backend is public / not vpn restricted"""
         public_backend = copy.deepcopy(self.default_backend)
         public_backend["private"] = False
 

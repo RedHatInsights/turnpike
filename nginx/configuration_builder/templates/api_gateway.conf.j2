@@ -49,8 +49,8 @@ server {
     }
     {% endfor %}
 
-    # Default error location for "401 - Unauthorized" responses.
-    error_page 401 = @error401;
+    # SAML login redirect handler for "401 - Unauthorized" responses.
+    # Only used by backends with SAML auth configured (via per-location error_page 401 directives).
     location @error401 {
         # Set up a couple of variables so that we redirect users to the
         # "internal" SAML login page by default.

@@ -26,6 +26,7 @@ RUN microdnf install --nodocs -y gcc xmlsec1 python3.11 python3.11-pip python3.1
 RUN python3.11 -m pip install --upgrade pip && \
     python3.11 -m pip install micropipenv && \
     python3.11 -m micropipenv install && \
+    microdnf update -y libarchive && \
     microdnf remove -y gcc
 
 COPY . /usr/src/app/

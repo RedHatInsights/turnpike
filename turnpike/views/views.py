@@ -1,7 +1,7 @@
 import base64
 import json
 
-from flask import current_app, request, make_response
+from flask import current_app, jsonify, request, make_response
 
 from turnpike.metrics import Metrics
 from turnpike.plugin import PolicyContext
@@ -39,9 +39,13 @@ def policy_view():
         if context.status_code:
             current_app.logger.debug(f"Plugin set status code {context.status_code}.")
             Metrics.request_count.labels(context.backend["name"], context.status_code).inc()
-            return make_response("", context.status_code, context.headers)
+            resp = make_response("", context.status_code)
+            resp.headers.update(context.headers)
+            return resp
     Metrics.request_count.labels(context.backend["name"], current_app.config["DEFAULT_RESPONSE_CODE"]).inc()
-    return make_response("", current_app.config["DEFAULT_RESPONSE_CODE"], context.headers)
+    resp = make_response("", current_app.config["DEFAULT_RESPONSE_CODE"])
+    resp.headers.update(context.headers)
+    return resp
 
 
 def identity():
@@ -52,7 +56,7 @@ def identity():
             response = {"error": f"Error decoding identity header: {e}"}
     else:
         response = {"error": "No x-rh-identity header found in the request."}
-    return make_response(response, 200)
+    return jsonify(response)
 
 
 def nginx_config_data():
@@ -75,7 +79,7 @@ def session():
         response = {"session": session_id}
     else:
         response = {"error": "No session cookie found in the request."}
-    return make_response(response, 200)
+    return jsonify(response)
 
 
 def match_by_backend_name(nginx_matched_backend):

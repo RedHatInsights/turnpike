@@ -8,7 +8,7 @@ pytest = "==9.0.3"
 pre-commit = "==4.5.1"
 black = "==26.3.1"
 mock = "*"
-mypy = "==1.20.0"
+mypy = "==1.20.2"
 types-pyyaml = "==6.0.12.20260408"
 types-requests = "==2.33.0.20260408"
 

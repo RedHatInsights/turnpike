@@ -203,6 +203,16 @@ See the docstrings on those classes for more details.
 You can check out the [service documentation][docs] in the `docs/` folder for more info.
 Such as how to access turnpike, acquire certs, etc.
 
+For AI-assisted development, see:
+
+- [AGENTS.md](AGENTS.md) — Agent onboarding: architecture, conventions, common pitfalls
+- [docs/security-guidelines.md](docs/security-guidelines.md) — Plugin chain invariants, secret management, header trust
+- [docs/performance-guidelines.md](docs/performance-guidelines.md) — Caching, timeouts, Redis patterns
+- [docs/error-handling-guidelines.md](docs/error-handling-guidelines.md) — Status codes, logging, startup validation
+- [docs/api-contracts-guidelines.md](docs/api-contracts-guidelines.md) — Endpoint inventory, headers, backend YAML schema
+- [docs/testing-guidelines.md](docs/testing-guidelines.md) — Test patterns, mocking conventions, CI
+- [docs/integration-guidelines.md](docs/integration-guidelines.md) — Outbound HTTP, OIDC/JWKS, nginx interop
+
 
 ## Testing
 To run local unit tests:

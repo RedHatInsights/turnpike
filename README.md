@@ -40,7 +40,7 @@ If you want to configure manually or understand what the script does, read on.
 
 ### Nginx Configuration
 
-In `services/nginx`, create the following files:
+In `nginx/`, create the following files:
 
 1. `certs/cert.pem` - The PEM encoded certificate for Nginx (can be the same as the web cert)
 2. `certs/key.pem` - The PEM encoded certificate for Nginx (can be the same as the web key)
@@ -56,7 +56,7 @@ As with any SAML SP configuration, you will need:
 2. The SSL certificate for your SAML Identity Provider (IdP)
 3. The configuration of your Identity Provider as exposed by their IdP metadata endpoint.
 
-Then in your copy of the Turnpike code, in `/saml` create the following files:
+Then in your copy of the Turnpike code, in `./saml` create the following files:
 
 1. `settings.json`- The metadata settings for the IdP and SP (an [example][settings-example])
 2. `advanced_settings.json` - Advanced SAML settings for the IdP and SP (an [example][adv-settings-example])
@@ -72,7 +72,7 @@ If you're looking to simply demo Turnpike or aren't ready to integrate with your
 SAML test integration services available at https://samltest.id
 
 You will also need to generate a TLS certificate for the hostname you're going to use to access your running development
-environment. In `/nginx/certs`, name the certificate as `cert.pem` and the private key as `key.pem`.
+environment. In `nginx/certs/`, name the certificate as `cert.pem` and the private key as `key.pem`.
 
 If you are deploying Turnpike in Kubernetes or OpenShift, you should mount these configuration files using a
 combination of ConfigMap and Secret resources mounted into your running pods.
@@ -125,8 +125,7 @@ rules.
 
 If a route has a key `auth`, then it will require authentication. *If the `auth` key is missing, the default is to forbid
 access unless the route resides under `/public/`* [(see best practices)][route-best-practice]. The `auth` key's value should be a set of key/value
-pairs representing supported authentication schemes and corresponding authorization rules. At this time, the only
-supported authentication schemes are `saml`, `x509`.
+pairs representing supported authentication schemes and corresponding authorization rules. The supported authentication schemes are `saml`, `x509`, `oidc`, and `registry`.
 
 The value associated with `saml` should be a Python expression that evaluates to `True` or `False`. The only variable
 in the expression is a dictionary `user` which contains the SAML assertion for the requesting user. If the assertion
@@ -206,6 +205,7 @@ Such as how to access turnpike, acquire certs, etc.
 For AI-assisted development, see:
 
 - [AGENTS.md](AGENTS.md) — Agent onboarding: architecture, conventions, common pitfalls
+- [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) — Design decisions and architectural rationale
 - [docs/security-guidelines.md](docs/security-guidelines.md) — Plugin chain invariants, secret management, header trust
 - [docs/performance-guidelines.md](docs/performance-guidelines.md) — Caching, timeouts, Redis patterns
 - [docs/error-handling-guidelines.md](docs/error-handling-guidelines.md) — Status codes, logging, startup validation

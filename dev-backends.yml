@@ -32,7 +32,7 @@
     saml: "True"
     x509: "True"
 - name: vpn_restricted_api
-  route: /public/vpn/echo/
+  route: /api/vpn/echo/
   private: true
   origin: http://echo-server.svc.cluster.local:8080/vpn/echo/
 - name: echo_server_api

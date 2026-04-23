@@ -107,6 +107,8 @@ following rules:
   authentication.
 * If you're exposing a web application with its own HTML interface for app `myapp`, your route should begin with
   `/app/myapp/` - these routes must require authentication.
+* If you're exposing a VPN-restricted route (`private: true`), it does not need to begin with `/public/`. VPN
+  restriction counts as an access control mechanism, so these routes can use any allowed prefix (e.g. `/api/`, `/app/`).
 * If you're exposing a route and really need it to require no authentication at all:
   * You probably should be exposing the route through 3scale. The Turnpike gateway is really for internal associates
     only.

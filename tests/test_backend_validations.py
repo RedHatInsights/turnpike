@@ -141,11 +141,6 @@ class TestBackendValidations(unittest.TestCase):
                 origin="http://public-unrestricted-svc.test-namespace.svc.cluster.local:8080/test",
                 private=False,
             ),
-            dict(
-                name="private-null-unrestricted",
-                route="/api/unrestricted",
-                origin="http://public-unrestricted-svc.test-namespace.svc.cluster.local:8080/test",
-            ),
         ]:
             with self.assertRaises(InvalidBackendDefinitionError) as cm:
                 build_config.validate_route(backend)

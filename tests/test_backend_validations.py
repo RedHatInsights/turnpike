@@ -12,7 +12,7 @@ from configuration_builder import build_config
 class TestBackendValidations(unittest.TestCase):
 
     def test_valid_backends(self):
-        """Tests that no errors are raised when the back ends are correctly defined, including those which only are restricted by a "source_ip"."""
+        """Tests that no errors are raised when the back ends are correctly defined, including those which only are restricted by a "source_ip" or "private" (VPN)."""
         for backend in [
             dict(
                 name="valid-test-1",
@@ -36,6 +36,12 @@ class TestBackendValidations(unittest.TestCase):
                 route="/public/restricted",
                 origin="http://public-restricted.svc.test-namespace.svc.cluster.local:8000/",
                 source_ip="10.0.0.0/24",
+            ),
+            dict(
+                name="valid-test-5-vpn",
+                route="/api/vpn/test",
+                origin="http://vpn-svc.test-namespace.svc.cluster.local:8080/api",
+                private=True,
             ),
         ]:
             try:
@@ -121,18 +127,25 @@ class TestBackendValidations(unittest.TestCase):
         )
 
     def test_restricted_public_routes(self):
-        """Tests that a back end which is not restricted by either "auth" or "source_ip" and that does not have the "public" segment in its route raises an exception."""
+        """Tests that a back end which is not restricted by "auth", "source_ip", or "private" and that does not have the "public" segment in its route raises an exception."""
 
-        backend = dict(
-            name="public-unrestricted",
-            route="/api/unrestricted",
-            origin="http://public-unrestricted-svc.test-namespace.svc.cluster.local:8080/test",
-        )
+        for backend in [
+            dict(
+                name="public-unrestricted",
+                route="/api/unrestricted",
+                origin="http://public-unrestricted-svc.test-namespace.svc.cluster.local:8080/test",
+            ),
+            dict(
+                name="private-false-unrestricted",
+                route="/api/unrestricted",
+                origin="http://public-unrestricted-svc.test-namespace.svc.cluster.local:8080/test",
+                private=False,
+            ),
+        ]:
+            with self.assertRaises(InvalidBackendDefinitionError) as cm:
+                build_config.validate_route(backend)
 
-        with self.assertRaises(InvalidBackendDefinitionError) as cm:
-            build_config.validate_route(backend)
-
-        self.assertEqual(
-            f'[backend_name: {backend["name"]}] The back end does not have either an "auth" or "source_ip" definitions, nor its route\'s first segment begins with the allowed public segments. Either add an access restriction mechanism, or modify the route so that it begins with one of the allowed public segments',
-            str(cm.exception),
-        )
+            self.assertEqual(
+                f'[backend_name: {backend["name"]}] The back end does not have an "auth", "source_ip", or "private" definition, nor does its route\'s first segment begin with the allowed public segments. Either add an access restriction mechanism, or modify the route so that it begins with one of the allowed public segments',
+                str(cm.exception),
+            )

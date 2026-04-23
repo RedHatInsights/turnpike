@@ -124,7 +124,7 @@ The substring matching of `route` and the rewriting to `origin` are the same as 
 rules.
 
 If a route has a key `auth`, then it will require authentication. *If the `auth` key is missing, the default is to forbid
-access unless the route resides under `/public/`* [(see best practices)][route-best-practice]. The `auth` key's value should be a set of key/value
+access unless the route resides under `/public/`* or the route is VPN restricted [(see best practices)][route-best-practice]. The `auth` key's value should be a set of key/value
 pairs representing supported authentication schemes and corresponding authorization rules. At this time, the only
 supported authentication schemes are `saml`, `x509`.
 

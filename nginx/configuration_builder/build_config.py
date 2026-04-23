@@ -62,12 +62,14 @@ def validate_route(backend):
             f"[backend_name: {name}][route: {route}] The back end's route is not part of the allowed routes"
         )
 
-    # Routes must have some sort of restriction like an "auth" block or a "source_ip" block. In the case that they do
+    # Routes must have some sort of restriction like an "auth" block or a "source_ip" block or "private" block. In the case that they do
     # not have those elements, the first segment of the path must always begin with the allowed "public" segments that
     # we have configured.
-    if ("auth" not in backend and "source_ip" not in backend) and (first_path_segment not in ALLOWED_NO_AUTH_ROUTES):
+    if ("auth" not in backend and "source_ip" not in backend and not backend.get("private", False)) and (
+        first_path_segment not in ALLOWED_NO_AUTH_ROUTES
+    ):
         raise InvalidBackendDefinitionError(
-            f'[backend_name: {name}] The back end does not have either an "auth" or "source_ip" definitions, nor its route\'s first segment begins with the allowed public segments. Either add an access restriction mechanism, or modify the route so that it begins with one of the allowed public segments'
+            f'[backend_name: {name}] The back end does not have an "auth", "source_ip", or "private" definition, nor does its route\'s first segment begin with the allowed public segments. Either add an access restriction mechanism, or modify the route so that it begins with one of the allowed public segments'
         )
 
 

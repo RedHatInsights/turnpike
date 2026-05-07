@@ -25,10 +25,6 @@ spec:
     value: quay.io/redhat-user-workloads/hcc-accessmanagement-tenant/turnpike-web:{{revision}}
   - name: dockerfile
     value: ./Dockerfile
-  - name: sast-target-dirs
-    type: string
-    default: .
-    description: Target directories to scan with SAST tools. Multiple values should be separated with commas.
   pipelineSpec:
     description: |
       This pipeline is ideal for building container images from a Containerfile while maintaining trust after pipeline customization.

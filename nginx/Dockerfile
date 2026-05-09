@@ -16,8 +16,7 @@ LABEL name="turnpike-nginx" \
 
 USER root
 # support running as an arbitrary user which belongs to the root group
-RUN microdnf module enable -y nginx:1.24 && \
-    microdnf install -y nginx python3.11 pip && \
+RUN microdnf install -y nginx pip && \
     pip3 install --no-cache-dir jinja2 pyyaml && \
     chmod g+rwx /var/log/nginx && \
     rm -rf /var/lib/dnf /var/cache/dnf

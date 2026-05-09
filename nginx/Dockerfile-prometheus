@@ -1,4 +1,4 @@
-FROM quay.io/hummingbird/python:3.11
+FROM quay.io/hummingbird/python:3.11-builder
 
 LABEL name="turnpike-nginx-prometheus" \
       summary="Red Hat Insights Turnpike Nginx Prometheus Exporter" \

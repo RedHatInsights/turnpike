@@ -1,4 +1,4 @@
-FROM quay.io/hummingbird/python:3.11
+FROM quay.io/hummingbird/python:3.11-builder
 
 LABEL name="turnpike" \
       summary="Red Hat Insights Turnpike Authentication Gateway" \
@@ -14,7 +14,8 @@ LABEL name="turnpike" \
       distribution-scope="private" \
       maintainer="platform-accessmanagement@redhat.com"
 
-ENV FLASK_RUN_HOST 0.0.0.0
+USER root
+ENV FLASK_RUN_HOST=0.0.0.0
 ENV BACKENDS_CONFIG_MAP=/etc/turnpike/backends.yml
 
 WORKDIR /usr/src/app

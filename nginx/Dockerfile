@@ -1,4 +1,4 @@
-FROM quay.io/hummingbird/python:3.11
+FROM quay.io/hummingbird/python:3.11-builder
 
 LABEL name="turnpike-nginx" \
       summary="Red Hat Insights Turnpike Nginx Proxy" \
@@ -14,6 +14,7 @@ LABEL name="turnpike-nginx" \
       distribution-scope="private" \
       maintainer="platform-accessmanagement@redhat.com"
 
+USER root
 # support running as an arbitrary user which belongs to the root group
 RUN microdnf module enable -y nginx:1.24 && \
     microdnf install -y nginx python3.11 pip && \

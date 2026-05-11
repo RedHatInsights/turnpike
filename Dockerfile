@@ -28,6 +28,13 @@ RUN python3.11 -m pip install --upgrade pip && \
     python3.11 -m micropipenv install && \
     microdnf remove -y gcc
 
+# TODO: Remove once base image includes Go 1.25.10
+ENV GO_VERSION=1.25.10
+RUN curl -fsSL "https://go.dev/dl/go${GO_VERSION}.linux-amd64.tar.gz" -o /tmp/go.tar.gz && \
+    rm -rf /usr/local/go && \
+    tar -C /usr/local -xzf /tmp/go.tar.gz && \
+    rm /tmp/go.tar.gz
+
 COPY . /usr/src/app/
 
 CMD ["./run-server.sh"]

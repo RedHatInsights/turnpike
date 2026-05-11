@@ -14,26 +14,19 @@ LABEL name="turnpike" \
       distribution-scope="private" \
       maintainer="platform-accessmanagement@redhat.com"
 
-ENV FLASK_RUN_HOST=0.0.0.0
+ENV FLASK_RUN_HOST 0.0.0.0
 ENV BACKENDS_CONFIG_MAP=/etc/turnpike/backends.yml
 
 WORKDIR /usr/src/app
 
 COPY Pipfile.lock /usr/src/app/
 
-RUN microdnf install --nodocs -y gcc xmlsec1 python3.11 python3.11-pip python3.11-devel xmlsec1-openssl openssl tar
+RUN microdnf install --nodocs -y gcc xmlsec1 python3.11 python3.11-pip python3.11-devel xmlsec1-openssl openssl
 
 RUN python3.11 -m pip install --upgrade pip && \
     python3.11 -m pip install micropipenv && \
     python3.11 -m micropipenv install && \
     microdnf remove -y gcc
-
-# TODO: Remove once base image includes Go 1.25.10
-ENV GO_VERSION=1.25.10
-RUN curl -fsSL "https://go.dev/dl/go${GO_VERSION}.linux-amd64.tar.gz" -o /tmp/go.tar.gz && \
-    rm -rf /usr/local/go && \
-    tar -C /usr/local -xzf /tmp/go.tar.gz && \
-    rm /tmp/go.tar.gz
 
 COPY . /usr/src/app/
 

@@ -9,8 +9,8 @@ pre-commit = "==4.6.0"
 black = "==26.5.0"
 mock = "*"
 mypy = "==2.1.0"
-types-pyyaml = "==6.0.12.20260510"
-types-requests = "==2.33.0.20260513"
+types-pyyaml = "==6.0.12.20260518"
+types-requests = "==2.33.0.20260518"
 
 [packages]
 py-healthcheck = "==1.10.1"

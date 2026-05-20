@@ -17,6 +17,10 @@ LABEL name="turnpike" \
 ENV FLASK_RUN_HOST 0.0.0.0
 ENV BACKENDS_CONFIG_MAP=/etc/turnpike/backends.yml
 
+# CVE remediation for base image vulnerabilities
+RUN microdnf update -y krb5-libs glib2 p11-kit p11-kit-trust systemd-libs libcap && \
+    microdnf clean all
+
 WORKDIR /usr/src/app
 
 COPY Pipfile.lock /usr/src/app/

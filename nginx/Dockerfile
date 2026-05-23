@@ -1,4 +1,4 @@
-FROM registry.access.redhat.com/ubi9/ubi-minimal:9.7-1778562320
+FROM registry.access.redhat.com/ubi9/ubi-minimal:9.8-1777460003
 
 LABEL name="turnpike-nginx" \
       summary="Red Hat Insights Turnpike Nginx Proxy" \

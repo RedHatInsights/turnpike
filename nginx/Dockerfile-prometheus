@@ -18,10 +18,6 @@ USER root
 
 ENV SCRAPE_URI=http://localhost:8080/stub_status
 
-# CVE remediation for base image vulnerabilities
-RUN microdnf update -y krb5-libs glib2 p11-kit p11-kit-trust systemd-libs libcap && \
-    microdnf clean all
-
 RUN microdnf install -y tar git-core make && \
     microdnf clean all
 

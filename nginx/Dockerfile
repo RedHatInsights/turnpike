@@ -14,10 +14,6 @@ LABEL name="turnpike-nginx" \
       distribution-scope="private" \
       maintainer="platform-accessmanagement@redhat.com"
 
-# CVE remediation for base image vulnerabilities
-RUN microdnf update -y krb5-libs glib2 p11-kit p11-kit-trust systemd-libs libcap && \
-    microdnf clean all
-
 # support running as an arbitrary user which belongs to the root group
 RUN microdnf module enable -y nginx:1.24 && \
     microdnf install -y nginx python3.11 pip && \

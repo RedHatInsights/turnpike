@@ -1,4 +1,4 @@
-FROM registry.access.redhat.com/ubi9/ubi-minimal:9.8-1779809423
+FROM registry.access.redhat.com/ubi9/ubi-minimal:9.8-1780378819
 
 LABEL name="turnpike-nginx-prometheus" \
       summary="Red Hat Insights Turnpike Nginx Prometheus Exporter" \
@@ -25,11 +25,15 @@ RUN microdnf update -y krb5-libs glib2 p11-kit p11-kit-trust systemd-libs libcap
 RUN microdnf install -y tar git-core make && \
     microdnf clean all
 
-RUN curl -fsSL https://go.dev/dl/go1.25.10.linux-amd64.tar.gz | tar -C /usr/local -xzf - && \
+# TODO: Remove go get overrides once nginx-prometheus-exporter releases with updated deps for golang.org/x/
+RUN curl -fsSL https://go.dev/dl/go1.26.4.linux-amd64.tar.gz | tar -C /usr/local -xzf - && \
     export PATH=$PATH:/usr/local/go/bin && \
     git clone --branch v1.5.1 https://github.com/nginxinc/nginx-prometheus-exporter && \
     cd nginx-prometheus-exporter && \
-    go get golang.org/x/crypto@v0.45.0 && \
+    go mod edit \
+        -replace golang.org/x/crypto=golang.org/x/crypto@v0.52.0 \
+        -replace golang.org/x/net=golang.org/x/net@v0.55.0 \
+        -replace golang.org/x/sys=golang.org/x/sys@v0.44.0 && \
     go mod tidy && \
     make && \
     chmod +x ./nginx-prometheus-exporter

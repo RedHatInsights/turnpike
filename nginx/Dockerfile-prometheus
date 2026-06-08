@@ -25,10 +25,14 @@ RUN microdnf update -y krb5-libs glib2 p11-kit p11-kit-trust systemd-libs libcap
 RUN microdnf install -y tar git-core make && \
     microdnf clean all
 
+# TODO: Remove go get overrides once nginx-prometheus-exporter releases with updated deps for golang.org/x/crypto/net/sys
 RUN curl -fsSL https://go.dev/dl/go1.26.4.linux-amd64.tar.gz | tar -C /usr/local -xzf - && \
     export PATH=$PATH:/usr/local/go/bin && \
     git clone --branch v1.5.1 https://github.com/nginxinc/nginx-prometheus-exporter && \
     cd nginx-prometheus-exporter && \
+    go get golang.org/x/crypto@v0.52.0 && \
+    go get golang.org/x/net@v0.55.0 && \
+    go get golang.org/x/sys@v0.44.0 && \
     go mod tidy && \
     make && \
     chmod +x ./nginx-prometheus-exporter

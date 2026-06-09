@@ -24,6 +24,15 @@ RUN microdnf module enable -y nginx:1.24 && \
 COPY . /etc/nginx
 RUN chgrp -R root /etc/nginx && chmod -R g+rwX /etc/nginx
 COPY turnpike-entrypoint.sh /turnpike-entrypoint.sh
+
+# Red Hat certification: include license
+RUN mkdir -p /licenses
+COPY LICENSE /licenses/LICENSE
+
 ENV BACKENDS_CONFIG_MAP=/etc/turnpike/backends.yml
+
+# Run as non-root user (nginx user ID 101)
+USER 101
+
 ENTRYPOINT ["/turnpike-entrypoint.sh"]
 CMD ["nginx", "-g", "daemon off;"]

@@ -31,8 +31,8 @@ COPY LICENSE /licenses/LICENSE
 
 ENV BACKENDS_CONFIG_MAP=/etc/turnpike/backends.yml
 
-# Run as non-root user (nginx user ID 101)
-USER 101
+# Run as non-root user for Red Hat certification compliance
+USER 1001
 
 ENTRYPOINT ["/turnpike-entrypoint.sh"]
 CMD ["nginx", "-g", "daemon off;"]

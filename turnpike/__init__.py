@@ -1,4 +1,7 @@
 import importlib
+import logging
+import os
+import warnings
 from logging.config import dictConfig
 
 from flask import Flask, Blueprint
@@ -19,7 +22,22 @@ from turnpike.views.saml.sls_view import SLSView
 from .views.saml.saml_settings_type import SAMLSettingsType
 
 
+def _resolve_log_level(config):
+    log_level_str = (config.get("LOG_LEVEL") if config else None) or os.environ.get("LOG_LEVEL")
+    if log_level_str:
+        level = getattr(logging, log_level_str.upper(), None)
+        if isinstance(level, int):
+            return log_level_str.upper()
+        warnings.warn(f"Invalid LOG_LEVEL '{log_level_str}', falling back to WEB_ENV-based default")
+
+    web_env = (config.get("WEB_ENV") if config else None) or os.environ.get("WEB_ENV", "dev")
+    if web_env.casefold() != "dev":
+        return "INFO"
+    return "DEBUG"
+
+
 def create_app(test_config=None):
+    log_level = _resolve_log_level(test_config)
     dictConfig(
         {
             "version": 1,
@@ -30,11 +48,11 @@ def create_app(test_config=None):
                 "wsgi": {
                     "class": "logging.StreamHandler",
                     "formatter": "default",
-                    "level": "DEBUG",
+                    "level": log_level,
                     "stream": "ext://flask.logging.wsgi_errors_stream",
                 }
             },
-            "root": {"level": "DEBUG", "handlers": ["wsgi"]},
+            "root": {"level": log_level, "handlers": ["wsgi"]},
         }
     )
 

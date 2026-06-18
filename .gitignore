@@ -1,9 +1,12 @@
 *.pyc
 .DS_Store
 .env
+.env.dev
 .idea
 dev-config.py
 nginx/certs/
 /saml/
 turnpike/saml/
 local/
+.claude/
+sova.toml

@@ -30,4 +30,12 @@ RUN python3.11 -m pip install --upgrade pip && \
 
 COPY . /usr/src/app/
 
+# Red Hat certification: include license
+RUN mkdir -p /licenses
+COPY LICENSE /licenses/LICENSE
+
+# Run as non-root user for Red Hat certification compliance
+RUN chown -R 1001:0 /usr/src/app && chmod -R g=u /usr/src/app
+USER 1001
+
 CMD ["./run-server.sh"]

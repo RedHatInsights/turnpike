@@ -36,4 +36,15 @@ RUN curl -fsSL https://go.dev/dl/go1.26.4.linux-amd64.tar.gz | tar -C /usr/local
 
 WORKDIR /nginx-prometheus-exporter
 
+# Copy license file to /licenses for Red Hat certification compliance
+RUN mkdir -p /licenses && \
+    cp LICENSE /licenses/LICENSE
+
+# Create non-root user for Red Hat certification compliance
+RUN useradd -r -u 1001 -g 0 exporter && \
+    chown -R 1001:0 /nginx-prometheus-exporter && \
+    chmod -R g=u /nginx-prometheus-exporter
+
+USER 1001
+
 CMD ./nginx-prometheus-exporter --nginx.scrape-uri $SCRAPE_URI

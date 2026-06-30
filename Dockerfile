@@ -1,4 +1,4 @@
-FROM registry.access.redhat.com/ubi9/ubi-minimal:9.8-1781496742
+FROM registry.access.redhat.com/ubi9/ubi-minimal:9.8-1782797275
 
 LABEL name="turnpike" \
       summary="Red Hat Insights Turnpike Authentication Gateway" \

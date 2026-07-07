@@ -1,4 +1,6 @@
-FROM registry.access.redhat.com/ubi9/ubi-minimal:9.8-1782797275
+FROM registry.access.redhat.com/hi/core-runtime:2.42-openssl-fips-builder
+
+USER root
 
 LABEL name="turnpike-nginx" \
       summary="Red Hat Insights Turnpike Nginx Proxy" \
@@ -15,8 +17,7 @@ LABEL name="turnpike-nginx" \
       maintainer="platform-accessmanagement@redhat.com"
 
 # support running as an arbitrary user which belongs to the root group
-RUN microdnf module enable -y nginx:1.24 && \
-    microdnf install -y nginx python3.11 pip && \
+RUN microdnf install -y nginx python3.11 pip && \
     pip3 install --no-cache-dir jinja2 pyyaml && \
     chmod g+rwx /var/log/nginx && \
     rm -rf /var/lib/dnf /var/cache/dnf
@@ -24,6 +25,9 @@ RUN microdnf module enable -y nginx:1.24 && \
 COPY . /etc/nginx
 RUN chgrp -R root /etc/nginx && chmod -R g+rwX /etc/nginx
 COPY turnpike-entrypoint.sh /turnpike-entrypoint.sh
+
+USER ${CONTAINER_DEFAULT_USER}
+
 ENV BACKENDS_CONFIG_MAP=/etc/turnpike/backends.yml
 ENTRYPOINT ["/turnpike-entrypoint.sh"]
 CMD ["nginx", "-g", "daemon off;"]

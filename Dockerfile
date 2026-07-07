@@ -1,4 +1,15 @@
-FROM registry.access.redhat.com/ubi9/ubi-minimal:9.8-1782797275
+# Build stage
+FROM registry.access.redhat.com/hi/python:3.11-fips-builder AS builder
+USER root
+RUN dnf install -y xmlsec1 xmlsec1-openssl openssl && dnf clean all
+WORKDIR /usr/src/app
+COPY Pipfile.lock .
+RUN pip install --no-cache-dir --upgrade pip micropipenv && micropipenv install
+COPY . .
+USER ${CONTAINER_DEFAULT_USER}
+
+# Runtime stage
+FROM registry.access.redhat.com/hi/python:3.11-fips
 
 LABEL name="turnpike" \
       summary="Red Hat Insights Turnpike Authentication Gateway" \
@@ -14,20 +25,12 @@ LABEL name="turnpike" \
       distribution-scope="private" \
       maintainer="platform-accessmanagement@redhat.com"
 
-ENV FLASK_RUN_HOST 0.0.0.0
+ENV FLASK_RUN_HOST=0.0.0.0
 ENV BACKENDS_CONFIG_MAP=/etc/turnpike/backends.yml
 
 WORKDIR /usr/src/app
 
-COPY Pipfile.lock /usr/src/app/
-
-RUN microdnf install --nodocs -y gcc xmlsec1 python3.11 python3.11-pip python3.11-devel xmlsec1-openssl openssl
-
-RUN python3.11 -m pip install --upgrade pip && \
-    python3.11 -m pip install micropipenv && \
-    python3.11 -m micropipenv install && \
-    microdnf remove -y gcc
-
-COPY . /usr/src/app/
+COPY --from=builder /usr/local/lib/python3.11/site-packages /usr/local/lib/python3.11/site-packages
+COPY --from=builder /usr/src/app /usr/src/app
 
 CMD ["./run-server.sh"]

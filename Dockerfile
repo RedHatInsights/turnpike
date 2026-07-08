@@ -33,4 +33,4 @@ WORKDIR /usr/src/app
 COPY --from=builder /usr/local/lib/python3.11/site-packages /usr/local/lib/python3.11/site-packages
 COPY --from=builder /usr/src/app /usr/src/app
 
-CMD ["python", "-m", "gunicorn", "-w", "4", "-b", "0.0.0.0:5000", "turnpike:create_app()"]
+CMD ["python3", "-m", "gunicorn", "-w", "4", "-b", "0.0.0.0:5000", "turnpike:create_app()"]

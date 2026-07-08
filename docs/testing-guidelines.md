@@ -132,6 +132,7 @@ Use `self.assertLogs(logger_name, level=...)` as a context manager to verify log
 | `test_alternative_gateway_secret.py` | Alternative CDN pre-shared key acceptance |
 | `test_backend_validations.py` | Nginx config builder route/origin validation |
 | `test_nginx_config_builder.py` | Nginx location template rendering and file write order |
+| `test_logging_config.py` | Log level configuration (LOG_LEVEL override, WEB_ENV-based defaults) |
 | `test_app.py` | Placeholder (single `pass` test) |
 
 ## sys.path Adjustments

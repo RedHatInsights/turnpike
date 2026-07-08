@@ -8,6 +8,7 @@ pipenv install --dev
 
 # Install pre-commit hooks (run once after clone)
 pre-commit install
+pre-commit install --hook-type commit-msg
 
 # Run tests (from repo root)
 pytest tests/
@@ -24,7 +25,7 @@ FLASK_ENV=development ./run-server.sh
 
 ## Pre-commit Hooks
 
-Hooks run automatically on `git commit`: black (line length 119, py311), trailing-whitespace, end-of-file-fixer, debug-statements, mypy. CI re-runs them via GitHub Actions on every PR. Fix all hook failures before pushing.
+Hooks run automatically on `git commit`: black (line length 119, py311), trailing-whitespace, end-of-file-fixer, debug-statements, mypy, no-ai-coauthor (commit-msg stage). CI re-runs them via GitHub Actions on every PR. Fix all hook failures before pushing.
 
 ## CI (Konflux PR Check)
 

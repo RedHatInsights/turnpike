@@ -33,4 +33,4 @@ WORKDIR /usr/src/app
 COPY --from=builder /usr/local/lib/python3.11/site-packages /usr/local/lib/python3.11/site-packages
 COPY --from=builder /usr/src/app /usr/src/app
 
-CMD ["/bin/bash", "./run-server.sh"]
+CMD ["/bin/sh", "./run-server.sh"]

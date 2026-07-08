@@ -9,7 +9,7 @@ COPY . .
 USER ${CONTAINER_DEFAULT_USER}
 
 # Runtime stage
-FROM registry.access.redhat.com/hi/python:3.11-fips-builder
+FROM registry.access.redhat.com/hi/python:3.11-fips
 
 LABEL name="turnpike" \
       summary="Red Hat Insights Turnpike Authentication Gateway" \
@@ -33,4 +33,4 @@ WORKDIR /usr/src/app
 COPY --from=builder /usr/local/lib/python3.11/site-packages /usr/local/lib/python3.11/site-packages
 COPY --from=builder /usr/src/app /usr/src/app
 
-CMD ["/bin/sh", "./run-server.sh"]
+CMD ["gunicorn", "-w", "4", "-b", "0.0.0.0:5000", "turnpike:create_app()"]

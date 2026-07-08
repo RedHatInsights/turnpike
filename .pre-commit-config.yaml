@@ -20,3 +20,11 @@ repos:
     additional_dependencies:
     - types-PyYAML
     - types-requests
+- repo: local
+  hooks:
+  - id: no-ai-coauthor
+    name: no-ai-coauthor
+    entry: invariants/commit-msg-no-ai-coauthor.sh
+    language: script
+    stages: [commit-msg]
+    always_run: true

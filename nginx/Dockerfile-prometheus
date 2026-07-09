@@ -23,7 +23,7 @@ RUN microdnf install -y tar gzip git-core make && \
 
 WORKDIR /
 
-RUN curl -fsSL https://go.dev/dl/go1.26.4.linux-amd64.tar.gz | tar -C /usr/local -xzf - && \
+RUN curl -fsSL https://go.dev/dl/go1.26.5.linux-amd64.tar.gz | tar -C /usr/local -xzf - && \
     export PATH=$PATH:/usr/local/go/bin && \
     git clone --branch v1.5.1 https://github.com/nginxinc/nginx-prometheus-exporter && \
     cd nginx-prometheus-exporter && \

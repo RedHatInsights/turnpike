@@ -9,7 +9,7 @@ micropipenv install
 
 # #Run black/lint command
 python3 -m pip install black==26.1.0
-if ! (black --check -l 119 -t py311 /var/workdir --diff); then
+if ! (black --check -l 119 -t py312 /var/workdir --diff); then
     echo "black formatter encountered an issue"
     exit 1
 fi

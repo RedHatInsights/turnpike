@@ -47,8 +47,8 @@ scripts/                   # Dev convenience scripts
 
 ## Code Style and Formatting
 
-- **Python 3.11** is the target runtime.
-- **black** enforces formatting: line length 119, target py311 (`black -l 119 -t py311`).
+- **Python 3.12** is the target runtime.
+- **black** enforces formatting: line length 119, target py312 (`black -l 119 -t py312`).
 - **mypy** runs with `ignore_missing_imports = True` (see `mypy.ini`).
 - **Pre-commit hooks**: black, trailing-whitespace, end-of-file-fixer, debug-statements, mypy. Install with `pre-commit install`.
 - Dependencies: **Pipfile/Pipfile.lock** (pipenv). Most packages are pinned exactly. Container build uses `micropipenv`.

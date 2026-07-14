@@ -13,7 +13,7 @@ pytest tests/test_oidc_plugin.py
 pytest tests/test_oidc_plugin.py::TestMatchingBackends::test_missing_bearer_token
 ```
 
-CI runs tests via `konflux-pr-check.sh` on Python 3.11 using `pytest`. Pre-commit hooks (black, mypy, trailing-whitespace, end-of-file-fixer, debug-statements) run separately in GitHub Actions.
+CI runs tests via `konflux-pr-check.sh` on Python 3.12 using `pytest`. Pre-commit hooks (black, mypy, trailing-whitespace, end-of-file-fixer, debug-statements) run separately in GitHub Actions.
 
 ## Test Framework and Style
 
@@ -145,7 +145,7 @@ Tests must be run from the repository root directory for these relative paths to
 
 ## Formatting and Linting
 
-- **black**: line length 119, target Python 3.11 (`black -l 119 -t py311`).
+- **black**: line length 119, target Python 3.12 (`black -l 119 -t py312`).
 - **mypy**: configured in `mypy.ini` with `ignore_missing_imports = True`.
 - Pre-commit hooks enforce both. CI in `konflux-pr-check.sh` also runs black as a gate.
 

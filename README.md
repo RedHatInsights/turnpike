@@ -222,7 +222,7 @@ To run local unit tests:
 pipenv --rm
 
 # shell into venv
-pipenv shell --python python3.11
+pipenv shell --python python3.12
 
 # install deps
 pipenv sync --dev

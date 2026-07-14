@@ -17,7 +17,7 @@ LABEL name="turnpike-nginx" \
       maintainer="platform-accessmanagement@redhat.com"
 
 # support running as an arbitrary user which belongs to the root group
-RUN microdnf install -y nginx python3.11 pip && \
+RUN microdnf install -y nginx python3.12 pip && \
     pip3 install --no-cache-dir jinja2 pyyaml && \
     chmod g+rwx /var/log/nginx && \
     rm -rf /var/lib/dnf /var/cache/dnf

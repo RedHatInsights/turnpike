@@ -14,7 +14,7 @@ pre-commit install
 1. Branch from `master`.
 2. Make your changes.
 3. Run tests: `pytest tests/` (must run from the repo root).
-4. Fix any formatting issues: `black -l 119 -t py311 .`
+4. Fix any formatting issues: `black -l 119 -t py312 .`
 5. Fix any type errors: `mypy turnpike/`
 6. Pre-commit hooks run automatically on `git commit` and enforce all of the above.
 7. Open a pull request against `master`.
@@ -22,7 +22,7 @@ pre-commit install
 ## CI checks
 
 The `turnpike-web` Konflux pipeline runs on every PR and must pass before merging:
-- `black --check` (line length 119, Python 3.11 target)
+- `black --check` (line length 119, Python 3.12 target)
 - `pytest tests/`
 
 GitHub Actions additionally run pre-commit hooks, JSON/YAML validation, and a security image scan (Anchore Grype + Syft SBOM) on pushes to `master`.

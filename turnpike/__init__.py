@@ -14,6 +14,7 @@ from werkzeug.middleware.proxy_fix import ProxyFix
 from . import plugin
 from .views import views
 from .cache import cache
+from .security_logging import log_security_event
 from turnpike.views.saml.acs_view import ACSView
 from turnpike.views.saml.login_view import LoginView
 from turnpike.views.saml.metadata_view import MetadataView
@@ -41,6 +42,7 @@ def create_app(test_config=None):
     dictConfig(
         {
             "version": 1,
+            "disable_existing_loggers": False,
             "formatters": {
                 "default": {"format": "{levelname} {asctime} {module} {process:d} {thread:d} {message}", "style": "{"}
             },
@@ -138,6 +140,9 @@ def create_app(test_config=None):
     app.add_url_rule("/auth/", view_func=views.policy_view)
     app.add_url_rule("/api/turnpike/identity/", view_func=views.identity)
     app.add_url_rule("/api/turnpike/session/", view_func=views.session)
+
+    log_security_event("APP_STARTUP", plugin_chain=[p.__class__.__name__ for p in chain_objs])
+
     return app
 
 

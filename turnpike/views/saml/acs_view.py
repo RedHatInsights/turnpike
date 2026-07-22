@@ -5,6 +5,7 @@ from onelogin.saml2.utils import OneLogin_Saml2_Utils
 
 from turnpike.views.saml.generic_saml_view import GenericSAMLView
 from turnpike.views.saml.saml_context import SAMLContext
+from turnpike.security_logging import log_security_event
 
 
 class ACSView(GenericSAMLView):
@@ -29,6 +30,12 @@ class ACSView(GenericSAMLView):
             session["samlUserdata"] = saml_context.saml_authentication.get_attributes()
             session["samlSessionIndex"] = saml_context.saml_authentication.get_session_index()
 
+            saml_attrs = session["samlUserdata"]
+            log_security_event(
+                "SAML_LOGIN",
+                principal=saml_attrs.get("urn:oid:0.9.2342.19200300.100.1.1", ["unknown"])[0],
+            )
+
             # Obtain this view's URI, and make sure that the relay state, or
             # the original URL the user specified, are different, in order to
             # avoid any infinite redirection loops.
@@ -45,6 +52,7 @@ class ACSView(GenericSAMLView):
                 error_reason = saml_context.saml_authentication.get_last_error_reason()
             else:
                 error_reason = ""
+            log_security_event("SAML_LOGIN_FAILURE", status_code=500)
             resp = make_response(error_reason, HTTPStatus.INTERNAL_SERVER_ERROR)
             resp.headers["Content-Type"] = "text/plain"
             return resp

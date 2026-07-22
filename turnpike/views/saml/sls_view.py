@@ -5,6 +5,7 @@ from flask import session, redirect, make_response
 
 from turnpike.views.saml.generic_saml_view import GenericSAMLView
 from turnpike.views.saml.saml_context import SAMLContext
+from turnpike.security_logging import log_security_event
 
 
 class SLSView(GenericSAMLView):
@@ -18,6 +19,11 @@ class SLSView(GenericSAMLView):
         if "LogoutRequestID" in session:
             request_id = session["LogoutRequestID"]
 
+        saml_userdata = session.get("samlUserdata", {})
+        principal = (
+            saml_userdata.get("urn:oid:0.9.2342.19200300.100.1.1", ["unknown"])[0] if saml_userdata else "unknown"
+        )
+
         # Trigger the logout which clears everything both from the utility and
         # the Flask application.
         url: Optional[str] = saml_context.saml_authentication.process_slo(
@@ -26,6 +32,7 @@ class SLSView(GenericSAMLView):
 
         errors = saml_context.saml_authentication.get_errors()
         if not errors:
+            log_security_event("SAML_LOGOUT", principal=principal)
             if url is not None:
                 return redirect(url)
             else:

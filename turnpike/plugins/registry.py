@@ -7,6 +7,7 @@ from flask import request
 
 from turnpike import cache
 from ..plugin import TurnpikeAuthPlugin
+from turnpike.security_logging import log_security_event
 
 
 class RegistryAuthPlugin(TurnpikeAuthPlugin):
@@ -82,6 +83,7 @@ class RegistryAuthPlugin(TurnpikeAuthPlugin):
         user, password = self._decode_basic_auth(authorization)
         if user is None:
             self.app.logger.warning("Registry auth failed: malformed Basic Auth credentials")
+            log_security_event("AUTH_FAILURE", auth_method="registry", reason="malformed_credentials")
             context.status_code = HTTPStatus.UNAUTHORIZED
             return context
 
@@ -103,11 +105,13 @@ class RegistryAuthPlugin(TurnpikeAuthPlugin):
                 )
             except Exception as e:
                 self.app.logger.error(f"Registry authentication request failed: {e}")
+                log_security_event("AUTH_FAILURE", principal=user, auth_method="registry", reason="request_error")
                 context.status_code = HTTPStatus.UNAUTHORIZED
                 return context
 
             if res.status_code != HTTPStatus.OK:
                 self.app.logger.warning(f"Registry authentication returned status {res.status_code}")
+                log_security_event("AUTH_FAILURE", principal=user, auth_method="registry", reason="registry_rejected")
                 context.status_code = HTTPStatus.UNAUTHORIZED
                 return context
 
@@ -116,16 +120,19 @@ class RegistryAuthPlugin(TurnpikeAuthPlugin):
                 pull_access = body["access"]["pull"]
             except Exception:
                 self.app.logger.warning("Registry authentication returned invalid response body")
+                log_security_event("AUTH_FAILURE", principal=user, auth_method="registry", reason="invalid_response")
                 context.status_code = HTTPStatus.UNAUTHORIZED
                 return context
 
             if pull_access != "granted":
                 self.app.logger.warning("Registry authentication failed: pull access not granted")
+                log_security_event("AUTH_FAILURE", principal=user, auth_method="registry", reason="pull_access_denied")
                 context.status_code = HTTPStatus.UNAUTHORIZED
                 return context
 
             cache.set(key=cache_key, value=True, timeout=self.cache_ttl)
             self.app.logger.debug(f"Registry auth cached for user: {user}")
+            log_security_event("LOGIN", principal=user, auth_method="registry")
 
         org_id, username = self._parse_registry_user(user)
 

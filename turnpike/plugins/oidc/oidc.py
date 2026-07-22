@@ -14,6 +14,7 @@ from requests import Response
 from turnpike import cache
 from turnpike.plugin import TurnpikeAuthPlugin
 from turnpike.plugins.oidc.unable_create_keyset_error import UnableCreateKeysetError
+from turnpike.security_logging import log_security_event
 
 
 class OIDCAuthPlugin(TurnpikeAuthPlugin):
@@ -122,6 +123,7 @@ class OIDCAuthPlugin(TurnpikeAuthPlugin):
             key_set: KeySet = self._get_jwks_keyset()
         except UnableCreateKeysetError as e:
             self.app.logger.error(f"Unable to generate the keyset to verify the incoming token: {e}")
+            log_security_event("AUTH_FAILURE", auth_method="oidc", reason="keyset_error")
 
             context.status_code = http.HTTPStatus.INTERNAL_SERVER_ERROR
             return context
@@ -132,6 +134,7 @@ class OIDCAuthPlugin(TurnpikeAuthPlugin):
             token: Token = jwt.decode(value=bearer_token.removeprefix("Bearer "), key=key_set)
         except Exception as e:
             self.app.logger.warning("Unable to decode token: %s", str(e))
+            log_security_event("AUTH_FAILURE", auth_method="oidc", reason="token_decode_error")
 
             context.status_code = http.HTTPStatus.UNAUTHORIZED
             return context
@@ -139,6 +142,7 @@ class OIDCAuthPlugin(TurnpikeAuthPlugin):
         token_client_id: Optional[str] = token.claims.get("clientId")
         if not token_client_id:
             self.app.logger.debug(f'The received token does not contain the "clientId" claim')
+            log_security_event("AUTH_FAILURE", auth_method="oidc", reason="missing_client_id")
 
             context.status_code = http.HTTPStatus.UNAUTHORIZED
             return context
@@ -157,6 +161,9 @@ class OIDCAuthPlugin(TurnpikeAuthPlugin):
         if not target_sa:
             self.app.logger.debug(
                 f'The client ID "{token_client_id}" from the JWT is not present in the authorized service accounts for the back end'
+            )
+            log_security_event(
+                "AUTH_FAILURE", principal=token_client_id, auth_method="oidc", reason="unknown_client_id"
             )
 
             context.status_code = http.HTTPStatus.UNAUTHORIZED
@@ -181,6 +188,9 @@ class OIDCAuthPlugin(TurnpikeAuthPlugin):
                     self.app.logger.debug(
                         f'The request is denied because the expected scope "{expected_scope}" was not found in the incoming token\'s scopes "{token_scopes}" with client id "{token_client_id}'
                     )
+                    log_security_event(
+                        "AUTH_FAILURE", principal=token_client_id, auth_method="oidc", reason="missing_scope"
+                    )
 
                     context.status_code = http.HTTPStatus.UNAUTHORIZED
                     return context
@@ -193,6 +203,7 @@ class OIDCAuthPlugin(TurnpikeAuthPlugin):
             claim_requests.validate(token.claims)
         except Exception as e:
             self.app.logger.debug(f'The claims for the token with client ID "{token_client_id}" are invalid: {e}')
+            log_security_event("AUTH_FAILURE", principal=token_client_id, auth_method="oidc", reason="invalid_claims")
 
             context.status_code = http.HTTPStatus.UNAUTHORIZED
             return context

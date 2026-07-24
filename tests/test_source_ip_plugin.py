@@ -2,6 +2,8 @@ import http
 import uuid
 from unittest import TestCase, mock
 
+import flask
+
 from turnpike import create_app
 from turnpike.plugin import PolicyContext
 from turnpike.plugins.source_ip import SourceIPPlugin
@@ -14,7 +16,7 @@ class TestSourceIPPlugin(TestCase):
         "source_ip": ["10.0.0.0/8"],
     }
 
-    def setUpSourceIPPlugin(self, hops_to_edge: int = 0) -> tuple[SourceIPPlugin, "flask.Flask"]:
+    def setUpSourceIPPlugin(self, hops_to_edge: int = 0) -> tuple[SourceIPPlugin, flask.Flask]:
         test_config = {
             "APP_NAME": uuid.uuid4().__str__(),
             "AUTH_DEBUG": True,

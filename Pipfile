@@ -27,6 +27,7 @@ redis = "==8.0.1"
 joserfc = "*"
 requests = "*"
 flask-caching = "*"
+cryptography = ">=50.0.0"
 
 [requires]
 python_version = "3.12"

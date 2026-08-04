@@ -118,4 +118,4 @@ The nginx config builder retries the Flask service URL in a loop (`while not res
 
 ## Authorization Predicate Errors
 
-Backend auth predicates are evaluated via `eval(predicate, dict(...))`. If the predicate raises an exception, it propagates unhandled -- there is no try/except around `eval()` calls in `SAMLAuthPlugin`, `X509AuthPlugin`, or `RegistryAuthPlugin`. Predicate expressions must be valid Python that evaluates to a truthy/falsy value given the provided context dict.
+Backend auth predicates are evaluated via `safe_eval()` from `turnpike.safe_eval`. The `safe_eval()` function validates the predicate AST against an allowlist before evaluation, and wraps all execution in try/except -- any parse error, unsafe expression, or runtime exception causes the predicate to fail closed (return `False`) and log the error. Predicate expressions must be valid Python that evaluates to a truthy/falsy value given the provided context dict.

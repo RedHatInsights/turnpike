@@ -6,6 +6,7 @@ import requests
 from flask import request
 
 from turnpike import cache
+from turnpike.safe_eval import safe_eval
 from ..plugin import TurnpikeAuthPlugin
 
 
@@ -133,7 +134,7 @@ class RegistryAuthPlugin(TurnpikeAuthPlugin):
         context.auth = dict(auth_data=auth_data, auth_plugin=self)
 
         predicate = backend_auth["registry"]
-        authorized = eval(predicate, dict(registry=auth_data))
+        authorized = safe_eval(predicate, dict(registry=auth_data), backend_name=context.backend.get("name"))
         if not authorized:
             context.status_code = HTTPStatus.FORBIDDEN
 

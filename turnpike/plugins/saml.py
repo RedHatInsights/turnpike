@@ -1,5 +1,7 @@
 from flask import current_app, session
 
+from turnpike.safe_eval import safe_eval
+
 from ..plugin import TurnpikeAuthPlugin
 
 
@@ -29,7 +31,7 @@ class SAMLAuthPlugin(TurnpikeAuthPlugin):
             )
 
             predicate = backend_auth["saml"]
-            authorized = eval(predicate, dict(user=auth_dict))
+            authorized = safe_eval(predicate, dict(user=auth_dict), backend_name=context.backend.get("name"))
             if not authorized:
                 context.status_code = 403
 

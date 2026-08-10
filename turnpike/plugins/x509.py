@@ -1,6 +1,8 @@
 import logging
 from flask import request
 
+from turnpike.safe_eval import safe_eval
+
 from ..plugin import TurnpikeAuthPlugin
 
 
@@ -56,7 +58,7 @@ class X509AuthPlugin(TurnpikeAuthPlugin):
             self.app.logger.debug(f"X509 auth_data: {auth_data}")
             context.auth = dict(auth_data=auth_data, auth_plugin=self)
             predicate = backend_auth["x509"]
-            authorized = eval(predicate, dict(x509=auth_data))
+            authorized = safe_eval(predicate, dict(x509=auth_data), backend_name=context.backend.get("name"))
             if not authorized:
                 context.status_code = 403
         return context

@@ -16,10 +16,10 @@ Rules and conventions for contributing to Turnpike, the nginx `auth_request` pol
 7. When the entire auth plugin chain completes without authenticating, `AuthPlugin` returns 401. Individual auth plugins should return the context unmodified (not set 401) when they simply do not apply -- the fallback handles the denial.
 8. `PolicyContext.headers` is a mutable dict shared across all plugins. Only add headers you intend the upstream to see. The `X-RH-Identity` header is constructed by `RHIdentityPlugin` and forwarded via nginx `auth_request_set` directives.
 
-## Authorization Predicates (eval)
+## Authorization Predicates (safe_eval)
 
-9. The `saml`, `x509`, and `registry` auth plugins use `eval()` to evaluate backend authorization predicates from the YAML config. The predicate string (e.g., `'x509["subject_dn"].startswith("/CN=allowed")'`) is executed with a restricted namespace containing only the auth data dict. **Never** allow user-controlled input to flow into these predicates. They are trusted configuration, not request data.
-10. OIDC backends do **not** use `eval()`. Authorization is determined by matching `clientId` and `scopes` from the JWT against the backend's `serviceAccounts` list.
+9. The `saml`, `x509`, and `registry` auth plugins use `safe_eval()` (from `turnpike.safe_eval`) to evaluate backend authorization predicates from the YAML config. The predicate string (e.g., `'x509["subject_dn"].startswith("/CN=allowed")'`) is first validated via an AST allowlist, then executed with restricted builtins and only the auth data dict. Unsafe expressions are rejected and the predicate fails closed (returns `False`). **Never** allow user-controlled input to flow into these predicates. They are trusted configuration, not request data.
+10. OIDC backends do **not** use predicate evaluation. Authorization is determined by matching `clientId` and `scopes` from the JWT against the backend's `serviceAccounts` list.
 
 ## OIDC / JWT Authentication
 

@@ -50,7 +50,7 @@ The backends YAML (`/etc/turnpike/backends.yml`) is the single source of truth f
 
 **OIDC HTTP calls have no timeout.** `OIDCAuthPlugin` makes two `requests.get()` calls with no explicit `timeout`. A hanging SSO server blocks a Gunicorn worker indefinitely. The registry plugin correctly sets `timeout=self.request_timeout`. This gap has been documented but not fixed.
 
-**Authorization predicates use `eval()`.** SAML, X.509, and registry auth plugins evaluate Python expressions from backends YAML via `eval()`. Safe only because predicates come from trusted configuration (app-interface MRs), never user input. An `eval()` error in a predicate propagates unhandled.
+**Authorization predicates use `safe_eval()`.** SAML, X.509, and registry auth plugins evaluate Python expressions from backends YAML via `safe_eval()` (in `turnpike/safe_eval.py`). Predicates are validated against an AST allowlist before execution with restricted builtins. Unsafe expressions and runtime errors fail closed (return `False`). Predicates come from trusted configuration (app-interface MRs), never user input.
 
 **No graceful JWKS key rotation detection.** JWKS certificates are cached for 24 hours. If SSO rotates keys, JWTs signed with the new key fail validation until the cache expires.
 

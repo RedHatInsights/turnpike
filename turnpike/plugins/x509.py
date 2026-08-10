@@ -1,3 +1,4 @@
+import hmac
 import logging
 from flask import request
 
@@ -40,7 +41,18 @@ class X509AuthPlugin(TurnpikeAuthPlugin):
 
         request_secret = request.headers[self.cdn_psk]
 
-        return request_secret == self.cdn_preshared_key or request_secret == self.cdn_preshared_key_alt
+        primary_match = (
+            hmac.compare_digest(request_secret, self.cdn_preshared_key)
+            if self.cdn_preshared_key is not None
+            else False
+        )
+        alt_match = (
+            hmac.compare_digest(request_secret, self.cdn_preshared_key_alt)
+            if self.cdn_preshared_key_alt is not None
+            else False
+        )
+
+        return primary_match or alt_match
 
     def process(self, context, backend_auth):
         self.app.logger.debug("Begin X509 plugin processing")

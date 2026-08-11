@@ -10,3 +10,4 @@ turnpike/saml/
 local/
 .claude/
 sova.toml
+.sova/

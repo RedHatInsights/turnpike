@@ -76,6 +76,6 @@ scripts/                   # Dev convenience scripts
 2. **Tests must run from the repo root** -- nginx builder tests use relative `sys.path` appends.
 3. **Auth predicates use `safe_eval()`** -- SAML, X.509, and registry rules are Python expressions from YAML config, validated against an AST allowlist and executed with restricted builtins. Unsafe expressions fail closed (return `False`).
 4. **OIDC issuer vs host URL** -- `issuer` (for JWT `iss` validation) excludes port; `host` (for HTTP calls) includes it.
-5. **No timeout on OIDC HTTP calls** -- known gap; all new outbound calls must include explicit `timeout=`.
+5. **OIDC HTTP call timeout** -- controlled by `OIDC_REQUEST_TIMEOUT` env var (default 10s). All outbound calls must include explicit `timeout=`.
 6. **`/auth/` endpoint returns empty bodies** -- nginx ignores `auth_request` response bodies. Never put error details in `policy_view` responses.
 7. **Backend list is scanned linearly** -- route matching and name lookup iterate all backends. Fine at current scale (tens of backends).

@@ -21,10 +21,10 @@ No plugin implements retries. When an outbound call fails (connection error, une
 | Integration point | Timeout | Source |
 |---|---|---|
 | Registry service POST | `REGISTRY_SERVICE_TIMEOUT` env var, default **10s** | `registry.py` constructor |
-| OIDC well-known / JWKS GET | **None set** (uses `requests` default, which is unlimited) | `oidc.py` |
+| OIDC well-known / JWKS GET | `OIDC_REQUEST_TIMEOUT` env var, default **10s** | `oidc.py` constructor |
 | Nginx upstream proxy | `timeout` per backend YAML entry, default **60s** | `build_config.py` `NGINX_DEFAULT_TIMEOUT` |
 
-When adding a new outbound call, always pass an explicit `timeout=` to `requests`. The OIDC plugin's omission of a timeout is a known gap, not a pattern to follow.
+When adding a new outbound call, always pass an explicit `timeout=` to `requests`. Both the OIDC and Registry plugins use `timeout=self.request_timeout` -- follow this pattern.
 
 ### 4. Error handling: set `context.status_code`, never raise
 
@@ -85,7 +85,7 @@ Nginx terminates inbound client TLS and populates `x-rh-certauth-cn` / `x-rh-cer
 
 ### 10. Two-step JWKS fetch: well-known then jwks_uri
 
-The OIDC plugin first GETs `{host}/.well-known/openid-configuration`, extracts `jwks_uri` from the JSON response, then GETs that URI. Both calls use `requests.get()` with no timeout (see rule 3). The combined result is cached as a single key.
+The OIDC plugin first GETs `{host}/.well-known/openid-configuration`, extracts `jwks_uri` from the JSON response, then GETs that URI. Both calls use `requests.get()` with `timeout=self.request_timeout` (configured via `OIDC_REQUEST_TIMEOUT`, default 10s). The combined result is cached as a single key.
 
 ### 11. Issuer URL excludes port; host URL includes port
 

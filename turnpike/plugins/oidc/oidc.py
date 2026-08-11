@@ -35,6 +35,8 @@ class OIDCAuthPlugin(TurnpikeAuthPlugin):
         sso_oidc_realm = app.config["SSO_OIDC_REALM"]
         sso_oidc_scheme = app.config["SSO_OIDC_PROTOCOL_SCHEME"]
 
+        self.request_timeout = int(app.config.get("OIDC_REQUEST_TIMEOUT", 10))
+
         # The host contains the URL including the port...
         self.host = f"{sso_oidc_scheme}://{sso_oidc_host}:{sso_oidc_port}/auth/realms/{sso_oidc_realm}"
         # ... but the issuer does not. We need to make this distinction so that when validating the token, the issuer
@@ -47,7 +49,7 @@ class OIDCAuthPlugin(TurnpikeAuthPlugin):
         jwks_certificates = cache.get("oidc_jwks_response")
         if not jwks_certificates:
             try:
-                oidc_response: Response = requests.get(url=self.oidc_configuration_url)
+                oidc_response: Response = requests.get(url=self.oidc_configuration_url, timeout=self.request_timeout)
             except Exception as e:
                 raise UnableCreateKeysetError(f"Unable to fetch the OIDC configuration to validate the token: {e}")
 
@@ -66,7 +68,7 @@ class OIDCAuthPlugin(TurnpikeAuthPlugin):
                 )
 
             try:
-                jwks_certificates_response: Response = requests.get(url=jwks_uri)
+                jwks_certificates_response: Response = requests.get(url=jwks_uri, timeout=self.request_timeout)
             except Exception as e:
                 raise UnableCreateKeysetError(f"Unable to fetch the JWKS certificates from OIDC: {e}")
 

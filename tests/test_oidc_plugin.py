@@ -966,5 +966,135 @@ class TestMatchingBackends(TestCase):
             self.assertEqual(2, get.call_count)
 
 
+class TestOIDCAuthDebugGating(TestCase):
+    """Tests that sensitive OIDC debug logs are suppressed when AUTH_DEBUG is off."""
+
+    def setUp(self):
+        with open("./tests/backends/test-backends.yaml") as f:
+            test_config = {
+                "APP_NAME": uuid.uuid4().__str__(),
+                "AUTH_DEBUG": False,
+                "AUTH_PLUGIN_CHAIN": [
+                    "turnpike.plugins.x509.X509AuthPlugin",
+                    "turnpike.plugins.saml.SAMLAuthPlugin",
+                ],
+                "BACKENDS": yaml.safe_load(f),
+                "CACHE_TYPE": "SimpleCache",
+                "DEFAULT_RESPONSE_CODE": http.HTTPStatus.INTERNAL_SERVER_ERROR,
+                "HEADER_CERTAUTH_SUBJECT": "subject",
+                "HEADER_CERTAUTH_ISSUER": "issuer",
+                "HEADER_CERTAUTH_PSK": "test-psk",
+                "LOG_LEVEL": "DEBUG",
+                "SSO_OIDC_HOST": "localhost",
+                "SSO_OIDC_PORT": "443",
+                "SSO_OIDC_PROTOCOL_SCHEME": "https",
+                "SSO_OIDC_REALM": "realm",
+                "PLUGIN_CHAIN": ["tests.mocked_plugins.mocked_plugin.MockPlugin"],
+                "SECRET_KEY": "12345",
+                "TESTING": True,
+            }
+
+        self.app = create_app(test_config)
+        self.oidc_jwt_plugin = OIDCAuthPlugin(self.app)
+
+    def _find_jwt_backend(self):
+        for backend in self.app.config["BACKENDS"]:
+            if backend["name"] == "notifications-general":
+                return backend
+        raise Exception("unable to find the mocked backend")
+
+    def test_unauthorized_client_id_suppressed(self):
+        """Client ID must not appear in logs when AUTH_DEBUG is off."""
+        backend = self._find_jwt_backend()["auth"]
+        context = mock.Mock
+        get_jwks_keyset = mock.Mock
+
+        token = mock.Mock
+        token.claims = {"clientId": "ca31f4cd-3613-11f0-8b6e-083a885cd988"}
+
+        jwt_decode = mock.Mock
+        jwt_decode.return_value = token
+
+        request = mock.Mock
+        request.headers = {"Authorization": "Bearer abcde"}
+
+        with (
+            mock.patch("turnpike.plugins.oidc.oidc.request", request),
+            mock.patch("turnpike.plugins.oidc.oidc.OIDCAuthPlugin._get_jwks_keyset", get_jwks_keyset),
+            mock.patch("turnpike.plugins.oidc.oidc.jwt.decode", jwt_decode),
+        ):
+            with self.assertLogs(self.app.logger, level="DEBUG") as cm:
+                self.app.logger.debug("sentinel")
+                self.oidc_jwt_plugin.process(context=context, backend_auth=backend)
+
+        messages = " ".join(cm.output)
+        self.assertNotIn("The client ID", messages)
+        self.assertEqual(http.HTTPStatus.UNAUTHORIZED, context.status_code)
+
+    def test_missing_scopes_suppressed(self):
+        """Scope and client ID must not appear in logs when AUTH_DEBUG is off."""
+        backend = self._find_jwt_backend()["auth"]
+        context = mock.Mock
+        get_jwks_keyset = mock.Mock
+
+        token = mock.Mock
+        token.claims = {"clientId": "721d25ca-3614-11f0-9fb6-083a885cd988"}
+
+        jwt_decode = mock.Mock
+        jwt_decode.return_value = token
+
+        request = mock.Mock
+        request.headers = {"Authorization": "Bearer abcde"}
+
+        with (
+            mock.patch("turnpike.plugins.oidc.oidc.request", request),
+            mock.patch("turnpike.plugins.oidc.oidc.OIDCAuthPlugin._get_jwks_keyset", get_jwks_keyset),
+            mock.patch("turnpike.plugins.oidc.oidc.jwt.decode", jwt_decode),
+        ):
+            with self.assertLogs(self.app.logger, level="DEBUG") as cm:
+                self.app.logger.debug("sentinel")
+                self.oidc_jwt_plugin.process(context=context, backend_auth=backend)
+
+        messages = " ".join(cm.output)
+        self.assertNotIn("expected scope", messages)
+        self.assertEqual(http.HTTPStatus.UNAUTHORIZED, context.status_code)
+
+    def test_invalid_claims_suppressed(self):
+        """Invalid claims with client ID must not appear in logs when AUTH_DEBUG is off."""
+        from datetime import datetime, timedelta
+
+        backend = self._find_jwt_backend()["auth"]
+        context = mock.Mock
+        get_jwks_keyset = mock.Mock
+
+        token = mock.Mock
+        yesterday = datetime.today() - timedelta(days=1)
+        token.claims = {
+            "clientId": "721d25ca-3614-11f0-9fb6-083a885cd988",
+            "exp": yesterday.timestamp(),
+            "iss": self.oidc_jwt_plugin.issuer,
+            "scope": "scope_a scope_b",
+        }
+
+        jwt_decode = mock.Mock
+        jwt_decode.return_value = token
+
+        request = mock.Mock
+        request.headers = {"Authorization": "Bearer abcde"}
+
+        with (
+            mock.patch("turnpike.plugins.oidc.oidc.request", request),
+            mock.patch("turnpike.plugins.oidc.oidc.OIDCAuthPlugin._get_jwks_keyset", get_jwks_keyset),
+            mock.patch("turnpike.plugins.oidc.oidc.jwt.decode", jwt_decode),
+        ):
+            with self.assertLogs(self.app.logger, level="DEBUG") as cm:
+                self.app.logger.debug("sentinel")
+                self.oidc_jwt_plugin.process(context=context, backend_auth=backend)
+
+        messages = " ".join(cm.output)
+        self.assertNotIn("The claims for the token", messages)
+        self.assertEqual(http.HTTPStatus.UNAUTHORIZED, context.status_code)
+
+
 if __name__ == "__main__":
     unittest.main()

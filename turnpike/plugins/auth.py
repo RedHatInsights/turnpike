@@ -34,7 +34,8 @@ class AuthPlugin(TurnpikePlugin):
             context = auth_plugin.process(context, backend_auth)
             if context.auth or context.status_code:
                 # The auth plugin authenticated the user or wants to return immediately
-                current_app.logger.debug(f"Auth complete: {context}")
+                if current_app.config["AUTH_DEBUG"]:
+                    current_app.logger.debug(f"Auth complete: {context}")
                 return context
 
         # If we get here, no plugin reported successful authentication.

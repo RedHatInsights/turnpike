@@ -157,9 +157,10 @@ class OIDCAuthPlugin(TurnpikeAuthPlugin):
                 break
 
         if not target_sa:
-            self.app.logger.debug(
-                f'The client ID "{token_client_id}" from the JWT is not present in the authorized service accounts for the back end'
-            )
+            if self.app.config["AUTH_DEBUG"]:
+                self.app.logger.debug(
+                    f'The client ID "{token_client_id}" from the JWT is not present in the authorized service accounts for the back end'
+                )
 
             context.status_code = http.HTTPStatus.UNAUTHORIZED
             return context
@@ -180,9 +181,10 @@ class OIDCAuthPlugin(TurnpikeAuthPlugin):
         if expected_scopes:
             for expected_scope in expected_scopes:
                 if expected_scope not in token_scopes:
-                    self.app.logger.debug(
-                        f'The request is denied because the expected scope "{expected_scope}" was not found in the incoming token\'s scopes "{token_scopes}" with client id "{token_client_id}'
-                    )
+                    if self.app.config["AUTH_DEBUG"]:
+                        self.app.logger.debug(
+                            f'The request is denied because the expected scope "{expected_scope}" was not found in the incoming token\'s scopes "{token_scopes}" with client id "{token_client_id}'
+                        )
 
                     context.status_code = http.HTTPStatus.UNAUTHORIZED
                     return context
@@ -194,7 +196,8 @@ class OIDCAuthPlugin(TurnpikeAuthPlugin):
             )
             claim_requests.validate(token.claims)
         except Exception as e:
-            self.app.logger.debug(f'The claims for the token with client ID "{token_client_id}" are invalid: {e}')
+            if self.app.config["AUTH_DEBUG"]:
+                self.app.logger.debug(f'The claims for the token with client ID "{token_client_id}" are invalid: {e}')
 
             context.status_code = http.HTTPStatus.UNAUTHORIZED
             return context

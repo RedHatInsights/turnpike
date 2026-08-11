@@ -67,12 +67,11 @@ Only two plugins make outbound HTTP requests during policy evaluation:
 
 | Plugin | Target | Timeout | Caching |
 |--------|--------|---------|---------|
-| `OIDCAuthPlugin` | SSO OIDC config + JWKS endpoint | **None set** (uses `requests` default) | 24h for JWKS |
+| `OIDCAuthPlugin` | SSO OIDC config + JWKS endpoint | `OIDC_REQUEST_TIMEOUT` (default 10s) | 24h for JWKS |
 | `RegistryAuthPlugin` | Registry service (mTLS) | `REGISTRY_SERVICE_TIMEOUT` (default 10s) | 5min per credential |
 
 Rules:
-- **Always set `timeout=` on `requests.get()` and `requests.post()` calls.** The OIDC plugin currently omits explicit timeouts on its HTTP calls. New plugins must not repeat this -- always pass a `timeout` parameter.
-- The Registry plugin correctly uses `timeout=self.request_timeout`. Follow this pattern for any new external calls.
+- **Always set `timeout=` on `requests.get()` and `requests.post()` calls.** Both the OIDC and Registry plugins use `timeout=self.request_timeout`. Follow this pattern for any new external calls.
 - Wrap all outbound calls in try/except. The OIDC plugin wraps all network and parsing failures into `UnableCreateKeysetError` inside `_get_jwks_keyset()`, then catches that domain exception in `process()` and returns 500. The Registry plugin catches `Exception` directly inline and returns 401. Either approach is acceptable; the critical requirement is that no exception escapes `process()`.
 
 ## Nginx Timeout and Buffering

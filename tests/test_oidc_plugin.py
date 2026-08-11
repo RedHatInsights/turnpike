@@ -59,7 +59,7 @@ class TestMatchingBackends(TestCase):
 
         raise Exception("unable to find the mocked backend")
 
-    def _requests_get_side_effect_success(self, url: str) -> mock.Mock:
+    def _requests_get_side_effect_success(self, url: str, **kwargs) -> mock.Mock:
         """Returns a successful mocked response."""
         if url == self.oidc_jwt_plugin.oidc_configuration_url:
             return mock.Mock(
@@ -72,11 +72,11 @@ class TestMatchingBackends(TestCase):
                 json=lambda: {"certificate": "random-certificate"},
             )
 
-    def _requests_side_effect_raise_exception(self, _: str) -> Exception:
+    def _requests_side_effect_raise_exception(self, _: str, **kwargs) -> Exception:
         """A side effect that raises an exception."""
         raise Exception("Connection error")
 
-    def _requests_side_effect_oidc_unexpected_status_code(self, url: str) -> Response:
+    def _requests_side_effect_oidc_unexpected_status_code(self, url: str, **kwargs) -> Response:
         """A side effect that returns a non-ok status code when attempting to fetch the OIDC configuration."""
         if url == self.oidc_jwt_plugin.oidc_configuration_url:
             response = mock.Mock(status_code=HTTPStatus.BAD_REQUEST)
@@ -88,7 +88,7 @@ class TestMatchingBackends(TestCase):
 
         return mock.Mock()
 
-    def _requests_side_effect_missing_jwks_uri(self, url: str) -> Response:
+    def _requests_side_effect_missing_jwks_uri(self, url: str, **kwargs) -> Response:
         """A side effect that returns an OK OIDC response but with the 'jwks_uri' field missing."""
         if url == self.oidc_jwt_plugin.oidc_configuration_url:
             return mock.Mock(
@@ -98,7 +98,7 @@ class TestMatchingBackends(TestCase):
 
         return mock.Mock()
 
-    def _requests_side_effect_jwks_fetch_error(self, url: str) -> mock.Mock:
+    def _requests_side_effect_jwks_fetch_error(self, url: str, **kwargs) -> mock.Mock:
         """A side effect that simulates an error when fetching the JWKS certificates."""
         if url == self.oidc_jwt_plugin.oidc_configuration_url:
             return mock.Mock(
@@ -108,7 +108,7 @@ class TestMatchingBackends(TestCase):
         else:
             raise Exception("Unable to fetch JWKS certificates")
 
-    def _requests_side_effect_jwks_unexpected_status_code(self, url: str) -> mock.Mock:
+    def _requests_side_effect_jwks_unexpected_status_code(self, url: str, **kwargs) -> mock.Mock:
         """A side effect that simulates an unexpected status code when fetching the JWKS certificates."""
         if url == self.oidc_jwt_plugin.oidc_configuration_url:
             return mock.Mock(
@@ -845,6 +845,76 @@ class TestMatchingBackends(TestCase):
                 auth_data["scopes"],
                 "the scopes should be part of the resulting authentication data",
             )
+
+    def test_requests_get_passes_timeout(self):
+        """Tests that both requests.get calls pass the configured OIDC_REQUEST_TIMEOUT."""
+        backend = self._find_jwt_backend()["auth"]
+        context = mock.Mock
+        request = mock.Mock
+        request.headers = {"Authorization": "Bearer abcde"}
+
+        get = mock.Mock(side_effect=self._requests_get_side_effect_success)
+        import_key_set = mock.Mock
+
+        token = mock.Mock
+        tomorrow = datetime.today() + timedelta(days=1)
+        token.claims = {
+            "clientId": "721d25ca-3614-11f0-9fb6-083a885cd988",
+            "exp": tomorrow.timestamp(),
+            "iss": self.oidc_jwt_plugin.issuer,
+            "scope": "scope_a scope_b scope_c scope_d scope_e",
+        }
+
+        jwt_decode = mock.Mock
+        jwt_decode.return_value = token
+
+        with (
+            mock.patch("turnpike.plugins.oidc.oidc.request", request),
+            mock.patch("turnpike.plugins.oidc.oidc.requests.get", get),
+            mock.patch("turnpike.plugins.oidc.oidc.KeySet.import_key_set", import_key_set),
+            mock.patch("turnpike.plugins.oidc.oidc.jwt.decode", jwt_decode),
+        ):
+            self.oidc_jwt_plugin.process(context=context, backend_auth=backend)
+
+            self.assertEqual(2, get.call_count)
+            for call in get.call_args_list:
+                self.assertEqual(call.kwargs["timeout"], 10)
+
+    def test_requests_get_passes_custom_timeout(self):
+        """Tests that a custom OIDC_REQUEST_TIMEOUT value is passed to requests.get calls."""
+        backend = self._find_jwt_backend()["auth"]
+        context = mock.Mock
+        request = mock.Mock
+        request.headers = {"Authorization": "Bearer abcde"}
+
+        get = mock.Mock(side_effect=self._requests_get_side_effect_success)
+        import_key_set = mock.Mock
+
+        token = mock.Mock
+        tomorrow = datetime.today() + timedelta(days=1)
+        token.claims = {
+            "clientId": "721d25ca-3614-11f0-9fb6-083a885cd988",
+            "exp": tomorrow.timestamp(),
+            "iss": self.oidc_jwt_plugin.issuer,
+            "scope": "scope_a scope_b scope_c scope_d scope_e",
+        }
+
+        jwt_decode = mock.Mock
+        jwt_decode.return_value = token
+
+        self.oidc_jwt_plugin.request_timeout = 30
+
+        with (
+            mock.patch("turnpike.plugins.oidc.oidc.request", request),
+            mock.patch("turnpike.plugins.oidc.oidc.requests.get", get),
+            mock.patch("turnpike.plugins.oidc.oidc.KeySet.import_key_set", import_key_set),
+            mock.patch("turnpike.plugins.oidc.oidc.jwt.decode", jwt_decode),
+        ):
+            self.oidc_jwt_plugin.process(context=context, backend_auth=backend)
+
+            self.assertEqual(2, get.call_count)
+            for call in get.call_args_list:
+                self.assertEqual(call.kwargs["timeout"], 30)
 
     def test_oidc_requests_get_cached(self):
         """Tests that we only call the IT services once to retrieve the JWKS certificates."""

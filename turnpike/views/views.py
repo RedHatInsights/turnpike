@@ -5,6 +5,7 @@ from flask import current_app, jsonify, request, make_response
 
 from turnpike.metrics import Metrics
 from turnpike.plugin import PolicyContext
+from turnpike.security_logging import log_security_event
 
 
 def policy_view():
@@ -39,10 +40,34 @@ def policy_view():
         if context.status_code:
             current_app.logger.debug(f"Plugin set status code {context.status_code}.")
             Metrics.request_count.labels(context.backend["name"], context.status_code).inc()
+            if context.auth:
+                auth_plugin = context.auth.get("auth_plugin")
+                log_security_event(
+                    "AUTH_DECISION",
+                    principal=_extract_principal(context),
+                    status_code=context.status_code,
+                    backend=context.backend["name"],
+                    auth_method=getattr(auth_plugin, "name", "unknown"),
+                )
+            elif context.backend.get("auth"):
+                log_security_event(
+                    "AUTH_DECISION",
+                    status_code=context.status_code,
+                    backend=context.backend["name"],
+                )
             resp = make_response("", context.status_code)
             resp.headers.update(context.headers)
             return resp
     Metrics.request_count.labels(context.backend["name"], current_app.config["DEFAULT_RESPONSE_CODE"]).inc()
+    if context.auth:
+        auth_plugin = context.auth.get("auth_plugin")
+        log_security_event(
+            "AUTH_DECISION",
+            principal=_extract_principal(context),
+            status_code=current_app.config["DEFAULT_RESPONSE_CODE"],
+            backend=context.backend["name"],
+            auth_method=getattr(auth_plugin, "name", "unknown"),
+        )
     resp = make_response("", current_app.config["DEFAULT_RESPONSE_CODE"])
     resp.headers.update(context.headers)
     return resp
@@ -101,3 +126,10 @@ def match_by_route(original_url):
         return max(matches, key=lambda match: len(match["route"]))
     else:
         return None
+
+
+def _extract_principal(context):
+    if not context.auth:
+        return "unknown"
+    auth_data = context.auth.get("auth_data", {})
+    return auth_data.get("username") or auth_data.get("client_id") or auth_data.get("subject_dn") or "unknown"

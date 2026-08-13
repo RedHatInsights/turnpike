@@ -1,5 +1,4 @@
 import hmac
-import logging
 from flask import request
 
 from turnpike.safe_eval import safe_eval
@@ -67,7 +66,8 @@ class X509AuthPlugin(TurnpikeAuthPlugin):
             auth_data = dict(
                 subject_dn=request.headers[self.subject_header], issuer_dn=request.headers.get(self.issuer_header)
             )
-            self.app.logger.debug(f"X509 auth_data: {auth_data}")
+            if self.app.config["AUTH_DEBUG"]:
+                self.app.logger.debug(f"X509 auth_data: {auth_data}")
             context.auth = dict(auth_data=auth_data, auth_plugin=self)
             predicate = backend_auth["x509"]
             authorized = safe_eval(predicate, dict(x509=auth_data), backend_name=context.backend.get("name"))

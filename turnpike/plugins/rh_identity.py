@@ -21,7 +21,8 @@ class RHIdentityPlugin(TurnpikePlugin):
                     **{identity_type.lower(): auth_data},
                 )
             )
-            current_app.logger.debug(f"Identity header content: {header_data}")
+            if current_app.config["AUTH_DEBUG"]:
+                current_app.logger.debug(f"Identity header content: {header_data}")
             context.headers["X-RH-Identity"] = (
                 base64.encodebytes(json.dumps(header_data).encode("utf8")).decode("utf-8").replace("\n", "")
             )

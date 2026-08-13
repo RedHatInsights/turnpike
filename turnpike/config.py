@@ -88,7 +88,7 @@ AUTH_PLUGIN_CHAIN = [
     "turnpike.plugins.x509.X509AuthPlugin",
 ]
 
-AUTH_DEBUG = os.environ.get("AUTH_DEBUG", False)
+AUTH_DEBUG = os.environ.get("AUTH_DEBUG", "").lower() == "true"
 
 DEFAULT_RESPONSE_CODE = 200
 

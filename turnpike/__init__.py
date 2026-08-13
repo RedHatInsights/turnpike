@@ -28,12 +28,9 @@ def _resolve_log_level(config):
         level = getattr(logging, log_level_str.upper(), None)
         if isinstance(level, int):
             return log_level_str.upper()
-        warnings.warn(f"Invalid LOG_LEVEL '{log_level_str}', falling back to WEB_ENV-based default")
+        warnings.warn(f"Invalid LOG_LEVEL '{log_level_str}', falling back to INFO")
 
-    web_env = (config.get("WEB_ENV") if config else None) or os.environ.get("WEB_ENV", "dev")
-    if web_env.casefold() != "dev":
-        return "INFO"
-    return "DEBUG"
+    return "INFO"
 
 
 def create_app(test_config=None):

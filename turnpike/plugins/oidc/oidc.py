@@ -75,7 +75,7 @@ class OIDCAuthPlugin(TurnpikeAuthPlugin):
 
             if not jwks_certificates_response.ok:
                 raise UnableCreateKeysetError(
-                    f"Unexpected status code received when fetching JWKS certificates: {oidc_response.status_code}. Response body: {oidc_response.content.decode()}"
+                    f"Unexpected status code received when fetching JWKS certificates: {jwks_certificates_response.status_code}. Response body: {jwks_certificates_response.content.decode()}"
                 )
 
             jwks_certificates = jwks_certificates_response.json()

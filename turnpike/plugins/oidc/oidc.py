@@ -134,8 +134,10 @@ class OIDCAuthPlugin(TurnpikeAuthPlugin):
         # set other than the one we are expecting, a decoding error will be raised.
         try:
             token: Token = jwt.decode(value=bearer_token.removeprefix("Bearer "), key=key_set)
-        except Exception as e:
-            self.app.logger.warning("Unable to decode token: %s", str(e))
+        except Exception:
+            self.app.logger.warning("Unable to decode the incoming JWT")
+            if self.app.config["AUTH_DEBUG"]:
+                self.app.logger.debug("JWT decode failure details", exc_info=True)
             log_security_event("AUTH_FAILURE", auth_method="oidc", reason="token_decode_error")
 
             context.status_code = http.HTTPStatus.UNAUTHORIZED
@@ -163,7 +165,7 @@ class OIDCAuthPlugin(TurnpikeAuthPlugin):
         if not target_sa:
             if self.app.config["AUTH_DEBUG"]:
                 self.app.logger.debug(
-                    f'The client ID "{token_client_id}" from the JWT is not present in the authorized service accounts for the back end'
+                    f"Token client ID not authorized (backend has {len(service_accounts)} authorized service accounts)"
                 )
             log_security_event(
                 "AUTH_FAILURE", principal=token_client_id, auth_method="oidc", reason="unknown_client_id"
@@ -189,9 +191,7 @@ class OIDCAuthPlugin(TurnpikeAuthPlugin):
             for expected_scope in expected_scopes:
                 if expected_scope not in token_scopes:
                     if self.app.config["AUTH_DEBUG"]:
-                        self.app.logger.debug(
-                            f'The request is denied because the expected scope "{expected_scope}" was not found in the incoming token\'s scopes "{token_scopes}" with client id "{token_client_id}'
-                        )
+                        self.app.logger.debug("Request denied: a required scope is not present in the token")
                     log_security_event(
                         "AUTH_FAILURE", principal=token_client_id, auth_method="oidc", reason="missing_scope"
                     )
@@ -205,9 +205,9 @@ class OIDCAuthPlugin(TurnpikeAuthPlugin):
                 iss={"essential": True, "value": self.issuer},
             )
             claim_requests.validate(token.claims)
-        except Exception as e:
+        except Exception:
             if self.app.config["AUTH_DEBUG"]:
-                self.app.logger.debug(f'The claims for the token with client ID "{token_client_id}" are invalid: {e}')
+                self.app.logger.debug("JWT claims validation failed", exc_info=True)
             log_security_event("AUTH_FAILURE", principal=token_client_id, auth_method="oidc", reason="invalid_claims")
 
             context.status_code = http.HTTPStatus.UNAUTHORIZED

@@ -3,9 +3,9 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-_ALLOWED_NAMES = frozenset({"set", "len", "str", "int"})
+_ALLOWED_NAMES = frozenset({"set", "len", "str", "int", "any", "all"})
 
-_ALLOWED_BUILTINS = {"set": set, "len": len, "str": str, "int": int}
+_ALLOWED_BUILTINS = {"set": set, "len": len, "str": str, "int": int, "any": any, "all": all}
 
 _ALLOWED_BINOPS = (
     ast.Add,

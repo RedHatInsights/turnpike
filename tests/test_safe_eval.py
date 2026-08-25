@@ -55,6 +55,30 @@ class TestSafeEvalAllowedPatterns(unittest.TestCase):
         result = safe_eval('len(user["roles"]) > 0', dict(user={"roles": ["admin"]}))
         self.assertTrue(result)
 
+    def test_any_true(self):
+        result = safe_eval("any([False, True, False])", {})
+        self.assertTrue(result)
+
+    def test_any_false(self):
+        result = safe_eval("any([False, False])", {})
+        self.assertFalse(result)
+
+    def test_any_empty(self):
+        result = safe_eval("any([])", {})
+        self.assertFalse(result)
+
+    def test_all_true(self):
+        result = safe_eval("all([True, True, True])", {})
+        self.assertTrue(result)
+
+    def test_all_false(self):
+        result = safe_eval("all([True, False, True])", {})
+        self.assertFalse(result)
+
+    def test_all_empty(self):
+        result = safe_eval("all([])", {})
+        self.assertTrue(result)
+
     def test_in_operator(self):
         result = safe_eval('"admin" in user["roles"]', dict(user={"roles": ["admin", "viewer"]}))
         self.assertTrue(result)

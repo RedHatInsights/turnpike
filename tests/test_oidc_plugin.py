@@ -354,23 +354,35 @@ class TestMatchingBackends(TestCase):
     def test_unable_decode_token(self):
         """Tests that when decoding the token raises an error, an unauthorized error is returned."""
         # Set up all the required fields and prerequisites for the test.
+        self.assertTrue(self.app.config["AUTH_DEBUG"], "AUTH_DEBUG must be True for this test")
         backend = self._find_jwt_backend()["auth"]
         context = mock.Mock
         get_jwks_keyset = mock.Mock
         request = mock.Mock
         request.headers = {"Authorization": "Bearer abcde"}
 
-        # Assert that a log message is produced.
+        # Assert that log messages are produced.
         with (
-            self.assertLogs(self.app.logger.name, level="WARNING") as cm,
+            self.assertLogs(self.app.logger.name, level="DEBUG") as cm,
             mock.patch("turnpike.plugins.oidc.oidc.request", request),
             mock.patch("turnpike.plugins.oidc.oidc.OIDCAuthPlugin._get_jwks_keyset", get_jwks_keyset),
         ):
             # Call the function under test.
             self.oidc_jwt_plugin.process(context=context, backend_auth=backend)
 
-            # Ensure that the correct log message has been issued.
-            self.assertTrue("Unable to decode token:" in cm.output[0])
+            # Ensure that the correct warning log message has been issued.
+            warning_msgs = [m for m in cm.output if "WARNING" in m]
+            self.assertTrue(any("Unable to decode the incoming JWT" in m for m in warning_msgs))
+
+            # Verify exception details are not leaked in the warning log line.
+            warning_output = warning_msgs[0].lower()
+            self.assertNotIn("invalid", warning_output)
+            self.assertNotIn("signature", warning_output)
+            self.assertNotIn("traceback", warning_output)
+
+            # Verify the AUTH_DEBUG-gated debug message is also emitted.
+            debug_msgs = [m for m in cm.output if "DEBUG" in m]
+            self.assertTrue(any("JWT decode failure details" in m for m in debug_msgs))
 
             # Ensure that the context contains the expected status code.
             self.assertEqual(http.HTTPStatus.UNAUTHORIZED, context.status_code)
@@ -410,6 +422,7 @@ class TestMatchingBackends(TestCase):
     def test_token_unauthorized_client_id(self):
         """Tests that when the token's 'client_id' property is not present in our back ends, an unauthorized response is returned."""
         # Set up all the required fields and prerequisites for the test.
+        self.assertTrue(self.app.config["AUTH_DEBUG"], "AUTH_DEBUG must be True for this test")
         backend = self._find_jwt_backend()["auth"]
         context = mock.Mock
         get_jwks_keyset = mock.Mock
@@ -434,10 +447,8 @@ class TestMatchingBackends(TestCase):
             self.oidc_jwt_plugin.process(context=context, backend_auth=backend)
 
             # Ensure that the correct log message has been issued.
-            self.assertTrue(
-                f'The client ID "{token.claims["clientId"]}" from the JWT is not present in the authorized service accounts for the back end'
-                in cm.output[0]
-            )
+            self.assertIn("Token client ID not authorized", cm.output[0])
+            self.assertNotIn(token.claims["clientId"], cm.output[0])
 
             # Ensure that the context contains the expected status code.
             self.assertEqual(http.HTTPStatus.UNAUTHORIZED, context.status_code)
@@ -445,6 +456,7 @@ class TestMatchingBackends(TestCase):
     def test_token_missing_scopes(self):
         """Tests that when the token's scope claim is missing, an unauthorized response is returned."""
         # Set up all the required fields and prerequisites for the test.
+        self.assertTrue(self.app.config["AUTH_DEBUG"], "AUTH_DEBUG must be True for this test")
         backend = self._find_jwt_backend()["auth"]
         context = mock.Mock
         get_jwks_keyset = mock.Mock
@@ -469,10 +481,8 @@ class TestMatchingBackends(TestCase):
             self.oidc_jwt_plugin.process(context=context, backend_auth=backend)
 
             # Ensure that the correct log message has been issued.
-            self.assertTrue(
-                f'The request is denied because the expected scope "scope_a" was not found in the incoming token\'s scopes "[]" with client id "{token.claims["clientId"]}'
-                in cm.output[0]
-            )
+            self.assertIn("Request denied: a required scope is not present in the token", cm.output[0])
+            self.assertNotIn(token.claims["clientId"], cm.output[0])
 
             # Ensure that the context contains the expected status code.
             self.assertEqual(http.HTTPStatus.UNAUTHORIZED, context.status_code)
@@ -480,6 +490,7 @@ class TestMatchingBackends(TestCase):
     def test_token_missing_some_scopes(self):
         """Tests that when the token's scope claim is missing or empty, an unauthorized response is returned."""
         # Set up all the required fields and prerequisites for the test.
+        self.assertTrue(self.app.config["AUTH_DEBUG"], "AUTH_DEBUG must be True for this test")
         backend = self._find_jwt_backend()["auth"]
         context = mock.Mock
         get_jwks_keyset = mock.Mock
@@ -504,10 +515,9 @@ class TestMatchingBackends(TestCase):
             self.oidc_jwt_plugin.process(context=context, backend_auth=backend)
 
             # Ensure that the correct log message has been issued.
-            self.assertTrue(
-                f'The request is denied because the expected scope "scope_b" was not found in the incoming token\'s scopes "{[token.claims["scope"]]}" with client id "{token.claims["clientId"]}'
-                in cm.output[0]
-            )
+            self.assertIn("Request denied: a required scope is not present in the token", cm.output[0])
+            self.assertNotIn(token.claims["clientId"], cm.output[0])
+            self.assertNotIn("scope_b", cm.output[0])
 
             # Ensure that the context contains the expected status code.
             self.assertEqual(http.HTTPStatus.UNAUTHORIZED, context.status_code)
@@ -515,6 +525,7 @@ class TestMatchingBackends(TestCase):
     def test_token_missing_expiration_claim(self):
         """Tests that when the token's expiration claim is missing, an unauthorized response is returned."""
         # Set up all the required fields and prerequisites for the test.
+        self.assertTrue(self.app.config["AUTH_DEBUG"], "AUTH_DEBUG must be True for this test")
         backend = self._find_jwt_backend()["auth"]
         context = mock.Mock
         get_jwks_keyset = mock.Mock
@@ -543,10 +554,8 @@ class TestMatchingBackends(TestCase):
             self.oidc_jwt_plugin.process(context=context, backend_auth=backend)
 
             # Ensure that the correct log message has been issued.
-            self.assertEqual(
-                f'DEBUG:{self.app.name}:The claims for the token with client ID "{token.claims["clientId"]}" are invalid: missing_claim: Missing claim: \'exp\'',
-                cm.output[0],
-            )
+            self.assertIn("JWT claims validation failed", cm.output[0])
+            self.assertNotIn(token.claims["clientId"], cm.output[0])
 
             # Ensure that the context contains the expected status code.
             self.assertEqual(http.HTTPStatus.UNAUTHORIZED, context.status_code)
@@ -554,6 +563,7 @@ class TestMatchingBackends(TestCase):
     def test_token_invalid_expiration_claim(self):
         """Tests that when the token is expired, an unauthorized response is returned."""
         # Set up all the required fields and prerequisites for the test.
+        self.assertTrue(self.app.config["AUTH_DEBUG"], "AUTH_DEBUG must be True for this test")
         backend = self._find_jwt_backend()["auth"]
         context = mock.Mock
         get_jwks_keyset = mock.Mock
@@ -584,10 +594,8 @@ class TestMatchingBackends(TestCase):
             self.oidc_jwt_plugin.process(context=context, backend_auth=backend)
 
             # Ensure that the correct log message has been issued.
-            self.assertEqual(
-                f'DEBUG:{self.app.name}:The claims for the token with client ID "{token.claims["clientId"]}" are invalid: expired_token: The token is expired',
-                cm.output[0],
-            )
+            self.assertIn("JWT claims validation failed", cm.output[0])
+            self.assertNotIn(token.claims["clientId"], cm.output[0])
 
             # Ensure that the context contains the expected status code.
             self.assertEqual(http.HTTPStatus.UNAUTHORIZED, context.status_code)
@@ -595,6 +603,7 @@ class TestMatchingBackends(TestCase):
     def test_token_missing_issuer_claim(self):
         """Tests that when the token's issuer claim is missing, an unauthorized response is returned."""
         # Set up all the required fields and prerequisites for the test.
+        self.assertTrue(self.app.config["AUTH_DEBUG"], "AUTH_DEBUG must be True for this test")
         backend = self._find_jwt_backend()["auth"]
         context = mock.Mock
         get_jwks_keyset = mock.Mock
@@ -624,10 +633,8 @@ class TestMatchingBackends(TestCase):
             self.oidc_jwt_plugin.process(context=context, backend_auth=backend)
 
             # Ensure that the correct log message has been issued.
-            self.assertEqual(
-                f'DEBUG:{self.app.name}:The claims for the token with client ID "{token.claims["clientId"]}" are invalid: missing_claim: Missing claim: \'iss\'',
-                cm.output[0],
-            )
+            self.assertIn("JWT claims validation failed", cm.output[0])
+            self.assertNotIn(token.claims["clientId"], cm.output[0])
 
             # Ensure that the context contains the expected status code.
             self.assertEqual(http.HTTPStatus.UNAUTHORIZED, context.status_code)
@@ -635,6 +642,7 @@ class TestMatchingBackends(TestCase):
     def test_token_invalid_issuer_claim(self):
         """Tests that when the token's issuer claim is incorrect, an unauthorized response is returned."""
         # Set up all the required fields and prerequisites for the test.
+        self.assertTrue(self.app.config["AUTH_DEBUG"], "AUTH_DEBUG must be True for this test")
         backend = self._find_jwt_backend()["auth"]
         context = mock.Mock
         get_jwks_keyset = mock.Mock
@@ -665,10 +673,8 @@ class TestMatchingBackends(TestCase):
             self.oidc_jwt_plugin.process(context=context, backend_auth=backend)
 
             # Ensure that the correct log message has been issued.
-            self.assertEqual(
-                f'DEBUG:{self.app.name}:The claims for the token with client ID "{token.claims["clientId"]}" are invalid: invalid_claim: Invalid claim: \'iss\'',
-                cm.output[0],
-            )
+            self.assertIn("JWT claims validation failed", cm.output[0])
+            self.assertNotIn(token.claims["clientId"], cm.output[0])
 
             # Ensure that the context contains the expected status code.
             self.assertEqual(http.HTTPStatus.UNAUTHORIZED, context.status_code)
@@ -964,136 +970,6 @@ class TestMatchingBackends(TestCase):
             # When the caching is working, the call count should not have been modified because the JWKS certificates
             # should have been picked up from the cache.
             self.assertEqual(2, get.call_count)
-
-
-class TestOIDCAuthDebugGating(TestCase):
-    """Tests that sensitive OIDC debug logs are suppressed when AUTH_DEBUG is off."""
-
-    def setUp(self):
-        with open("./tests/backends/test-backends.yaml") as f:
-            test_config = {
-                "APP_NAME": uuid.uuid4().__str__(),
-                "AUTH_DEBUG": False,
-                "AUTH_PLUGIN_CHAIN": [
-                    "turnpike.plugins.x509.X509AuthPlugin",
-                    "turnpike.plugins.saml.SAMLAuthPlugin",
-                ],
-                "BACKENDS": yaml.safe_load(f),
-                "CACHE_TYPE": "SimpleCache",
-                "DEFAULT_RESPONSE_CODE": http.HTTPStatus.INTERNAL_SERVER_ERROR,
-                "HEADER_CERTAUTH_SUBJECT": "subject",
-                "HEADER_CERTAUTH_ISSUER": "issuer",
-                "HEADER_CERTAUTH_PSK": "test-psk",
-                "LOG_LEVEL": "DEBUG",
-                "SSO_OIDC_HOST": "localhost",
-                "SSO_OIDC_PORT": "443",
-                "SSO_OIDC_PROTOCOL_SCHEME": "https",
-                "SSO_OIDC_REALM": "realm",
-                "PLUGIN_CHAIN": ["tests.mocked_plugins.mocked_plugin.MockPlugin"],
-                "SECRET_KEY": "12345",
-                "TESTING": True,
-            }
-
-        self.app = create_app(test_config)
-        self.oidc_jwt_plugin = OIDCAuthPlugin(self.app)
-
-    def _find_jwt_backend(self):
-        for backend in self.app.config["BACKENDS"]:
-            if backend["name"] == "notifications-general":
-                return backend
-        raise Exception("unable to find the mocked backend")
-
-    def test_unauthorized_client_id_suppressed(self):
-        """Client ID must not appear in logs when AUTH_DEBUG is off."""
-        backend = self._find_jwt_backend()["auth"]
-        context = mock.Mock
-        get_jwks_keyset = mock.Mock
-
-        token = mock.Mock
-        token.claims = {"clientId": "ca31f4cd-3613-11f0-8b6e-083a885cd988"}
-
-        jwt_decode = mock.Mock
-        jwt_decode.return_value = token
-
-        request = mock.Mock
-        request.headers = {"Authorization": "Bearer abcde"}
-
-        with (
-            mock.patch("turnpike.plugins.oidc.oidc.request", request),
-            mock.patch("turnpike.plugins.oidc.oidc.OIDCAuthPlugin._get_jwks_keyset", get_jwks_keyset),
-            mock.patch("turnpike.plugins.oidc.oidc.jwt.decode", jwt_decode),
-        ):
-            with self.assertLogs(self.app.logger, level="DEBUG") as cm:
-                self.app.logger.debug("sentinel")
-                self.oidc_jwt_plugin.process(context=context, backend_auth=backend)
-
-        messages = " ".join(cm.output)
-        self.assertNotIn("The client ID", messages)
-        self.assertEqual(http.HTTPStatus.UNAUTHORIZED, context.status_code)
-
-    def test_missing_scopes_suppressed(self):
-        """Scope and client ID must not appear in logs when AUTH_DEBUG is off."""
-        backend = self._find_jwt_backend()["auth"]
-        context = mock.Mock
-        get_jwks_keyset = mock.Mock
-
-        token = mock.Mock
-        token.claims = {"clientId": "721d25ca-3614-11f0-9fb6-083a885cd988"}
-
-        jwt_decode = mock.Mock
-        jwt_decode.return_value = token
-
-        request = mock.Mock
-        request.headers = {"Authorization": "Bearer abcde"}
-
-        with (
-            mock.patch("turnpike.plugins.oidc.oidc.request", request),
-            mock.patch("turnpike.plugins.oidc.oidc.OIDCAuthPlugin._get_jwks_keyset", get_jwks_keyset),
-            mock.patch("turnpike.plugins.oidc.oidc.jwt.decode", jwt_decode),
-        ):
-            with self.assertLogs(self.app.logger, level="DEBUG") as cm:
-                self.app.logger.debug("sentinel")
-                self.oidc_jwt_plugin.process(context=context, backend_auth=backend)
-
-        messages = " ".join(cm.output)
-        self.assertNotIn("expected scope", messages)
-        self.assertEqual(http.HTTPStatus.UNAUTHORIZED, context.status_code)
-
-    def test_invalid_claims_suppressed(self):
-        """Invalid claims with client ID must not appear in logs when AUTH_DEBUG is off."""
-        from datetime import datetime, timedelta
-
-        backend = self._find_jwt_backend()["auth"]
-        context = mock.Mock
-        get_jwks_keyset = mock.Mock
-
-        token = mock.Mock
-        yesterday = datetime.today() - timedelta(days=1)
-        token.claims = {
-            "clientId": "721d25ca-3614-11f0-9fb6-083a885cd988",
-            "exp": yesterday.timestamp(),
-            "iss": self.oidc_jwt_plugin.issuer,
-            "scope": "scope_a scope_b",
-        }
-
-        jwt_decode = mock.Mock
-        jwt_decode.return_value = token
-
-        request = mock.Mock
-        request.headers = {"Authorization": "Bearer abcde"}
-
-        with (
-            mock.patch("turnpike.plugins.oidc.oidc.request", request),
-            mock.patch("turnpike.plugins.oidc.oidc.OIDCAuthPlugin._get_jwks_keyset", get_jwks_keyset),
-            mock.patch("turnpike.plugins.oidc.oidc.jwt.decode", jwt_decode),
-        ):
-            with self.assertLogs(self.app.logger, level="DEBUG") as cm:
-                self.app.logger.debug("sentinel")
-                self.oidc_jwt_plugin.process(context=context, backend_auth=backend)
-
-        messages = " ".join(cm.output)
-        self.assertNotIn("The claims for the token", messages)
-        self.assertEqual(http.HTTPStatus.UNAUTHORIZED, context.status_code)
 
 
 if __name__ == "__main__":

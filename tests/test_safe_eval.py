@@ -122,6 +122,42 @@ class TestSafeEvalAllowedPatterns(unittest.TestCase):
         result = safe_eval('True if user["role"] == "admin" else False', dict(user={"role": "admin"}))
         self.assertTrue(result)
 
+    def test_any_generator_expression(self):
+        result = safe_eval(
+            "any(role in ['role-a', 'role-b'] for role in user['roles'])",
+            dict(user={"roles": ["role-x", "role-b"]}),
+        )
+        self.assertTrue(result)
+
+    def test_any_generator_expression_no_match(self):
+        result = safe_eval(
+            "any(role in ['role-a', 'role-b'] for role in user['roles'])",
+            dict(user={"roles": ["role-x"]}),
+        )
+        self.assertFalse(result)
+
+    def test_list_comprehension(self):
+        result = safe_eval(
+            'len([role for role in user["roles"] if role.startswith("foo")]) > 0',
+            dict(user={"roles": ["foo-1"]}),
+        )
+        self.assertTrue(result)
+
+    def test_all_generator_expression(self):
+        result = safe_eval(
+            'all(role in user["roles"] for role in ["role-a", "role-b"])',
+            dict(user={"roles": ["role-a", "role-b", "role-c"]}),
+        )
+        self.assertTrue(result)
+
+    def test_nested_comprehension(self):
+        result = safe_eval("any(x + y > 5 for x in [1, 2] for y in [3, 4])", {})
+        self.assertTrue(result)
+
+    def test_comprehension_with_tuple_unpacking(self):
+        result = safe_eval("all(a + b == 3 for (a, b) in [(1, 2), (2, 1)])", {})
+        self.assertTrue(result)
+
 
 class TestSafeEvalRejectedPatterns(unittest.TestCase):
 
@@ -173,8 +209,12 @@ class TestSafeEvalRejectedPatterns(unittest.TestCase):
         result = safe_eval("2 ** 100", {})
         self.assertFalse(result)
 
-    def test_comprehension_rejected(self):
-        result = safe_eval("[x for x in [1,2,3]]", {})
+    def test_comprehension_with_undefined_variable_rejected(self):
+        result = safe_eval("any(x == y for x in [1, 2, 3])", {})
+        self.assertFalse(result)
+
+    def test_async_comprehension_rejected(self):
+        result = safe_eval("[x async for x in y]", dict(y=[1, 2, 3]))
         self.assertFalse(result)
 
     def test_walrus_operator_rejected(self):

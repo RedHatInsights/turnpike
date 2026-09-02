@@ -150,6 +150,14 @@ class TestSafeEvalAllowedPatterns(unittest.TestCase):
         )
         self.assertTrue(result)
 
+    def test_nested_comprehension(self):
+        result = safe_eval("any(x + y > 5 for x in [1, 2] for y in [3, 4])", {})
+        self.assertTrue(result)
+
+    def test_comprehension_with_tuple_unpacking(self):
+        result = safe_eval("all(a + b == 3 for (a, b) in [(1, 2), (2, 1)])", {})
+        self.assertTrue(result)
+
 
 class TestSafeEvalRejectedPatterns(unittest.TestCase):
 
@@ -201,7 +209,7 @@ class TestSafeEvalRejectedPatterns(unittest.TestCase):
         result = safe_eval("2 ** 100", {})
         self.assertFalse(result)
 
-    def test_comprehension_target_shadowing_unknown_name_rejected(self):
+    def test_comprehension_with_undefined_variable_rejected(self):
         result = safe_eval("any(x == y for x in [1, 2, 3])", {})
         self.assertFalse(result)
 

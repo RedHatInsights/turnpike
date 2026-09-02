@@ -110,8 +110,43 @@ def _validate_node(node, variable_names):
             _validate_node(node.body, variable_names)
             _validate_node(node.orelse, variable_names)
 
+        case ast.GeneratorExp() | ast.ListComp() | ast.SetComp():
+            comp_variable_names = _validate_comprehension_generators(node.generators, variable_names)
+            _validate_node(node.elt, comp_variable_names)
+
+        case ast.DictComp():
+            comp_variable_names = _validate_comprehension_generators(node.generators, variable_names)
+            _validate_node(node.key, comp_variable_names)
+            _validate_node(node.value, comp_variable_names)
+
         case _:
             raise _UnsafeExpression(f"disallowed node type: {type(node).__name__}")
+
+
+def _validate_comprehension_generators(generators, variable_names):
+    for generator in generators:
+        if generator.is_async:
+            raise _UnsafeExpression("disallowed async comprehension")
+
+        _validate_node(generator.iter, variable_names)
+        variable_names = variable_names | _extract_target_names(generator.target)
+
+        for if_clause in generator.ifs:
+            _validate_node(if_clause, variable_names)
+
+    return variable_names
+
+
+def _extract_target_names(target):
+    if isinstance(target, ast.Name):
+        return {target.id}
+    if isinstance(target, (ast.Tuple, ast.List)):
+        names = set()
+        for elt in target.elts:
+            names |= _extract_target_names(elt)
+        return names
+
+    raise _UnsafeExpression(f"disallowed comprehension target: {type(target).__name__}")
 
 
 def _validate_attribute(node, variable_names):

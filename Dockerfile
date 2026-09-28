@@ -1,5 +1,5 @@
 # Build stage
-FROM registry.access.redhat.com/hi/python:3.12-fips-builder AS builder
+FROM registry.access.redhat.com/hi/python:3.12-fips-builder@sha256:ab6f3a3012f6df291f2d65e3d5943f41ea992de9fb0b7ad34d4a9b16a1a82e39 AS builder
 USER root
 RUN dnf install -y xmlsec1 xmlsec1-openssl openssl && dnf clean all
 WORKDIR /usr/src/app
@@ -9,7 +9,7 @@ COPY . .
 USER ${CONTAINER_DEFAULT_USER}
 
 # Runtime stage
-FROM registry.access.redhat.com/hi/python:3.12-fips
+FROM registry.access.redhat.com/hi/python:3.12-fips@sha256:9368fd9f312e5af549b1e4624bd97465bcc3247a03dd863e26307d11a950a0ff
 
 LABEL name="turnpike" \
       summary="Red Hat Insights Turnpike Authentication Gateway" \

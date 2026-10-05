@@ -1,4 +1,4 @@
-FROM registry.access.redhat.com/hi/core-runtime:2.43-openssl-fips-builder@sha256:3136b8d6f717066e04f2e85d9c320d3c3850c12bd09b5cc46f9c9702c27d469b
+FROM registry.access.redhat.com/hi/core-runtime:2.43-openssl-fips-builder@sha256:31ce0de2efeb14acfb575c65ff279e9a424ba824a95b86bcf0ca6b7a179cc0c6
 
 LABEL name="turnpike-nginx-prometheus" \
       summary="Red Hat Insights Turnpike Nginx Prometheus Exporter" \

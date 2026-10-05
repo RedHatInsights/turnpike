@@ -9,7 +9,7 @@ COPY . .
 USER ${CONTAINER_DEFAULT_USER}
 
 # Runtime stage
-FROM registry.access.redhat.com/hi/python:3.12-fips@sha256:61705c6bb5eab02aacbb908dd08ba926d627d5d110d292238e6db7c977fe77ed
+FROM registry.access.redhat.com/hi/python:3.12-fips@sha256:42c7b574c8dc8c72e6fa44464c1fea6b4748d2cab04bfd0a83ded97b5300bd91
 
 LABEL name="turnpike" \
       summary="Red Hat Insights Turnpike Authentication Gateway" \

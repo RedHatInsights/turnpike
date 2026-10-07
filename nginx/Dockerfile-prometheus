@@ -1,4 +1,4 @@
-FROM registry.access.redhat.com/hi/core-runtime:2.43-openssl-fips-builder@sha256:31ce0de2efeb14acfb575c65ff279e9a424ba824a95b86bcf0ca6b7a179cc0c6
+FROM registry.access.redhat.com/hi/core-runtime:2.43-openssl-fips-builder@sha256:c0f77bc18f67c643c0980065992563a7aceccf4d8a3c0f65588d172dffaf0cab
 
 LABEL name="turnpike-nginx-prometheus" \
       summary="Red Hat Insights Turnpike Nginx Prometheus Exporter" \
@@ -28,7 +28,7 @@ RUN curl -fsSL https://go.dev/dl/go1.26.6.linux-amd64.tar.gz | tar -C /usr/local
     git clone --branch v1.5.3 https://github.com/nginxinc/nginx-prometheus-exporter && \
     cd nginx-prometheus-exporter && \
     go mod edit \
-        -replace golang.org/x/crypto=golang.org/x/crypto@v0.55.0 && \
+        -replace golang.org/x/crypto=golang.org/x/crypto@v0.56.0 && \
     go mod tidy && \
     make && \
     chmod +x ./nginx-prometheus-exporter

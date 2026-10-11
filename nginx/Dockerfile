@@ -1,4 +1,4 @@
-FROM registry.access.redhat.com/hi/core-runtime:2.43-openssl-fips-builder@sha256:c0f77bc18f67c643c0980065992563a7aceccf4d8a3c0f65588d172dffaf0cab
+FROM registry.access.redhat.com/hi/core-runtime:2.43-openssl-fips-builder@sha256:aa6e6e73ca434523f11461345d003781c5eb853893e6e1afc05c2014c06a6418
 
 USER root
 

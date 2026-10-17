@@ -1,5 +1,5 @@
 # Build stage
-FROM registry.access.redhat.com/hi/python:3.12-fips-builder@sha256:d329003dbd3390d548e2e04de12f60dfa42d303dac7285c5e8604ed19f6d802d AS builder
+FROM registry.access.redhat.com/hi/python:3.12-fips-builder@sha256:7c90bb3e01a9176bf1b10ab32e99ecdd1b4aa544a81487000f6328df66ec18bf AS builder
 USER root
 RUN dnf install -y xmlsec1 xmlsec1-openssl openssl && dnf clean all
 WORKDIR /usr/src/app

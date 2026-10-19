@@ -23,12 +23,11 @@ RUN microdnf install -y tar gzip git-core make && \
 
 WORKDIR /
 
-RUN curl -fsSL https://go.dev/dl/go1.26.6.linux-amd64.tar.gz | tar -C /usr/local -xzf - && \
+RUN curl -fsSL https://go.dev/dl/go1.27.2.linux-amd64.tar.gz | tar -C /usr/local -xzf - && \
     export PATH=$PATH:/usr/local/go/bin && \
     git clone --branch v1.5.3 https://github.com/nginxinc/nginx-prometheus-exporter && \
     cd nginx-prometheus-exporter && \
-    go mod edit \
-        -replace golang.org/x/crypto=golang.org/x/crypto@v0.56.0 && \
+    go get golang.org/x/net@v0.60.0 golang.org/x/crypto@v0.57.0 golang.org/x/text@v0.42.0 && \
     go mod tidy && \
     make && \
     chmod +x ./nginx-prometheus-exporter

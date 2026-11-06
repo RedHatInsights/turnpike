@@ -27,7 +27,7 @@ RUN curl -fsSL https://go.dev/dl/go1.27.3.linux-amd64.tar.gz | tar -C /usr/local
     export PATH=$PATH:/usr/local/go/bin && \
     git clone --branch v1.5.3 https://github.com/nginxinc/nginx-prometheus-exporter && \
     cd nginx-prometheus-exporter && \
-    go get golang.org/x/net@v0.60.0 golang.org/x/crypto@v0.58.0 golang.org/x/text@v0.43.0 && \
+    go get golang.org/x/net@v0.62.0 golang.org/x/crypto@v0.58.1-0.20261009181718-2f1f834330b2 golang.org/x/text@v0.43.0 && \
     go mod tidy && \
     make && \
     chmod +x ./nginx-prometheus-exporter
